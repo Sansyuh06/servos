@@ -5,8 +5,8 @@ Run: python run.py
 
 
 def main():
-    from servos.app import main as app_main
-    app_main()
+    from servos.gui.main_window import main as gui_main
+    gui_main()
 
 
 if __name__ == "__main__":
