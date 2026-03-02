@@ -1,0 +1,66 @@
+name: "Ransomware Incident Triage"
+description: "Rapid triage playbook for ransomware incidents"
+version: "1.0"
+author: "Servos Team"
+
+metadata:
+  case_type: "ransomware_triage"
+  estimated_duration_minutes: 20
+  difficulty: "intermediate"
+  recommended_for: ["Incident Responders", "SOC Teams"]
+
+steps:
+  - id: "step_1"
+    name: "Isolate & Backup"
+    description: "Disconnect from network and create forensic backup"
+    actions:
+      - type: "create_backup"
+        required: true
+      - type: "verify_hash"
+
+  - id: "step_2"
+    name: "Identify Ransomware Variant"
+    description: "Check for ransomware indicators and ransom notes"
+    actions:
+      - type: "malware_scan"
+        params:
+          focus: "ransomware"
+      - type: "search_files"
+        params:
+          patterns: ["*.encrypted", "*.locked", "README*.txt", "DECRYPT*.txt", "HOW_TO_RECOVER*"]
+
+  - id: "step_3"
+    name: "Assess Encryption Scope"
+    description: "Determine how many files are affected"
+    actions:
+      - type: "analyze_filesystem"
+      - type: "entropy_analysis"
+        params:
+          threshold: 7.5
+
+  - id: "step_4"
+    name: "Extract IOCs"
+    description: "Collect Indicators of Compromise"
+    actions:
+      - type: "extract_artifacts"
+        params:
+          types: ["browser_history", "recent_files", "logs"]
+      - type: "search_patterns"
+        params:
+          patterns: ["bitcoin", "btc", "monero", "xmr", "tor", "onion"]
+
+  - id: "step_5"
+    name: "Timeline Analysis"
+    description: "Determine when encryption started"
+    actions:
+      - type: "build_timeline"
+      - type: "identify_patient_zero"
+
+  - id: "step_6"
+    name: "AI Assessment & Report"
+    description: "Generate AI-powered assessment and actionable report"
+    actions:
+      - type: "llm_interpret"
+      - type: "generate_report"
+        params:
+          formats: ["pdf", "json"]

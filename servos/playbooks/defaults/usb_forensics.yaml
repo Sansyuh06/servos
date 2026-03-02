@@ -1,0 +1,77 @@
+name: "USB Device Forensics"
+description: "Standard USB drive forensic investigation playbook"
+version: "1.0"
+author: "Servos Team"
+
+metadata:
+  case_type: "storage_analysis"
+  estimated_duration_minutes: 15
+  difficulty: "beginner"
+  recommended_for: ["IT Admins", "First Responders"]
+
+steps:
+  - id: "step_1"
+    name: "Device Detection & Validation"
+    description: "Confirm device details before proceeding"
+    actions:
+      - type: "detect_usb"
+        required: true
+      - type: "display_device_info"
+
+  - id: "step_2"
+    name: "Create Forensic Backup"
+    description: "Mandatory backup before any analysis"
+    actions:
+      - type: "create_backup"
+      - type: "verify_hash"
+        params:
+          algorithms: ["md5", "sha256"]
+    decision_point:
+      question: "Backup created. Continue with analysis?"
+      on_yes: "proceed"
+      on_no: "cancel"
+
+  - id: "step_3"
+    name: "File System Analysis"
+    description: "Enumerate and analyze all files"
+    actions:
+      - type: "analyze_filesystem"
+        params:
+          include_hidden: true
+          capture_metadata: true
+      - type: "hash_files"
+        params:
+          algorithm: "sha256"
+
+  - id: "step_4"
+    name: "Artifact Extraction"
+    description: "Extract forensically relevant artifacts"
+    actions:
+      - type: "extract_artifacts"
+        params:
+          types: ["browser_history", "recent_files", "registry", "logs"]
+
+  - id: "step_5"
+    name: "Malware Screening"
+    description: "Check for known malware signatures and indicators"
+    actions:
+      - type: "malware_scan"
+      - type: "entropy_analysis"
+        params:
+          threshold: 7.0
+
+  - id: "step_6"
+    name: "AI Analysis & Summary"
+    description: "LLM-powered interpretation of findings"
+    actions:
+      - type: "llm_interpret"
+        params:
+          context: "all_findings"
+
+  - id: "step_7"
+    name: "Report Generation"
+    description: "Generate investigation report"
+    actions:
+      - type: "generate_report"
+        params:
+          formats: ["pdf", "json", "txt"]
