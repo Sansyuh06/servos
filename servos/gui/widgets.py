@@ -1,20 +1,20 @@
 """
-Servos – Custom Widgets inspired by 21st.dev / Aceternity / Magic UI.
-Bento metric cards, terminal viewer, toast notifications, chat bubbles.
+Servos – Custom Widgets inspired by 21st.dev / Vercel / Linear.
+Refined, minimal, premium aesthetic. No "AI look".
 """
 
+import random
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
-    QGraphicsDropShadowEffect, QGraphicsOpacityEffect,
-    QSizePolicy, QPushButton,
+    QGraphicsDropShadowEffect, QSizePolicy, QPushButton,
+    QPlainTextEdit,
 )
 from PyQt6.QtCore import (
-    Qt, QTimer, QPropertyAnimation, QPoint, QEasingCurve, QSize,
-    pyqtProperty, QRect,
+    Qt, QTimer, QPoint, QPointF, QRectF, QSize,
 )
 from PyQt6.QtGui import (
     QFont, QColor, QPainter, QPen, QBrush, QLinearGradient,
-    QRadialGradient, QPainterPath,
+    QPainterPath,
 )
 
 from servos.gui.theme import (
@@ -25,88 +25,158 @@ from servos.gui.theme import (
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Bento Metric Card  (gradient glow, large metric, label)
+# Bento Metric Card  (Vercel/Linear style)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 class BentoCard(QWidget):
-    """Glassmorphic metric card with gradient border glow."""
+    """
+    Premium stat card:
+      - Top: small label + accent dot
+      - Middle: large value
+      - Bottom: mini sparkline bar
+    """
 
     def __init__(self, icon: str, value: str, label: str,
                  accent: str = CYAN, parent=None):
         super().__init__(parent)
         self.accent = accent
         self._value = value
-        self.setMinimumSize(200, 140)
+        self._label = label
+        self._icon = icon
+        self._spark_pct = 0.0  # fill percentage for mini bar
+
+        self.setMinimumSize(180, 130)
+        self.setMaximumHeight(140)
         self.setSizePolicy(QSizePolicy.Policy.Expanding,
                            QSizePolicy.Policy.Fixed)
-
-        lay = QVBoxLayout(self)
-        lay.setContentsMargins(20, 18, 20, 18)
-        lay.setSpacing(4)
-
-        # Icon row
-        ic = QLabel(icon)
-        ic.setFont(QFont("Segoe UI Emoji", 20))
-        ic.setStyleSheet("background: transparent;")
-        lay.addWidget(ic)
-
-        # Value
-        self.val_label = QLabel(value)
-        self.val_label.setFont(QFont("Segoe UI", 36, QFont.Weight.ExtraBold))
-        self.val_label.setStyleSheet(
-            f"color: {TEXT_BRIGHT}; background: transparent;")
-        lay.addWidget(self.val_label)
-
-        # Label
-        lbl = QLabel(label)
-        lbl.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
-        lbl.setStyleSheet(
-            f"color: {accent}; background: transparent; "
-            f"letter-spacing: 1.2px; text-transform: uppercase;")
-        lay.addWidget(lbl)
-
-        self.setObjectName("val")  # for findChild
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
 
     def set_value(self, v: str):
         self._value = v
-        self.val_label.setText(v)
+        # Animate the sparkline to a random-ish fill for visual interest
+        try:
+            n = int(v)
+            self._spark_pct = min(1.0, n / max(n + 2, 5))
+        except ValueError:
+            self._spark_pct = 0.5
+        self.update()
 
     def paintEvent(self, event):
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
-        r = self.rect().adjusted(1, 1, -1, -1)
+        w, h = self.width(), self.height()
+        r = QRectF(0.5, 0.5, w - 1, h - 1)
 
-        # Background
-        grad = QLinearGradient(0, 0, r.width(), r.height())
-        grad.setColorAt(0, QColor(17, 24, 39, 200))
-        grad.setColorAt(1, QColor(10, 15, 26, 220))
+        # ── Background ──
+        bg = QLinearGradient(0, 0, 0, h)
+        bg.setColorAt(0.0, QColor(20, 27, 45, 240))
+        bg.setColorAt(1.0, QColor(12, 17, 30, 250))
         path = QPainterPath()
-        path.addRoundedRect(r.x(), r.y(), r.width(), r.height(), 16, 16)
-        p.fillPath(path, QBrush(grad))
+        path.addRoundedRect(r, 14, 14)
+        p.fillPath(path, QBrush(bg))
 
-        # Border with subtle accent glow
-        accent = QColor(self.accent)
-        accent.setAlpha(50)
-        pen = QPen(accent, 1)
-        p.setPen(pen)
-        p.drawRoundedRect(r, 16, 16)
+        # ── Border ──
+        border_c = QColor(255, 255, 255, 15)
+        p.setPen(QPen(border_c, 0.8))
+        p.drawRoundedRect(r, 14, 14)
 
-        # Top-left corner glow
-        glow = QRadialGradient(30, 30, 100)
-        glow.setColorAt(0, QColor(self.accent).lighter(150))
-        glow.setColorAt(1, QColor(0, 0, 0, 0))
-        glow_color = QColor(self.accent)
-        glow_color.setAlpha(20)
-        glow.setColorAt(0, glow_color)
-        p.setBrush(QBrush(glow))
+        # ── Accent dot (top-left) ──
         p.setPen(Qt.PenStyle.NoPen)
-        p.drawEllipse(QPoint(30, 30), 80, 80)
+        dot_color = QColor(self.accent)
+        dot_color.setAlpha(200)
+        p.setBrush(QBrush(dot_color))
+        p.drawEllipse(QPointF(22, 24), 4, 4)
+
+        # ── Label text ──
+        p.setPen(QColor(TEXT_SEC))
+        p.setFont(QFont("Segoe UI", 10, QFont.Weight.DemiBold))
+        p.drawText(34, 28, self._label)
+
+        # ── Large value ──
+        p.setPen(QColor(TEXT_BRIGHT))
+        p.setFont(QFont("Segoe UI", 32, QFont.Weight.ExtraBold))
+        p.drawText(22, 80, self._value)
+
+        # ── Mini sparkline bar (bottom) ──
+        bar_x = 22
+        bar_y = h - 24
+        bar_w = w - 44
+        bar_h = 5
+
+        # Track
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(QColor(255, 255, 255, 10))
+        track = QPainterPath()
+        track.addRoundedRect(bar_x, bar_y, bar_w, bar_h, 2.5, 2.5)
+        p.fillPath(track, QBrush(QColor(255, 255, 255, 10)))
+
+        # Fill
+        fill_w = bar_w * self._spark_pct
+        if fill_w > 0:
+            fill_grad = QLinearGradient(bar_x, 0, bar_x + fill_w, 0)
+            acc = QColor(self.accent)
+            fill_grad.setColorAt(0.0, acc)
+            acc2 = QColor(acc)
+            acc2.setAlpha(120)
+            fill_grad.setColorAt(1.0, acc2)
+            fill_path = QPainterPath()
+            fill_path.addRoundedRect(bar_x, bar_y, fill_w, bar_h, 2.5, 2.5)
+            p.fillPath(fill_path, QBrush(fill_grad))
 
         p.end()
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Toast Notification  (slide-in notification bar)
+# Section Header (clean typography)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+class SectionHeader(QWidget):
+    """Section divider with title and optional action button."""
+
+    def __init__(self, title: str, action_text: str = None,
+                 action_callback=None, parent=None):
+        super().__init__(parent)
+        self.setFixedHeight(36)
+        lay = QHBoxLayout(self)
+        lay.setContentsMargins(0, 0, 0, 0)
+
+        lbl = QLabel(title)
+        lbl.setFont(QFont("Segoe UI", 13, QFont.Weight.DemiBold))
+        lbl.setStyleSheet(f"color: {TEXT}; background: transparent;")
+        lay.addWidget(lbl)
+
+        lay.addStretch()
+
+        if action_text and action_callback:
+            btn = QPushButton(action_text)
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.setFont(QFont("Segoe UI", 10))
+            btn.setStyleSheet(
+                f"color: {CYAN}; background: transparent; "
+                f"border: none; padding: 4px 8px;")
+            btn.clicked.connect(action_callback)
+            lay.addWidget(btn)
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Panel Card  (Linear/Vercel style container)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+class PanelCard(QFrame):
+    """Subtle bordered panel with no heavy visual chrome."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setStyleSheet(
+            f"PanelCard {{ "
+            f"  background: rgba(15, 20, 35, 0.6); "
+            f"  border: 1px solid rgba(255, 255, 255, 0.06); "
+            f"  border-radius: 12px; "
+            f"}}")
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Toast Notification
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 class ToastNotification(QWidget):
@@ -123,42 +193,40 @@ class ToastNotification(QWidget):
                  duration_ms: int = 4000, parent=None):
         super().__init__(parent)
         color, icon = self.COLORS.get(level, self.COLORS["info"])
-        self.setFixedHeight(52)
-        self.setMinimumWidth(350)
-        self.setMaximumWidth(600)
+        self.setFixedHeight(48)
+        self.setMinimumWidth(340)
+        self.setMaximumWidth(560)
 
         self.setStyleSheet(
-            f"background: qlineargradient(x1:0,y1:0,x2:1,y2:0,"
-            f"stop:0 rgba(17,24,39,0.95), stop:1 rgba(17,24,39,0.85));"
-            f"border: 1px solid {color}; border-radius: 10px;")
+            f"background: rgba(15, 20, 35, 0.95);"
+            f"border: 1px solid rgba(255,255,255,0.08); "
+            f"border-left: 3px solid {color}; border-radius: 8px;")
 
         lay = QHBoxLayout(self)
-        lay.setContentsMargins(16, 0, 16, 0)
+        lay.setContentsMargins(14, 0, 14, 0)
 
         ic = QLabel(icon)
-        ic.setFont(QFont("Segoe UI Emoji", 14))
+        ic.setFont(QFont("Segoe UI Emoji", 13))
         ic.setStyleSheet("background: transparent; border: none;")
         lay.addWidget(ic)
 
         msg = QLabel(message)
-        msg.setFont(QFont("Segoe UI", 12, QFont.Weight.DemiBold))
+        msg.setFont(QFont("Segoe UI", 11))
         msg.setStyleSheet(
-            f"color: {TEXT_BRIGHT}; background: transparent; border: none;")
+            f"color: {TEXT}; background: transparent; border: none;")
         lay.addWidget(msg, 1)
 
         close = QPushButton("×")
-        close.setFixedSize(24, 24)
+        close.setFixedSize(22, 22)
         close.setStyleSheet(
             f"color: {TEXT_DIM}; background: transparent; "
-            f"border: none; font-size: 16px; font-weight: bold;")
+            f"border: none; font-size: 15px;")
         close.clicked.connect(self._dismiss)
         lay.addWidget(close)
 
-        # Position at top-right of parent
         if parent:
-            self.move(parent.width() - self.width() - 20, 20)
+            self.move(parent.width() - self.width() - 20, 16)
 
-        # Auto-dismiss
         QTimer.singleShot(duration_ms, self._dismiss)
 
     def _dismiss(self):
@@ -166,13 +234,12 @@ class ToastNotification(QWidget):
         self.deleteLater()
 
     def show_toast(self):
-        """Show with slide-in animation."""
         self.show()
         self.raise_()
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Chat Bubble  (AI assistant style)
+# Chat Bubble
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 class ChatBubble(QWidget):
@@ -184,7 +251,6 @@ class ChatBubble(QWidget):
         lay = QVBoxLayout(self)
         lay.setContentsMargins(0, 4, 0, 4)
 
-        # Sender label
         if sender:
             sl = QLabel(sender)
             sl.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
@@ -196,7 +262,6 @@ class ChatBubble(QWidget):
             sl.setAlignment(align)
             lay.addWidget(sl)
 
-        # Bubble
         bubble = QLabel(message)
         bubble.setWordWrap(True)
         bubble.setFont(QFont("Segoe UI", 12))
@@ -207,7 +272,6 @@ class ChatBubble(QWidget):
                 f"stop:0 #1d4ed8, stop:1 #3b82f6);"
                 f"color: #ffffff; border-radius: 14px; "
                 f"padding: 12px 18px; border: none;")
-            bubble.setAlignment(Qt.AlignmentFlag.AlignRight)
         else:
             bubble.setStyleSheet(
                 f"background: rgba(17, 24, 39, 0.9);"
@@ -219,57 +283,54 @@ class ChatBubble(QWidget):
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Terminal Viewer  (animated terminal-style log)
+# Terminal Viewer  (macOS window style)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 class TerminalViewer(QWidget):
-    """Terminal-style output viewer with colored log lines."""
+    """Terminal-style output viewer."""
 
     def __init__(self, title: str = "Terminal", parent=None):
         super().__init__(parent)
         self.setStyleSheet(
             f"background: rgba(3, 7, 18, 0.95);"
             f"border: 1px solid rgba(255,255,255,0.06);"
-            f"border-radius: 12px;")
+            f"border-radius: 10px;")
 
         lay = QVBoxLayout(self)
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(0)
 
-        # Title bar (macOS style dots)
+        # Title bar
         bar = QWidget()
-        bar.setFixedHeight(36)
+        bar.setFixedHeight(32)
         bar.setStyleSheet(
             f"background: rgba(11, 15, 25, 0.9);"
-            f"border-top-left-radius: 12px;"
-            f"border-top-right-radius: 12px;"
-            f"border-bottom: 1px solid rgba(255,255,255,0.06);")
+            f"border-top-left-radius: 10px;"
+            f"border-top-right-radius: 10px;"
+            f"border-bottom: 1px solid rgba(255,255,255,0.04);")
         bl = QHBoxLayout(bar)
-        bl.setContentsMargins(14, 0, 14, 0)
+        bl.setContentsMargins(12, 0, 12, 0)
 
-        # Traffic light dots
         for c in ["#ff5f56", "#ffbd2e", "#27c93f"]:
             dot = QLabel("●")
-            dot.setFixedSize(14, 14)
+            dot.setFixedSize(12, 12)
             dot.setStyleSheet(
-                f"color: {c}; font-size: 10px; background: transparent;")
+                f"color: {c}; font-size: 9px; background: transparent;")
             bl.addWidget(dot)
 
         tl = QLabel(f"  {title}")
-        tl.setFont(QFont("Segoe UI", 10, QFont.Weight.DemiBold))
+        tl.setFont(QFont("Segoe UI", 9))
         tl.setStyleSheet(f"color: {TEXT_DIM}; background: transparent;")
         bl.addWidget(tl)
         bl.addStretch()
         lay.addWidget(bar)
 
-        # Content
-        from PyQt6.QtWidgets import QPlainTextEdit
         self.output = QPlainTextEdit()
         self.output.setReadOnly(True)
         self.output.setFont(QFont("Consolas", 11))
         self.output.setStyleSheet(
             f"background: transparent; color: {GREEN}; "
-            f"border: none; padding: 12px; "
+            f"border: none; padding: 10px; "
             f"selection-background-color: rgba(34, 211, 238, 0.3);")
         lay.addWidget(self.output)
 
@@ -284,11 +345,11 @@ class TerminalViewer(QWidget):
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Status Pill  (colored status indicator)
+# StatusPill  (colored status indicator)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 class StatusPill(QLabel):
-    """Rounded pill badge for status indicators."""
+    """Rounded pill badge for status."""
 
     STYLES = {
         "online":    (GREEN,  "● Online"),

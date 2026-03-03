@@ -29,7 +29,10 @@ from servos.gui.theme import (
     TEXT, TEXT_SEC, TEXT_DIM, TEXT_BRIGHT,
 )
 from servos.gui.workers import InvestigationWorker, ScanWorker, DeviceRefreshWorker
-from servos.gui.widgets import BentoCard, TerminalViewer, ToastNotification, StatusPill
+from servos.gui.widgets import (
+    BentoCard, TerminalViewer, ToastNotification, StatusPill,
+    SectionHeader, PanelCard,
+)
 from servos.config import get_config, save_config, ensure_dirs
 from servos.models.schema import (
     DeviceInfo, Case, init_db, get_session, CaseRecord,
@@ -223,31 +226,74 @@ class ServosMainWindow(QMainWindow):
         scroll.setWidgetResizable(True)
         page = QWidget()
         lay = QVBoxLayout(page)
-        lay.setContentsMargins(36, 32, 36, 32)
-        lay.setSpacing(24)
+        lay.setContentsMargins(40, 36, 40, 36)
+        lay.setSpacing(28)
 
-        lay.addWidget(_label("Dashboard", "title"))
-        lay.addWidget(_label(
-            "Real-time overview of your forensic operations", "subtitle"))
+        # Header
+        header = QHBoxLayout()
+        title_col = QVBoxLayout()
+        title_col.setSpacing(4)
+        t = QLabel("Dashboard")
+        t.setFont(QFont("Segoe UI", 28, QFont.Weight.ExtraBold))
+        t.setStyleSheet(f"color: {TEXT_BRIGHT}; background: transparent;")
+        title_col.addWidget(t)
+        sub = QLabel("Real-time overview of your forensic operations")
+        sub.setFont(QFont("Segoe UI", 12))
+        sub.setStyleSheet(f"color: {TEXT_DIM}; background: transparent;")
+        title_col.addWidget(sub)
+        header.addLayout(title_col)
+        header.addStretch()
+
+        # Quick action pills in header
+        for text, idx, accent in [
+            ("+ New Investigation", 1, CYAN),
+            ("Quick Scan", 2, None),
+        ]:
+            b = QPushButton(text)
+            b.setCursor(Qt.CursorShape.PointingHandCursor)
+            b.setFont(QFont("Segoe UI", 10, QFont.Weight.DemiBold))
+            if accent:
+                b.setStyleSheet(
+                    f"QPushButton {{ color: #fff; "
+                    f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1,"
+                    f"stop:0 #1d4ed8, stop:1 #3b82f6); "
+                    f"border: none; border-radius: 8px; "
+                    f"padding: 8px 18px; }}  "
+                    f"QPushButton:hover {{ background: #2563eb; }}")
+            else:
+                b.setStyleSheet(
+                    f"QPushButton {{ color: {TEXT_SEC}; "
+                    f"background: rgba(255,255,255,0.04); "
+                    f"border: 1px solid rgba(255,255,255,0.08); "
+                    f"border-radius: 8px; padding: 8px 18px; }}  "
+                    f"QPushButton:hover {{ background: rgba(255,255,255,0.08); "
+                    f"color: {TEXT}; }}")
+            b.clicked.connect(lambda _, i=idx: self._nav_to(i))
+            header.addWidget(b)
+        lay.addLayout(header)
 
         # Metrics row
         metrics = QHBoxLayout()
-        metrics.setSpacing(16)
-        self._m_cases = BentoCard("📁", "0", "TOTAL CASES", CYAN)
-        self._m_devices = BentoCard("💾", "0", "DEVICES", BLUE)
-        self._m_done = BentoCard("✅", "0", "COMPLETED", GREEN)
-        self._m_active = BentoCard("🛡️", "0", "ACTIVE", PURPLE)
+        metrics.setSpacing(14)
+        self._m_cases = BentoCard("", "0", "TOTAL CASES", CYAN)
+        self._m_devices = BentoCard("", "0", "DEVICES", BLUE)
+        self._m_done = BentoCard("", "0", "COMPLETED", GREEN)
+        self._m_active = BentoCard("", "0", "ACTIVE", PURPLE)
         for w in [self._m_cases, self._m_devices, self._m_done, self._m_active]:
             metrics.addWidget(w)
         lay.addLayout(metrics)
 
         # Two-column area
         cols = QHBoxLayout()
-        cols.setSpacing(20)
+        cols.setSpacing(16)
 
         # Recent cases
-        left = QGroupBox("Recent Cases")
-        ll = QVBoxLayout(left)
+        left_col = QVBoxLayout()
+        left_col.setSpacing(10)
+        left_col.addWidget(SectionHeader(
+            "Recent Cases", "View All →",
+            lambda: self._nav_to(3)))
+
         self.recent_table = QTableWidget(0, 4)
         self.recent_table.setHorizontalHeaderLabels(
             ["Case ID", "Date", "Status", "Mode"])
@@ -256,12 +302,16 @@ class ServosMainWindow(QMainWindow):
         self.recent_table.setEditTriggers(
             QTableWidget.EditTrigger.NoEditTriggers)
         self.recent_table.setAlternatingRowColors(True)
-        ll.addWidget(self.recent_table)
-        cols.addWidget(left, 1)
+        self.recent_table.setMinimumHeight(200)
+        self.recent_table.verticalHeader().setVisible(False)
+        left_col.addWidget(self.recent_table)
+        cols.addLayout(left_col, 1)
 
         # Connected devices
-        right = QGroupBox("Connected Devices")
-        rl = QVBoxLayout(right)
+        right_col = QVBoxLayout()
+        right_col.setSpacing(10)
+        right_col.addWidget(SectionHeader("Connected Devices"))
+
         self.dash_devices = QTableWidget(0, 4)
         self.dash_devices.setHorizontalHeaderLabels(
             ["Device", "Mount", "FS", "Capacity"])
@@ -270,51 +320,41 @@ class ServosMainWindow(QMainWindow):
         self.dash_devices.setEditTriggers(
             QTableWidget.EditTrigger.NoEditTriggers)
         self.dash_devices.setAlternatingRowColors(True)
-        rl.addWidget(self.dash_devices)
-        cols.addWidget(right, 1)
+        self.dash_devices.setMinimumHeight(200)
+        self.dash_devices.verticalHeader().setVisible(False)
+        right_col.addWidget(self.dash_devices)
+        cols.addLayout(right_col, 1)
         lay.addLayout(cols)
 
-        # Quick actions
-        actions = QGroupBox("Quick Actions")
-        al = QHBoxLayout(actions)
-        for text, idx, css in [
-            ("🔍  New Investigation", 1, "primary"),
-            ("⚡  Quick Scan", 2, ""),
-            ("📁  View Cases", 3, ""),
-            ("📋  Playbooks", 5, ""),
+        # Bottom action bar
+        actions_row = QHBoxLayout()
+        actions_row.setSpacing(10)
+        for text, idx in [
+            ("📁  View Cases", 3),
+            ("📋  Playbooks", 5),
+            ("🤖  Automate", 7),
+            ("⚙️  Settings", 6),
         ]:
             b = QPushButton(text)
-            if css:
-                b.setProperty("cssClass", css)
             b.setCursor(Qt.CursorShape.PointingHandCursor)
+            b.setFont(QFont("Segoe UI", 10))
+            b.setStyleSheet(
+                f"QPushButton {{ color: {TEXT_SEC}; "
+                f"background: rgba(255,255,255,0.03); "
+                f"border: 1px solid rgba(255,255,255,0.06); "
+                f"border-radius: 8px; padding: 10px 20px; }}  "
+                f"QPushButton:hover {{ background: rgba(255,255,255,0.08); "
+                f"color: {TEXT}; border-color: rgba(255,255,255,0.12); }}")
             b.clicked.connect(lambda _, i=idx: self._nav_to(i))
-            al.addWidget(b)
-        al.addStretch()
-        lay.addWidget(actions)
+            actions_row.addWidget(b)
+        actions_row.addStretch()
+        lay.addLayout(actions_row)
 
         lay.addStretch()
         scroll.setWidget(page)
         return scroll
 
-    def _metric_card(self, icon, value, label):
-        card = QGroupBox()
-        card.setMinimumHeight(120)
-        vl = QVBoxLayout(card)
-        vl.setSpacing(4)
-        ic = QLabel(icon)
-        ic.setFont(QFont("Segoe UI", 22))
-        ic.setStyleSheet("background: transparent;")
-        vl.addWidget(ic)
-        val = QLabel(value)
-        val.setProperty("cssClass", "metric")
-        val.setObjectName("val")
-        val.setStyleSheet(f"background: transparent; color: {CYAN};")
-        vl.addWidget(val)
-        desc = QLabel(label)
-        desc.setProperty("cssClass", "metricLabel")
-        desc.setStyleSheet(f"background: transparent; color: {TEXT_DIM};")
-        vl.addWidget(desc)
-        return card
+
 
     def _refresh_dashboard(self):
         try:
