@@ -27,6 +27,7 @@ from servos.gui.theme import (
     BORDER, CYAN, GREEN, RED, ORANGE, YELLOW, TEXT, TEXT_SEC, TEXT_DIM,
 )
 from servos.gui.workers import InvestigationWorker, ScanWorker, DeviceRefreshWorker
+from servos.gui.widgets import BentoCard, TerminalViewer, ToastNotification, StatusPill
 from servos.config import get_config, save_config, ensure_dirs
 from servos.models.schema import (
     DeviceInfo, Case, init_db, get_session, CaseRecord,
@@ -207,6 +208,10 @@ class ServosMainWindow(QMainWindow):
                 f"color: {ORANGE}; font-size: 11px; "
                 f"background: transparent;")
 
+    def _show_toast(self, msg, level="info"):
+        toast = ToastNotification(msg, level, parent=self)
+        toast.show_toast()
+
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # Page 0: Dashboard
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -226,10 +231,10 @@ class ServosMainWindow(QMainWindow):
         # Metrics row
         metrics = QHBoxLayout()
         metrics.setSpacing(16)
-        self._m_cases = self._metric_card("📁", "0", "TOTAL CASES")
-        self._m_devices = self._metric_card("💾", "0", "DEVICES")
-        self._m_done = self._metric_card("✅", "0", "COMPLETED")
-        self._m_active = self._metric_card("🛡️", "0", "ACTIVE")
+        self._m_cases = BentoCard("📁", "0", "TOTAL CASES", CYAN)
+        self._m_devices = BentoCard("💾", "0", "DEVICES", BLUE)
+        self._m_done = BentoCard("✅", "0", "COMPLETED", GREEN)
+        self._m_active = BentoCard("🛡️", "0", "ACTIVE", PURPLE)
         for w in [self._m_cases, self._m_devices, self._m_done, self._m_active]:
             metrics.addWidget(w)
         lay.addLayout(metrics)
@@ -319,10 +324,10 @@ class ServosMainWindow(QMainWindow):
             done = sum(1 for r in recs if r.status == "completed")
             active = sum(1 for r in recs if r.status == "active")
 
-            self._m_cases.findChild(QLabel, "val").setText(str(len(recs)))
-            self._m_devices.findChild(QLabel, "val").setText(str(len(devs)))
-            self._m_done.findChild(QLabel, "val").setText(str(done))
-            self._m_active.findChild(QLabel, "val").setText(str(active))
+            self._m_cases.set_value(str(len(recs)))
+            self._m_devices.set_value(str(len(devs)))
+            self._m_done.set_value(str(done))
+            self._m_active.set_value(str(active))
 
             self.recent_table.setRowCount(min(len(recs), 10))
             for i, r in enumerate(recs[:10]):
@@ -419,14 +424,8 @@ class ServosMainWindow(QMainWindow):
         self.inv_bar = QProgressBar()
         self.inv_bar.setRange(0, 100)
         l4.addWidget(self.inv_bar)
-        self.inv_log = QPlainTextEdit()
-        self.inv_log.setReadOnly(True)
-        self.inv_log.setMaximumHeight(180)
-        self.inv_log.setStyleSheet(
-            f"font-family: 'Consolas', 'JetBrains Mono', monospace; "
-            f"font-size: 11px; background: {BG_PRIMARY}; "
-            f"color: {TEXT_SEC}; border: 1px solid {BORDER}; "
-            f"border-radius: 8px; padding: 10px;")
+        self.inv_log = TerminalViewer("Investigation Log")
+        self.inv_log.setMaximumHeight(200)
         l4.addWidget(self.inv_log)
         lay.addWidget(g4)
 
@@ -504,7 +503,7 @@ class ServosMainWindow(QMainWindow):
         self.inv_bar.setValue(pct)
         self.inv_status.setText(msg)
         ts = datetime.now().strftime("%H:%M:%S")
-        self.inv_log.appendPlainText(f"[{ts}] [{pct:3d}%]  {msg}")
+        self.inv_log.append(f"[{ts}] [{pct:3d}%]  {msg}")
 
     def _inv_done(self, case):
         self.current_case = case
@@ -513,8 +512,14 @@ class ServosMainWindow(QMainWindow):
             f"color: {GREEN}; font-weight: bold; background: transparent;")
         self.start_btn.setEnabled(True)
         self.start_btn.setText("🚀  Start Investigation")
-        self.inv_log.appendPlainText(
+        self.inv_log.append(
             f"\n✅  Case {case.id} — Report: {case.report_path}")
+
+        # Toast notification
+        toast = ToastNotification(
+            f"Investigation {case.id} complete!",
+            "success", parent=self)
+        toast.show_toast()
 
         self._populate_results(case)
         self._nav_to(4)  # Show results
@@ -523,9 +528,11 @@ class ServosMainWindow(QMainWindow):
         self.inv_status.setText("❌  Error occurred")
         self.inv_status.setStyleSheet(
             f"color: {RED}; background: transparent;")
-        self.inv_log.appendPlainText(f"\n❌  {msg}")
+        self.inv_log.append(f"\n❌  {msg}")
         self.start_btn.setEnabled(True)
         self.start_btn.setText("🚀  Start Investigation")
+        toast = ToastNotification("Investigation failed!", "error", parent=self)
+        toast.show_toast()
         QMessageBox.critical(self, "Error", msg[:600])
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
