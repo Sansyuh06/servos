@@ -107,14 +107,14 @@ class LoginScreen(QWidget):
 
         # Card
         card = QWidget()
-        card.setFixedSize(420, 480)
+        card.setFixedSize(400, 460)
         card.setStyleSheet(
-            f"background: rgba(11, 15, 25, 0.95); "
-            f"border: 1px solid rgba(255,255,255,0.06); "
-            f"border-radius: 20px;")
+            f"background: #131316; "
+            f"border: 1px solid {BORDER}; "
+            f"border-radius: 16px;")
         cl = QVBoxLayout(card)
-        cl.setContentsMargins(40, 40, 40, 40)
-        cl.setSpacing(16)
+        cl.setContentsMargins(36, 36, 36, 36)
+        cl.setSpacing(12)
 
         # Logo
         logo = QLabel("⚔️")
@@ -149,11 +149,11 @@ class LoginScreen(QWidget):
 
         self.user_input = QLineEdit()
         self.user_input.setPlaceholderText("Enter username")
-        self.user_input.setMinimumHeight(42)
+        self.user_input.setMinimumHeight(40)
         self.user_input.setStyleSheet(
-            f"background: rgba(3,7,18,0.8); color: {TEXT}; "
-            f"border: 1px solid rgba(255,255,255,0.08); "
-            f"border-radius: 10px; padding: 10px 14px; font-size: 13px;")
+            f"background: {BG_PRIMARY}; color: {TEXT}; "
+            f"border: 1px solid {BORDER}; "
+            f"border-radius: 8px; padding: 10px 14px; font-size: 13px;")
         cl.addWidget(self.user_input)
 
         # Password
@@ -165,11 +165,11 @@ class LoginScreen(QWidget):
         self.pass_input = QLineEdit()
         self.pass_input.setPlaceholderText("Enter password")
         self.pass_input.setEchoMode(QLineEdit.EchoMode.Password)
-        self.pass_input.setMinimumHeight(42)
+        self.pass_input.setMinimumHeight(40)
         self.pass_input.setStyleSheet(
-            f"background: rgba(3,7,18,0.8); color: {TEXT}; "
-            f"border: 1px solid rgba(255,255,255,0.08); "
-            f"border-radius: 10px; padding: 10px 14px; font-size: 13px;")
+            f"background: {BG_PRIMARY}; color: {TEXT}; "
+            f"border: 1px solid {BORDER}; "
+            f"border-radius: 8px; padding: 10px 14px; font-size: 13px;")
         self.pass_input.returnPressed.connect(self._submit)
         cl.addWidget(self.pass_input)
 
@@ -178,20 +178,15 @@ class LoginScreen(QWidget):
         # Submit button
         btn_text = "Create Account" if self._is_signup else "Sign In"
         self.submit_btn = QPushButton(f"→  {btn_text}")
-        self.submit_btn.setMinimumHeight(46)
+        self.submit_btn.setMinimumHeight(44)
         self.submit_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.submit_btn.setFont(QFont("Segoe UI", 12, QFont.Weight.Bold))
         self.submit_btn.setStyleSheet(
             f"QPushButton {{ "
-            f"  color: #fff; "
-            f"  background: qlineargradient(x1:0,y1:0,x2:1,y2:1,"
-            f"  stop:0 #1d4ed8, stop:1 #3b82f6); "
-            f"  border: none; border-radius: 12px; "
+            f"  color: #fff; background: {BLUE}; "
+            f"  border: none; border-radius: 8px; "
             f"}}  "
-            f"QPushButton:hover {{ "
-            f"  background: qlineargradient(x1:0,y1:0,x2:1,y2:1,"
-            f"  stop:0 #2563eb, stop:1 #60a5fa); "
-            f"}}")
+            f"QPushButton:hover {{ background: #2563eb; }}")
         self.submit_btn.clicked.connect(self._submit)
         cl.addWidget(self.submit_btn)
 
@@ -200,7 +195,7 @@ class LoginScreen(QWidget):
         self.toggle_btn = QPushButton(toggle_text)
         self.toggle_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.toggle_btn.setStyleSheet(
-            f"color: {CYAN}; background: transparent; "
+            f"color: {BLUE}; background: transparent; "
             f"border: none; font-size: 11px;")
         self.toggle_btn.clicked.connect(self._toggle_mode)
         cl.addWidget(self.toggle_btn, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -248,12 +243,6 @@ class LoginScreen(QWidget):
                 self.error_lbl.setText("Invalid username or password")
 
     def paintEvent(self, event):
-        """Draw subtle gradient background."""
         p = QPainter(self)
-        p.setRenderHint(QPainter.RenderHint.Antialiasing)
-        g = QLinearGradient(0, 0, self.width(), self.height())
-        g.setColorAt(0.0, QColor(3, 7, 18))
-        g.setColorAt(0.5, QColor(8, 12, 28))
-        g.setColorAt(1.0, QColor(3, 7, 18))
-        p.fillRect(self.rect(), QBrush(g))
+        p.fillRect(self.rect(), QColor(9, 9, 11))
         p.end()

@@ -67,61 +67,52 @@ class BentoCard(QWidget):
         w, h = self.width(), self.height()
         r = QRectF(0.5, 0.5, w - 1, h - 1)
 
-        # ── Background ──
+        # ── Background (zinc) ──
         bg = QLinearGradient(0, 0, 0, h)
-        bg.setColorAt(0.0, QColor(20, 27, 45, 240))
-        bg.setColorAt(1.0, QColor(12, 17, 30, 250))
+        bg.setColorAt(0.0, QColor(19, 19, 22))
+        bg.setColorAt(1.0, QColor(14, 14, 17))
         path = QPainterPath()
-        path.addRoundedRect(r, 14, 14)
+        path.addRoundedRect(r, 10, 10)
         p.fillPath(path, QBrush(bg))
 
         # ── Border ──
-        border_c = QColor(255, 255, 255, 15)
-        p.setPen(QPen(border_c, 0.8))
-        p.drawRoundedRect(r, 14, 14)
+        p.setPen(QPen(QColor(39, 39, 42), 1))
+        p.drawRoundedRect(r, 10, 10)
 
-        # ── Accent dot (top-left) ──
+        # ── Accent bar (top-left) ──
         p.setPen(Qt.PenStyle.NoPen)
-        dot_color = QColor(self.accent)
-        dot_color.setAlpha(200)
-        p.setBrush(QBrush(dot_color))
-        p.drawEllipse(QPointF(22, 24), 4, 4)
+        acc = QColor(self.accent)
+        acc.setAlpha(160)
+        bar_path = QPainterPath()
+        bar_path.addRoundedRect(16, 16, 3, 20, 1.5, 1.5)
+        p.fillPath(bar_path, QBrush(acc))
 
-        # ── Label text ──
-        p.setPen(QColor(TEXT_SEC))
+        # ── Label ──
+        p.setPen(QColor(113, 113, 122))  # zinc-500
         p.setFont(QFont("Segoe UI", 10, QFont.Weight.DemiBold))
-        p.drawText(34, 28, self._label)
+        p.drawText(28, 30, self._label)
 
-        # ── Large value ──
-        p.setPen(QColor(TEXT_BRIGHT))
-        p.setFont(QFont("Segoe UI", 32, QFont.Weight.ExtraBold))
-        p.drawText(22, 80, self._value)
+        # ── Value ──
+        p.setPen(QColor(250, 250, 250))  # zinc-50
+        p.setFont(QFont("Segoe UI", 28, QFont.Weight.Bold))
+        p.drawText(16, 78, self._value)
 
-        # ── Mini sparkline bar (bottom) ──
-        bar_x = 22
-        bar_y = h - 24
-        bar_w = w - 44
-        bar_h = 5
+        # ── Sparkline bar ──
+        bar_x, bar_y = 16, h - 22
+        bar_w, bar_h = w - 32, 4
 
-        # Track
-        p.setPen(Qt.PenStyle.NoPen)
-        p.setBrush(QColor(255, 255, 255, 10))
+        p.setBrush(QColor(39, 39, 42))
         track = QPainterPath()
-        track.addRoundedRect(bar_x, bar_y, bar_w, bar_h, 2.5, 2.5)
-        p.fillPath(track, QBrush(QColor(255, 255, 255, 10)))
+        track.addRoundedRect(bar_x, bar_y, bar_w, bar_h, 2, 2)
+        p.fillPath(track, QBrush(QColor(39, 39, 42)))
 
-        # Fill
         fill_w = bar_w * self._spark_pct
         if fill_w > 0:
-            fill_grad = QLinearGradient(bar_x, 0, bar_x + fill_w, 0)
-            acc = QColor(self.accent)
-            fill_grad.setColorAt(0.0, acc)
-            acc2 = QColor(acc)
-            acc2.setAlpha(120)
-            fill_grad.setColorAt(1.0, acc2)
+            acc_fill = QColor(self.accent)
+            acc_fill.setAlpha(180)
             fill_path = QPainterPath()
-            fill_path.addRoundedRect(bar_x, bar_y, fill_w, bar_h, 2.5, 2.5)
-            p.fillPath(fill_path, QBrush(fill_grad))
+            fill_path.addRoundedRect(bar_x, bar_y, fill_w, bar_h, 2, 2)
+            p.fillPath(fill_path, QBrush(acc_fill))
 
         p.end()
 

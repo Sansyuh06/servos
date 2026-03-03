@@ -261,129 +261,94 @@ class ServosMainWindow(QMainWindow):
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(0)
 
-        # ── HALIDE Topo Hero Section ──
-        hero_container = QWidget()
-        hero_container.setFixedHeight(300)
-        hero_lay = QVBoxLayout(hero_container)
-        hero_lay.setContentsMargins(0, 0, 0, 0)
-        hero_lay.setSpacing(0)
-
-        # Topo background (fills hero)
-        self._topo_bg = TopoHeroBackground(hero_container)
-        self._topo_bg.setGeometry(0, 0, 1200, 300)
-
-        # Hero content overlay
-        hero_content = QWidget(hero_container)
-        hcl = QVBoxLayout(hero_content)
-        hcl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        hcl.setContentsMargins(40, 40, 40, 30)
-        hcl.setSpacing(8)
+        # ── Hero banner ──
+        hero = QWidget()
+        hero.setFixedHeight(220)
+        hero.setStyleSheet("background: #09090b;")
+        hero_lay = QVBoxLayout(hero)
+        hero_lay.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        hero_lay.setContentsMargins(48, 24, 48, 20)
+        hero_lay.setSpacing(6)
 
         # Morphing title
         morph = MorphingText(
             ["SERVOS", "INVESTIGATE", "PROTECT", "ANALYZE", "DETECT"],
-            morph_ms=800, cooldown_ms=2500, font_size=42,
-            color="#ffffff")
-        morph.setFixedHeight(70)
-        hcl.addWidget(morph)
+            morph_ms=700, cooldown_ms=2500, font_size=38,
+            color="#fafafa")
+        morph.setFixedHeight(60)
+        hero_lay.addWidget(morph)
 
-        hero_sub = QLabel("Offline AI Forensic Platform  •  CyberHack V4")
-        hero_sub.setFont(QFont("Segoe UI", 13))
+        hero_sub = QLabel("Offline AI Forensic Platform  ·  CyberHack V4")
+        hero_sub.setFont(QFont("Segoe UI", 12))
         hero_sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
         hero_sub.setStyleSheet(f"color: {TEXT_DIM}; background: transparent;")
-        hcl.addWidget(hero_sub)
+        hero_lay.addWidget(hero_sub)
 
-        # Disk showcase row (populated from real devices)
-        disk_scroll = QScrollArea()
-        disk_scroll.setWidgetResizable(True)
-        disk_scroll.setFixedHeight(180)
-        disk_scroll.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        disk_scroll.setVerticalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        disk_scroll.setStyleSheet("background: transparent; border: none;")
-
+        # Disk showcase row
         self._disk_container = QWidget()
+        self._disk_container.setStyleSheet("background: transparent;")
         self._disk_layout = QHBoxLayout(self._disk_container)
-        self._disk_layout.setContentsMargins(40, 10, 40, 10)
-        self._disk_layout.setSpacing(14)
+        self._disk_layout.setContentsMargins(0, 8, 0, 0)
+        self._disk_layout.setSpacing(12)
         self._disk_layout.addStretch()
-        disk_scroll.setWidget(self._disk_container)
-        hcl.addWidget(disk_scroll)
+        hero_lay.addWidget(self._disk_container)
 
-        hero_content.setGeometry(0, 0, 1200, 300)
-        lay.addWidget(hero_container)
+        lay.addWidget(hero)
 
-        # ── Dashboard content below hero ──
+        # ── Separator ──
+        sep = QFrame()
+        sep.setFrameShape(QFrame.Shape.HLine)
+        sep.setFixedHeight(1)
+        sep.setStyleSheet(f"background: {BORDER}; border: none;")
+        lay.addWidget(sep)
+
+        # ── Main content ──
         content = QWidget()
-        clx = QVBoxLayout(content)
-        clx.setContentsMargins(40, 28, 40, 36)
-        clx.setSpacing(24)
+        cl = QVBoxLayout(content)
+        cl.setContentsMargins(36, 28, 36, 36)
+        cl.setSpacing(20)
 
-        # Header row
-        header = QHBoxLayout()
-        title_col = QVBoxLayout()
-        title_col.setSpacing(4)
-        t = QLabel("Dashboard")
-        t.setFont(QFont("Segoe UI", 28, QFont.Weight.ExtraBold))
+        # Header
+        hdr = QHBoxLayout()
+        hdr.setSpacing(12)
+        t = QLabel("Overview")
+        t.setFont(QFont("Segoe UI", 22, QFont.Weight.Bold))
         t.setStyleSheet(f"color: {TEXT_BRIGHT}; background: transparent;")
-        title_col.addWidget(t)
-        sub = QLabel("Real-time overview of your forensic operations")
-        sub.setFont(QFont("Segoe UI", 12))
-        sub.setStyleSheet(f"color: {TEXT_DIM}; background: transparent;")
-        title_col.addWidget(sub)
-        header.addLayout(title_col)
-        header.addStretch()
+        hdr.addWidget(t)
+        hdr.addStretch()
 
-        for text, idx, accent in [
-            ("+ New Investigation", 1, CYAN),
-            ("Quick Scan", 2, None),
-        ]:
-            b = QPushButton(text)
-            b.setCursor(Qt.CursorShape.PointingHandCursor)
-            b.setFont(QFont("Segoe UI", 10, QFont.Weight.DemiBold))
-            if accent:
-                b.setStyleSheet(
-                    f"QPushButton {{ color: #fff; "
-                    f"background: qlineargradient(x1:0,y1:0,x2:1,y2:1,"
-                    f"stop:0 #1d4ed8, stop:1 #3b82f6); "
-                    f"border: none; border-radius: 8px; "
-                    f"padding: 8px 18px; }}  "
-                    f"QPushButton:hover {{ background: #2563eb; }}")
-            else:
-                b.setStyleSheet(
-                    f"QPushButton {{ color: {TEXT_SEC}; "
-                    f"background: rgba(255,255,255,0.04); "
-                    f"border: 1px solid rgba(255,255,255,0.08); "
-                    f"border-radius: 8px; padding: 8px 18px; }}  "
-                    f"QPushButton:hover {{ background: rgba(255,255,255,0.08); "
-                    f"color: {TEXT}; }}")
-            b.clicked.connect(lambda _, i=idx: self._nav_to(i))
-            header.addWidget(b)
-        clx.addLayout(header)
+        btn_inv = QPushButton("+ New Investigation")
+        btn_inv.setProperty("cssClass", "primary")
+        btn_inv.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_inv.clicked.connect(lambda: self._nav_to(1))
+        hdr.addWidget(btn_inv)
 
-        # Metrics row
+        btn_scan = QPushButton("Quick Scan")
+        btn_scan.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_scan.clicked.connect(lambda: self._nav_to(2))
+        hdr.addWidget(btn_scan)
+        cl.addLayout(hdr)
+
+        # Metrics
         metrics = QHBoxLayout()
-        metrics.setSpacing(14)
-        self._m_cases = BentoCard("", "0", "TOTAL CASES", CYAN)
-        self._m_devices = BentoCard("", "0", "DEVICES", BLUE)
+        metrics.setSpacing(12)
+        self._m_cases = BentoCard("", "0", "TOTAL CASES", BLUE)
+        self._m_devices = BentoCard("", "0", "DEVICES", PURPLE)
         self._m_done = BentoCard("", "0", "COMPLETED", GREEN)
-        self._m_active = BentoCard("", "0", "ACTIVE", PURPLE)
+        self._m_active = BentoCard("", "0", "ACTIVE", ORANGE)
         for w in [self._m_cases, self._m_devices, self._m_done, self._m_active]:
             metrics.addWidget(w)
-        clx.addLayout(metrics)
+        cl.addLayout(metrics)
 
-        # Two-column area
+        # Two columns
         cols = QHBoxLayout()
         cols.setSpacing(16)
 
-        # Recent cases
-        left_col = QVBoxLayout()
-        left_col.setSpacing(10)
-        left_col.addWidget(SectionHeader(
-            "Recent Cases", "View All →",
-            lambda: self._nav_to(3)))
-
+        # Left: Recent cases
+        left = QVBoxLayout()
+        left.setSpacing(8)
+        left.addWidget(SectionHeader("Recent Cases", "View all →",
+                                     lambda: self._nav_to(3)))
         self.recent_table = QTableWidget(0, 4)
         self.recent_table.setHorizontalHeaderLabels(
             ["Case ID", "Date", "Status", "Mode"])
@@ -394,14 +359,13 @@ class ServosMainWindow(QMainWindow):
         self.recent_table.setAlternatingRowColors(True)
         self.recent_table.setMinimumHeight(200)
         self.recent_table.verticalHeader().setVisible(False)
-        left_col.addWidget(self.recent_table)
-        cols.addLayout(left_col, 1)
+        left.addWidget(self.recent_table)
+        cols.addLayout(left, 1)
 
-        # Connected devices
-        right_col = QVBoxLayout()
-        right_col.setSpacing(10)
-        right_col.addWidget(SectionHeader("Connected Devices"))
-
+        # Right: Devices
+        right = QVBoxLayout()
+        right.setSpacing(8)
+        right.addWidget(SectionHeader("Connected Devices"))
         self.dash_devices = QTableWidget(0, 4)
         self.dash_devices.setHorizontalHeaderLabels(
             ["Device", "Mount", "FS", "Capacity"])
@@ -412,34 +376,11 @@ class ServosMainWindow(QMainWindow):
         self.dash_devices.setAlternatingRowColors(True)
         self.dash_devices.setMinimumHeight(200)
         self.dash_devices.verticalHeader().setVisible(False)
-        right_col.addWidget(self.dash_devices)
-        cols.addLayout(right_col, 1)
-        clx.addLayout(cols)
+        right.addWidget(self.dash_devices)
+        cols.addLayout(right, 1)
+        cl.addLayout(cols)
 
-        # Bottom action bar
-        actions_row = QHBoxLayout()
-        actions_row.setSpacing(10)
-        for text, idx in [
-            ("📁  View Cases", 3),
-            ("📋  Playbooks", 5),
-            ("🤖  Automate", 7),
-            ("⚙️  Settings", 6),
-        ]:
-            b = QPushButton(text)
-            b.setCursor(Qt.CursorShape.PointingHandCursor)
-            b.setFont(QFont("Segoe UI", 10))
-            b.setStyleSheet(
-                f"QPushButton {{ color: {TEXT_SEC}; "
-                f"background: rgba(255,255,255,0.03); "
-                f"border: 1px solid rgba(255,255,255,0.06); "
-                f"border-radius: 8px; padding: 10px 20px; }}  "
-                f"QPushButton:hover {{ background: rgba(255,255,255,0.08); "
-                f"color: {TEXT}; border-color: rgba(255,255,255,0.12); }}")
-            b.clicked.connect(lambda _, i=idx: self._nav_to(i))
-            actions_row.addWidget(b)
-        clx.addLayout(actions_row)
-
-        clx.addStretch()
+        cl.addStretch()
         lay.addWidget(content, 1)
 
         scroll.setWidget(page)
