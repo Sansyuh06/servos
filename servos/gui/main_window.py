@@ -6,6 +6,9 @@ Professional forensic workstation with 7 pages.
 import os
 import sys
 import json
+import shutil
+import subprocess
+import hashlib
 from datetime import datetime
 
 from PyQt6.QtWidgets import (
@@ -87,6 +90,7 @@ class ServosMainWindow(QMainWindow):
         self.pages.addWidget(self._build_results())        # 4
         self.pages.addWidget(self._build_playbooks())      # 5
         self.pages.addWidget(self._build_settings())       # 6
+        self.pages.addWidget(self._build_automate())       # 7
 
         self._nav_to(0)
         QTimer.singleShot(500, self._check_llm)
@@ -131,6 +135,7 @@ class ServosMainWindow(QMainWindow):
             ("🔍  New Investigation",   1),
             ("⚡  Quick Scan",          2),
             ("📁  Case Management",     3),
+            ("🤖  Automate Task",       7),
             ("📋  Playbooks",           5),
             ("⚙️  Settings",            6),
         ]
@@ -1122,6 +1127,334 @@ class ServosMainWindow(QMainWindow):
                 cfg[key] = val
         save_config(cfg)
         QMessageBox.information(self, "Saved", "Settings saved successfully.")
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # Page 7: Automate Task
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    def _build_automate(self):
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        page = QWidget()
+        lay = QVBoxLayout(page)
+        lay.setContentsMargins(36, 32, 36, 32)
+        lay.setSpacing(20)
+
+        lay.addWidget(_label("🤖  Automate Task", "title"))
+        lay.addWidget(_label(
+            "Enter commands in natural language to automate forensic "
+            "and system tasks", "subtitle"))
+
+        # ── Box 1: Command Input ──
+        g1 = QGroupBox("Command Input")
+        l1 = QVBoxLayout(g1)
+        l1.addWidget(_label(
+            "Describe what you want Servos to do. You can type natural "
+            "language or use the supported commands below.",
+            "subtitle", wrap=True))
+
+        self.auto_cmd = QPlainTextEdit()
+        self.auto_cmd.setPlaceholderText(
+            "Type a command here…\n\n"
+            "Examples:\n"
+            "  • delete file C:\\Users\\me\\Desktop\\malware.exe\n"
+            "  • eject device D:\\\n"
+            "  • hash file C:\\evidence\\suspicious.pdf\n"
+            "  • list devices\n"
+            "  • scan directory C:\\Users\\me\\Downloads\n"
+            "  • open folder C:\\Users\\me\\Desktop")
+        self.auto_cmd.setMaximumHeight(140)
+        self.auto_cmd.setStyleSheet(
+            f"font-family: 'Consolas', 'JetBrains Mono', monospace; "
+            f"font-size: 13px; background: {BG_INPUT}; "
+            f"color: {TEXT}; border: 1px solid {BORDER}; "
+            f"border-radius: 10px; padding: 14px;")
+        l1.addWidget(self.auto_cmd)
+        lay.addWidget(g1)
+
+        # ── Box 2: Automate Task ──
+        g2 = QGroupBox("Automate Task")
+        l2 = QVBoxLayout(g2)
+        l2.addWidget(_label(
+            "Enter specific automation instructions such as "
+            "\"delete a file\", \"disconnect the device\", "
+            "\"hash a file\", or \"clear temp files\".",
+            "subtitle", wrap=True))
+
+        self.auto_task = QLineEdit()
+        self.auto_task.setPlaceholderText(
+            "e.g. delete file C:\\temp\\malware.exe")
+        self.auto_task.setMinimumHeight(44)
+        self.auto_task.returnPressed.connect(self._run_auto_from_task)
+        l2.addWidget(self.auto_task)
+
+        # Execute button
+        exec_row = QHBoxLayout()
+        self.auto_exec_btn = QPushButton("🚀  Execute Command")
+        self.auto_exec_btn.setProperty("cssClass", "primary")
+        self.auto_exec_btn.setMinimumHeight(48)
+        self.auto_exec_btn.setFont(QFont("Segoe UI", 13, QFont.Weight.Bold))
+        self.auto_exec_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.auto_exec_btn.clicked.connect(self._run_auto_from_cmd)
+        exec_row.addWidget(self.auto_exec_btn)
+
+        self.auto_task_btn = QPushButton("⚡  Automate")
+        self.auto_task_btn.setProperty("cssClass", "primary")
+        self.auto_task_btn.setMinimumHeight(48)
+        self.auto_task_btn.setFont(QFont("Segoe UI", 13, QFont.Weight.Bold))
+        self.auto_task_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.auto_task_btn.clicked.connect(self._run_auto_from_task)
+        exec_row.addWidget(self.auto_task_btn)
+        l2.addLayout(exec_row)
+        lay.addWidget(g2)
+
+        # ── Supported Commands Reference ──
+        g3 = QGroupBox("Supported Commands")
+        l3 = QVBoxLayout(g3)
+        ref = QPlainTextEdit()
+        ref.setReadOnly(True)
+        ref.setMaximumHeight(160)
+        ref.setStyleSheet(
+            f"font-family: 'Consolas', monospace; font-size: 11px; "
+            f"background: {BG_PRIMARY}; padding: 10px;")
+        ref.setPlainText(
+            "COMMAND                          DESCRIPTION\n"
+            "─────────────────────────────────────────────────────────\n"
+            "delete file <path>               Delete a specific file\n"
+            "eject device <drive>             Safely eject a USB drive\n"
+            "disconnect device <drive>        Same as eject\n"
+            "open file <path>                 Open a file with default app\n"
+            "open folder <path>               Open a folder in Explorer\n"
+            "hash file <path>                 Compute MD5 + SHA-256\n"
+            "list devices                     Show all connected devices\n"
+            "scan directory <path>            Quick malware scan a folder\n"
+            "clear temp files                 Delete Windows temp files\n"
+            "system info                      Show system information\n"
+            "help                             Show this command list\n")
+        l3.addWidget(ref)
+        lay.addWidget(g3)
+
+        # ── Output Console ──
+        g4 = QGroupBox("Output")
+        l4 = QVBoxLayout(g4)
+        self.auto_output = QPlainTextEdit()
+        self.auto_output.setReadOnly(True)
+        self.auto_output.setStyleSheet(
+            f"font-family: 'Consolas', 'JetBrains Mono', monospace; "
+            f"font-size: 12px; background: {BG_PRIMARY}; "
+            f"color: {GREEN}; border: 1px solid {BORDER}; "
+            f"border-radius: 10px; padding: 14px;")
+        l4.addWidget(self.auto_output)
+        lay.addWidget(g4, 1)
+
+        lay.addStretch()
+        scroll.setWidget(page)
+        return scroll
+
+    def _run_auto_from_cmd(self):
+        cmd = self.auto_cmd.toPlainText().strip()
+        if cmd:
+            self._execute_auto(cmd)
+
+    def _run_auto_from_task(self):
+        cmd = self.auto_task.text().strip()
+        if cmd:
+            self._execute_auto(cmd)
+
+    def _execute_auto(self, raw_cmd: str):
+        """Parse and execute an automation command."""
+        ts = datetime.now().strftime("%H:%M:%S")
+        self.auto_output.appendPlainText(f"[{ts}] > {raw_cmd}")
+
+        cmd = raw_cmd.lower().strip()
+        try:
+            if cmd in ("help", "?"):
+                self._auto_log(
+                    "Commands: delete file, eject device, open file, "
+                    "open folder, hash file, list devices, scan directory, "
+                    "clear temp files, system info")
+
+            elif cmd.startswith("delete file ") or cmd.startswith("remove file "):
+                path = raw_cmd.split(" ", 2)[2].strip().strip('"').strip("'")
+                self._auto_delete_file(path)
+
+            elif (cmd.startswith("eject device ") or
+                  cmd.startswith("disconnect device ") or
+                  cmd.startswith("eject ") or
+                  cmd.startswith("disconnect ")):
+                drive = raw_cmd.split()[-1].strip().strip('"')
+                self._auto_eject(drive)
+
+            elif cmd.startswith("open file "):
+                path = raw_cmd.split(" ", 2)[2].strip().strip('"')
+                self._auto_open(path)
+
+            elif cmd.startswith("open folder ") or cmd.startswith("open dir "):
+                path = raw_cmd.split(" ", 2)[2].strip().strip('"')
+                self._auto_open_folder(path)
+
+            elif cmd.startswith("hash file ") or cmd.startswith("hash "):
+                parts = raw_cmd.split(" ", 2)
+                path = parts[2].strip().strip('"') if len(parts) > 2 else parts[1].strip().strip('"')
+                self._auto_hash(path)
+
+            elif cmd == "list devices" or cmd == "devices":
+                self._auto_list_devices()
+
+            elif cmd.startswith("scan directory ") or cmd.startswith("scan dir ") or cmd.startswith("scan "):
+                parts = raw_cmd.split(" ", 2)
+                path = parts[-1].strip().strip('"')
+                if path.startswith("directory ") or path.startswith("dir "):
+                    path = path.split(" ", 1)[1].strip()
+                self._auto_scan(path)
+
+            elif cmd in ("clear temp files", "clear temp", "clean temp"):
+                self._auto_clear_temp()
+
+            elif cmd in ("system info", "sysinfo"):
+                self._auto_sysinfo()
+
+            else:
+                self._auto_log(
+                    f"⚠  Unrecognized command: '{raw_cmd}'\n"
+                    f"   Type 'help' for a list of supported commands.")
+
+        except Exception as e:
+            self._auto_log(f"❌  Error: {e}")
+
+    def _auto_log(self, msg):
+        ts = datetime.now().strftime("%H:%M:%S")
+        self.auto_output.appendPlainText(f"[{ts}]   {msg}")
+
+    def _auto_delete_file(self, path):
+        if not os.path.exists(path):
+            self._auto_log(f"❌  File not found: {path}")
+            return
+        reply = QMessageBox.warning(
+            self, "Confirm Delete",
+            f"Are you sure you want to PERMANENTLY delete:\n{path}?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if reply == QMessageBox.StandardButton.Yes:
+            if os.path.isfile(path):
+                os.remove(path)
+            else:
+                shutil.rmtree(path)
+            self._auto_log(f"✅  Deleted: {path}")
+        else:
+            self._auto_log("⊘  Delete cancelled.")
+
+    def _auto_eject(self, drive):
+        """Safely eject a removable drive (Windows)."""
+        drive = drive.rstrip("\\")
+        if not drive.endswith(":"):
+            drive += ":"
+        self._auto_log(f"⏏  Ejecting {drive}…")
+        try:
+            result = subprocess.run(
+                ["powershell", "-Command",
+                 f"$vol = Get-WmiObject -Class Win32_Volume -Filter \""
+                 f"DriveLetter='{drive}'\"; "
+                 f"$vol.Dismount($false, $false)"],
+                capture_output=True, text=True, timeout=15)
+            if result.returncode == 0:
+                self._auto_log(f"✅  {drive} ejected successfully. Safe to remove.")
+            else:
+                self._auto_log(
+                    f"⚠  Eject returned code {result.returncode}. "
+                    f"Drive may still be in use. {result.stderr.strip()}")
+        except Exception as e:
+            self._auto_log(f"❌  Eject failed: {e}")
+
+    def _auto_open(self, path):
+        if not os.path.exists(path):
+            self._auto_log(f"❌  File not found: {path}")
+            return
+        os.startfile(path)
+        self._auto_log(f"✅  Opened: {path}")
+
+    def _auto_open_folder(self, path):
+        if not os.path.isdir(path):
+            self._auto_log(f"❌  Folder not found: {path}")
+            return
+        subprocess.Popen(["explorer", path])
+        self._auto_log(f"✅  Opened folder: {path}")
+
+    def _auto_hash(self, path):
+        if not os.path.isfile(path):
+            self._auto_log(f"❌  File not found: {path}")
+            return
+        self._auto_log(f"🔐  Hashing {os.path.basename(path)}…")
+        md5 = hashlib.md5()
+        sha = hashlib.sha256()
+        with open(path, "rb") as f:
+            while True:
+                chunk = f.read(65536)
+                if not chunk:
+                    break
+                md5.update(chunk)
+                sha.update(chunk)
+        size = os.path.getsize(path)
+        self._auto_log(
+            f"✅  {os.path.basename(path)}\n"
+            f"     Size:    {size:,} bytes\n"
+            f"     MD5:     {md5.hexdigest()}\n"
+            f"     SHA-256: {sha.hexdigest()}")
+
+    def _auto_list_devices(self):
+        svc = USBDetectionService()
+        devs = svc.detect_devices()
+        if not devs:
+            self._auto_log("No devices found.")
+            return
+        self._auto_log(f"Found {len(devs)} device(s):")
+        for d in devs:
+            tag = "REMOVABLE" if d.is_removable else "Fixed"
+            self._auto_log(
+                f"  {d.mount_point}  {d.name}  |  "
+                f"{d.capacity_human}  |  {d.filesystem}  |  {tag}")
+
+    def _auto_scan(self, path):
+        if not os.path.isdir(path):
+            self._auto_log(f"❌  Directory not found: {path}")
+            return
+        self._auto_log(f"⚡  Scanning {path}…")
+        self.scan_input.setText(path)
+        self._run_scan()
+        self._nav_to(2)  # Switch to Quick Scan page
+
+    def _auto_clear_temp(self):
+        tmp = os.environ.get("TEMP", os.path.join(os.path.expanduser("~"), "AppData", "Local", "Temp"))
+        reply = QMessageBox.warning(
+            self, "Clear Temp Files",
+            f"Delete all files in:\n{tmp}?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if reply != QMessageBox.StandardButton.Yes:
+            self._auto_log("⊘  Cancelled.")
+            return
+        count = 0
+        for item in os.listdir(tmp):
+            p = os.path.join(tmp, item)
+            try:
+                if os.path.isfile(p):
+                    os.remove(p)
+                    count += 1
+                elif os.path.isdir(p):
+                    shutil.rmtree(p)
+                    count += 1
+            except Exception:
+                pass
+        self._auto_log(f"✅  Cleared {count} items from temp folder.")
+
+    def _auto_sysinfo(self):
+        import platform
+        import psutil
+        self._auto_log(
+            f"SYSTEM INFORMATION\n"
+            f"  OS:       {platform.system()} {platform.release()}\n"
+            f"  Machine:  {platform.machine()}\n"
+            f"  CPU:      {psutil.cpu_count()} cores\n"
+            f"  RAM:      {psutil.virtual_memory().total // (1024**3)} GB\n"
+            f"  Disk C:   {psutil.disk_usage('C:/').free // (1024**3)} GB free")
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
