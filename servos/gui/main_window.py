@@ -24,7 +24,9 @@ from PyQt6.QtGui import QFont, QPalette, QColor
 
 from servos.gui.theme import (
     STYLESHEET, BG_PRIMARY, BG_SURFACE, BG_CARD, BG_ELEVATED,
-    BORDER, CYAN, GREEN, RED, ORANGE, YELLOW, TEXT, TEXT_SEC, TEXT_DIM,
+    BG_HOVER, BG_INPUT, BORDER, BORDER_DIM, BORDER_FOCUS,
+    CYAN, BLUE, GREEN, RED, ORANGE, YELLOW, PURPLE, TEAL,
+    TEXT, TEXT_SEC, TEXT_DIM, TEXT_BRIGHT,
 )
 from servos.gui.workers import InvestigationWorker, ScanWorker, DeviceRefreshWorker
 from servos.gui.widgets import BentoCard, TerminalViewer, ToastNotification, StatusPill
