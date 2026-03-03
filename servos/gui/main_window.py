@@ -17,9 +17,9 @@ from PyQt6.QtWidgets import (
     QTextEdit, QPlainTextEdit, QLineEdit, QComboBox, QProgressBar,
     QFileDialog, QMessageBox, QGroupBox, QScrollArea, QFrame,
     QTableWidget, QTableWidgetItem, QHeaderView, QTabWidget,
-    QSpacerItem, QSizePolicy, QGridLayout,
+    QSpacerItem, QSizePolicy, QGridLayout, QGraphicsOpacityEffect,
 )
-from PyQt6.QtCore import Qt, QTimer, QSize
+from PyQt6.QtCore import Qt, QTimer, QSize, QPropertyAnimation, QEasingCurve
 from PyQt6.QtGui import QFont, QPalette, QColor
 
 from servos.gui.theme import (
@@ -31,8 +31,10 @@ from servos.gui.theme import (
 from servos.gui.workers import InvestigationWorker, ScanWorker, DeviceRefreshWorker
 from servos.gui.widgets import (
     BentoCard, TerminalViewer, ToastNotification, StatusPill,
-    SectionHeader, PanelCard,
+    SectionHeader, PanelCard, DiskShowcaseCard, TopoHeroBackground,
 )
+from servos.gui.text_morph import MorphingText
+from servos.gui.auth import LoginScreen
 from servos.config import get_config, save_config, ensure_dirs
 from servos.models.schema import (
     DeviceInfo, Case, init_db, get_session, CaseRecord,
@@ -186,7 +188,37 @@ class ServosMainWindow(QMainWindow):
         return sidebar
 
     def _nav_to(self, idx):
+        old_idx = self.pages.currentIndex()
+        if old_idx == idx:
+            return
+
+        # Fade out current page
+        old_page = self.pages.widget(old_idx)
+        if old_page:
+            eff_out = QGraphicsOpacityEffect(old_page)
+            old_page.setGraphicsEffect(eff_out)
+            anim_out = QPropertyAnimation(eff_out, b"opacity", self)
+            anim_out.setDuration(120)
+            anim_out.setStartValue(1.0)
+            anim_out.setEndValue(0.0)
+            anim_out.setEasingCurve(QEasingCurve.Type.InQuad)
+            anim_out.start()
+            self._fade_out = anim_out  # prevent GC
+
+        # Switch + fade in
         self.pages.setCurrentIndex(idx)
+        new_page = self.pages.widget(idx)
+        if new_page:
+            eff_in = QGraphicsOpacityEffect(new_page)
+            new_page.setGraphicsEffect(eff_in)
+            anim_in = QPropertyAnimation(eff_in, b"opacity", self)
+            anim_in.setDuration(200)
+            anim_in.setStartValue(0.0)
+            anim_in.setEndValue(1.0)
+            anim_in.setEasingCurve(QEasingCurve.Type.OutCubic)
+            anim_in.start()
+            self._fade_in = anim_in
+
         for btn, bidx in self.nav_btns:
             btn.setProperty("cssClass",
                             "navActive" if bidx == idx else "nav")
@@ -226,10 +258,69 @@ class ServosMainWindow(QMainWindow):
         scroll.setWidgetResizable(True)
         page = QWidget()
         lay = QVBoxLayout(page)
-        lay.setContentsMargins(40, 36, 40, 36)
-        lay.setSpacing(28)
+        lay.setContentsMargins(0, 0, 0, 0)
+        lay.setSpacing(0)
 
-        # Header
+        # ── HALIDE Topo Hero Section ──
+        hero_container = QWidget()
+        hero_container.setFixedHeight(300)
+        hero_lay = QVBoxLayout(hero_container)
+        hero_lay.setContentsMargins(0, 0, 0, 0)
+        hero_lay.setSpacing(0)
+
+        # Topo background (fills hero)
+        self._topo_bg = TopoHeroBackground(hero_container)
+        self._topo_bg.setGeometry(0, 0, 1200, 300)
+
+        # Hero content overlay
+        hero_content = QWidget(hero_container)
+        hcl = QVBoxLayout(hero_content)
+        hcl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        hcl.setContentsMargins(40, 40, 40, 30)
+        hcl.setSpacing(8)
+
+        # Morphing title
+        morph = MorphingText(
+            ["SERVOS", "INVESTIGATE", "PROTECT", "ANALYZE", "DETECT"],
+            morph_ms=800, cooldown_ms=2500, font_size=42,
+            color="#ffffff")
+        morph.setFixedHeight(70)
+        hcl.addWidget(morph)
+
+        hero_sub = QLabel("Offline AI Forensic Platform  •  CyberHack V4")
+        hero_sub.setFont(QFont("Segoe UI", 13))
+        hero_sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        hero_sub.setStyleSheet(f"color: {TEXT_DIM}; background: transparent;")
+        hcl.addWidget(hero_sub)
+
+        # Disk showcase row (populated from real devices)
+        disk_scroll = QScrollArea()
+        disk_scroll.setWidgetResizable(True)
+        disk_scroll.setFixedHeight(180)
+        disk_scroll.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        disk_scroll.setVerticalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        disk_scroll.setStyleSheet("background: transparent; border: none;")
+
+        self._disk_container = QWidget()
+        self._disk_layout = QHBoxLayout(self._disk_container)
+        self._disk_layout.setContentsMargins(40, 10, 40, 10)
+        self._disk_layout.setSpacing(14)
+        self._disk_layout.addStretch()
+        disk_scroll.setWidget(self._disk_container)
+        hcl.addWidget(disk_scroll)
+
+        hero_content.setGeometry(0, 0, 1200, 300)
+        lay.addWidget(hero_container)
+
+        # ── Dashboard content below hero ──
+        content = QWidget()
+        clx = QVBoxLayout(content)
+        clx.setContentsMargins(40, 28, 40, 36)
+        clx.setSpacing(24)
+
+        # Header row
         header = QHBoxLayout()
         title_col = QVBoxLayout()
         title_col.setSpacing(4)
@@ -244,7 +335,6 @@ class ServosMainWindow(QMainWindow):
         header.addLayout(title_col)
         header.addStretch()
 
-        # Quick action pills in header
         for text, idx, accent in [
             ("+ New Investigation", 1, CYAN),
             ("Quick Scan", 2, None),
@@ -270,7 +360,7 @@ class ServosMainWindow(QMainWindow):
                     f"color: {TEXT}; }}")
             b.clicked.connect(lambda _, i=idx: self._nav_to(i))
             header.addWidget(b)
-        lay.addLayout(header)
+        clx.addLayout(header)
 
         # Metrics row
         metrics = QHBoxLayout()
@@ -281,7 +371,7 @@ class ServosMainWindow(QMainWindow):
         self._m_active = BentoCard("", "0", "ACTIVE", PURPLE)
         for w in [self._m_cases, self._m_devices, self._m_done, self._m_active]:
             metrics.addWidget(w)
-        lay.addLayout(metrics)
+        clx.addLayout(metrics)
 
         # Two-column area
         cols = QHBoxLayout()
@@ -324,7 +414,7 @@ class ServosMainWindow(QMainWindow):
         self.dash_devices.verticalHeader().setVisible(False)
         right_col.addWidget(self.dash_devices)
         cols.addLayout(right_col, 1)
-        lay.addLayout(cols)
+        clx.addLayout(cols)
 
         # Bottom action bar
         actions_row = QHBoxLayout()
@@ -347,12 +437,14 @@ class ServosMainWindow(QMainWindow):
                 f"color: {TEXT}; border-color: rgba(255,255,255,0.12); }}")
             b.clicked.connect(lambda _, i=idx: self._nav_to(i))
             actions_row.addWidget(b)
-        actions_row.addStretch()
-        lay.addLayout(actions_row)
+        clx.addLayout(actions_row)
 
-        lay.addStretch()
+        clx.addStretch()
+        lay.addWidget(content, 1)
+
         scroll.setWidget(page)
         return scroll
+
 
 
 
@@ -394,6 +486,31 @@ class ServosMainWindow(QMainWindow):
                 self.dash_devices.setItem(i, 3, QTableWidgetItem(
                     d.capacity_human))
             s.close()
+
+            # Populate disk showcase cards in hero
+            # Clear existing cards
+            while self._disk_layout.count() > 0:
+                item = self._disk_layout.takeAt(0)
+                if item.widget():
+                    item.widget().deleteLater()
+            for d in devs:
+                try:
+                    import psutil
+                    usage = psutil.disk_usage(d.mount_point)
+                    used_pct = usage.percent / 100.0
+                except Exception:
+                    used_pct = 0.0
+                card = DiskShowcaseCard(
+                    drive_letter=d.mount_point,
+                    label=d.name or d.path or "Drive",
+                    filesystem=d.filesystem or "Unknown",
+                    capacity=d.capacity_human or "?",
+                    used_pct=used_pct,
+                    is_removable=d.is_removable,
+                )
+                self._disk_layout.addWidget(card)
+            self._disk_layout.addStretch()
+
         except Exception:
             pass
 
@@ -1529,7 +1646,21 @@ def main():
     app.setPalette(pal)
 
     win = ServosMainWindow()
-    win.show()
+
+    # Show login screen first
+    login = LoginScreen()
+
+    def on_login(username):
+        login.hide()
+        win.setWindowTitle(f"Servos — {username}")
+        win.show()
+
+    login.login_success.connect(on_login)
+    login.setWindowTitle("Servos — Sign In")
+    login.setMinimumSize(600, 500)
+    login.resize(600, 600)
+    login.show()
+
     sys.exit(app.exec())
 
 

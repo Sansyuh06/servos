@@ -381,3 +381,188 @@ class StatusPill(QLabel):
         if len(h) == 6:
             return f"{int(h[0:2],16)},{int(h[2:4],16)},{int(h[4:6],16)}"
         return "255,255,255"
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Spatial Disk Showcase Card
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+class DiskShowcaseCard(QWidget):
+    """
+    3D-perspective disk card showing drive details.
+    Reactive gradient based on filesystem type.
+    """
+
+    FS_COLORS = {
+        "NTFS":  ("#1d4ed8", "#3b82f6"),
+        "FAT32": ("#047857", "#10b981"),
+        "exFAT": ("#7c3aed", "#8b5cf6"),
+        "ext4":  ("#dc2626", "#ef4444"),
+    }
+    DEFAULT_COLORS = ("#374151", "#6b7280")
+
+    def __init__(self, drive_letter: str = "D:\\",
+                 label: str = "USB Drive",
+                 filesystem: str = "NTFS",
+                 capacity: str = "14.6 GB",
+                 used_pct: float = 0.45,
+                 is_removable: bool = True,
+                 parent=None):
+        super().__init__(parent)
+        self.drive_letter = drive_letter
+        self.label = label
+        self.filesystem = filesystem
+        self.capacity = capacity
+        self.used_pct = max(0.0, min(1.0, used_pct))
+        self.is_removable = is_removable
+
+        self.setFixedSize(220, 160)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+
+    def paintEvent(self, event):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        w, h = self.width(), self.height()
+
+        c1, c2 = self.FS_COLORS.get(
+            self.filesystem, self.DEFAULT_COLORS)
+
+        # Card background with gradient
+        bg = QLinearGradient(0, 0, w, h)
+        bg.setColorAt(0.0, QColor(c1))
+        bg.setColorAt(1.0, QColor(c2))
+
+        path = QPainterPath()
+        path.addRoundedRect(QRectF(1, 1, w-2, h-2), 16, 16)
+        p.fillPath(path, QBrush(bg))
+
+        # Subtle inner glow
+        inner = QLinearGradient(0, 0, 0, h)
+        inner.setColorAt(0.0, QColor(255, 255, 255, 20))
+        inner.setColorAt(0.5, QColor(255, 255, 255, 0))
+        inner.setColorAt(1.0, QColor(0, 0, 0, 40))
+        p.fillPath(path, QBrush(inner))
+
+        # Border
+        p.setPen(QPen(QColor(255, 255, 255, 25), 1))
+        p.drawRoundedRect(QRectF(1, 1, w-2, h-2), 16, 16)
+
+        # Drive letter (large)
+        p.setPen(QColor(255, 255, 255, 220))
+        p.setFont(QFont("Segoe UI", 28, QFont.Weight.ExtraBold))
+        p.drawText(20, 48, self.drive_letter.rstrip("\\"))
+
+        # Tag badge
+        tag = "REMOVABLE" if self.is_removable else "FIXED"
+        p.setFont(QFont("Segoe UI", 7, QFont.Weight.Bold))
+        p.setPen(QColor(255, 255, 255, 180))
+        tw = p.fontMetrics().horizontalAdvance(tag) + 14
+        p.setBrush(QColor(0, 0, 0, 60))
+        p.setPen(Qt.PenStyle.NoPen)
+        tag_path = QPainterPath()
+        tag_path.addRoundedRect(w - tw - 14, 14, tw, 20, 10, 10)
+        p.fillPath(tag_path, QBrush(QColor(0, 0, 0, 60)))
+        p.setPen(QColor(255, 255, 255, 180))
+        p.drawText(int(w - tw - 14 + 7), 28, tag)
+
+        # Label + FS
+        p.setPen(QColor(255, 255, 255, 200))
+        p.setFont(QFont("Segoe UI", 11, QFont.Weight.DemiBold))
+        p.drawText(20, 74, self.label)
+
+        p.setPen(QColor(255, 255, 255, 140))
+        p.setFont(QFont("Segoe UI", 9))
+        p.drawText(20, 92, f"{self.filesystem}  •  {self.capacity}")
+
+        # Usage bar
+        bar_y = h - 32
+        bar_w = w - 40
+        bar_h = 6
+
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(QColor(0, 0, 0, 50))
+        track = QPainterPath()
+        track.addRoundedRect(20, bar_y, bar_w, bar_h, 3, 3)
+        p.fillPath(track, QBrush(QColor(0, 0, 0, 50)))
+
+        fill_w = bar_w * self.used_pct
+        if fill_w > 0:
+            p.setBrush(QColor(255, 255, 255, 180))
+            fill = QPainterPath()
+            fill.addRoundedRect(20, bar_y, fill_w, bar_h, 3, 3)
+            p.fillPath(fill, QBrush(QColor(255, 255, 255, 180)))
+
+        # Usage text
+        p.setPen(QColor(255, 255, 255, 150))
+        p.setFont(QFont("Segoe UI", 8))
+        p.drawText(20, h - 10, f"{int(self.used_pct*100)}% used")
+
+        p.end()
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# HALIDE Topo Hero Background
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+class TopoHeroBackground(QWidget):
+    """
+    Topographic contour lines background with film grain.
+    Inspired by HALIDE topo hero from 21st.dev.
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self._generate_contours()
+
+    def _generate_contours(self):
+        """Pre-compute contour ring data."""
+        import math
+        self._rings = []
+        cx, cy = 0.5, 0.5  # center as fraction
+        for i in range(12):
+            r = 0.08 + i * 0.07
+            alpha = max(8, 30 - i * 2)
+            self._rings.append((cx, cy, r, alpha))
+        # Off-center rings
+        for ox, oy in [(0.25, 0.35), (0.72, 0.65), (0.15, 0.7)]:
+            for i in range(6):
+                r = 0.04 + i * 0.05
+                alpha = max(5, 20 - i * 3)
+                self._rings.append((ox, oy, r, alpha))
+
+    def paintEvent(self, event):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        w, h = self.width(), self.height()
+
+        # Background gradient
+        bg = QLinearGradient(0, 0, w, h)
+        bg.setColorAt(0.0, QColor(3, 7, 18))
+        bg.setColorAt(0.4, QColor(6, 12, 26))
+        bg.setColorAt(1.0, QColor(3, 7, 18))
+        p.fillRect(self.rect(), QBrush(bg))
+
+        # Contour rings
+        for cx_frac, cy_frac, r_frac, alpha in self._rings:
+            cx = int(cx_frac * w)
+            cy = int(cy_frac * h)
+            r = int(r_frac * max(w, h))
+            pen = QPen(QColor(34, 211, 238, alpha), 1)
+            p.setPen(pen)
+            p.setBrush(Qt.BrushStyle.NoBrush)
+            p.drawEllipse(QPointF(cx, cy), r, r * 0.7)
+
+        # Film grain (sparse random dots)
+        import random as rng
+        rng.seed(42)
+        p.setPen(Qt.PenStyle.NoPen)
+        for _ in range(300):
+            x = rng.randint(0, w)
+            y = rng.randint(0, h)
+            a = rng.randint(3, 12)
+            p.setBrush(QColor(255, 255, 255, a))
+            p.drawRect(x, y, 1, 1)
+
+        p.end()
+
