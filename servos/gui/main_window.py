@@ -31,7 +31,8 @@ from servos.gui.theme import (
 from servos.gui.workers import InvestigationWorker, ScanWorker, DeviceRefreshWorker
 from servos.gui.widgets import (
     BentoCard, TerminalViewer, ToastNotification, StatusPill,
-    SectionHeader, PanelCard, DiskShowcaseCard, TopoHeroBackground,
+    SectionHeader, PanelCard, SpatialDeviceCard, TopoHeroBackground,
+    ShowcaseCard,
 )
 from servos.gui.text_morph import MorphingText
 from servos.gui.auth import LoginScreen
@@ -261,77 +262,77 @@ class ServosMainWindow(QMainWindow):
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(0)
 
-        # ── Hero banner ──
+        # ── HALIDE Topo Hero ──
         hero = QWidget()
-        hero.setFixedHeight(220)
-        hero.setStyleSheet("background: #09090b;")
+        hero.setFixedHeight(200)
         hero_lay = QVBoxLayout(hero)
         hero_lay.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        hero_lay.setContentsMargins(48, 24, 48, 20)
-        hero_lay.setSpacing(6)
+        hero_lay.setContentsMargins(48, 20, 48, 16)
+        hero_lay.setSpacing(4)
 
-        # Morphing title
+        # Topo bg fills hero, stays behind
+        self._topo_bg = TopoHeroBackground(hero)
+        self._topo_bg.lower()
+        self._topo_bg.setGeometry(0, 0, 1600, 200)
+        hero.resizeEvent = lambda e: self._topo_bg.setGeometry(0, 0, e.size().width(), e.size().height())
+
+        # Morphing text
         morph = MorphingText(
             ["SERVOS", "INVESTIGATE", "PROTECT", "ANALYZE", "DETECT"],
-            morph_ms=700, cooldown_ms=2500, font_size=38,
+            morph_ms=700, cooldown_ms=2500, font_size=36,
             color="#fafafa")
-        morph.setFixedHeight(60)
+        morph.setFixedHeight(56)
         hero_lay.addWidget(morph)
 
         hero_sub = QLabel("Offline AI Forensic Platform  ·  CyberHack V4")
-        hero_sub.setFont(QFont("Segoe UI", 12))
+        hero_sub.setFont(QFont("Segoe UI", 11))
         hero_sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
         hero_sub.setStyleSheet(f"color: {TEXT_DIM}; background: transparent;")
         hero_lay.addWidget(hero_sub)
 
-        # Disk showcase row
-        self._disk_container = QWidget()
-        self._disk_container.setStyleSheet("background: transparent;")
-        self._disk_layout = QHBoxLayout(self._disk_container)
-        self._disk_layout.setContentsMargins(0, 8, 0, 0)
-        self._disk_layout.setSpacing(12)
-        self._disk_layout.addStretch()
-        hero_lay.addWidget(self._disk_container)
+        # Metadata labels (HALIDE style)
+        meta_row = QHBoxLayout()
+        meta_row.setSpacing(20)
+        meta_row.addStretch()
+        for txt in ["[ CYBERHACK V4 ]", "EVIDENCE PROTECTION", "REAL-TIME ANALYSIS"]:
+            ml = QLabel(txt)
+            ml.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
+            ml.setStyleSheet(f"color: rgba(161,161,170,0.6); background: transparent; letter-spacing: 1px;")
+            meta_row.addWidget(ml)
+        meta_row.addStretch()
+        hero_lay.addLayout(meta_row)
 
         lay.addWidget(hero)
 
-        # ── Separator ──
+        # Separator
         sep = QFrame()
-        sep.setFrameShape(QFrame.Shape.HLine)
         sep.setFixedHeight(1)
         sep.setStyleSheet(f"background: {BORDER}; border: none;")
         lay.addWidget(sep)
 
-        # ── Main content ──
+        # ── Content ──
         content = QWidget()
         cl = QVBoxLayout(content)
-        cl.setContentsMargins(36, 28, 36, 36)
+        cl.setContentsMargins(32, 24, 32, 32)
         cl.setSpacing(20)
 
         # Header
         hdr = QHBoxLayout()
-        hdr.setSpacing(12)
         t = QLabel("Overview")
-        t.setFont(QFont("Segoe UI", 22, QFont.Weight.Bold))
+        t.setFont(QFont("Segoe UI", 20, QFont.Weight.Bold))
         t.setStyleSheet(f"color: {TEXT_BRIGHT}; background: transparent;")
         hdr.addWidget(t)
         hdr.addStretch()
-
-        btn_inv = QPushButton("+ New Investigation")
+        btn_inv = QPushButton("+ Investigation")
         btn_inv.setProperty("cssClass", "primary")
         btn_inv.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_inv.clicked.connect(lambda: self._nav_to(1))
         hdr.addWidget(btn_inv)
-
-        btn_scan = QPushButton("Quick Scan")
-        btn_scan.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_scan.clicked.connect(lambda: self._nav_to(2))
-        hdr.addWidget(btn_scan)
         cl.addLayout(hdr)
 
         # Metrics
         metrics = QHBoxLayout()
-        metrics.setSpacing(12)
+        metrics.setSpacing(10)
         self._m_cases = BentoCard("", "0", "TOTAL CASES", BLUE)
         self._m_devices = BentoCard("", "0", "DEVICES", PURPLE)
         self._m_done = BentoCard("", "0", "COMPLETED", GREEN)
@@ -340,15 +341,56 @@ class ServosMainWindow(QMainWindow):
             metrics.addWidget(w)
         cl.addLayout(metrics)
 
-        # Two columns
-        cols = QHBoxLayout()
-        cols.setSpacing(16)
+        # ── Spatial Device Showcase ──
+        cl.addWidget(SectionHeader("Connected Devices"))
+        self._disk_container = QWidget()
+        self._disk_container.setStyleSheet("background: transparent;")
+        self._disk_layout = QHBoxLayout(self._disk_container)
+        self._disk_layout.setContentsMargins(0, 0, 0, 0)
+        self._disk_layout.setSpacing(12)
+        self._disk_layout.addStretch()
+        cl.addWidget(self._disk_container)
 
-        # Left: Recent cases
-        left = QVBoxLayout()
-        left.setSpacing(8)
-        left.addWidget(SectionHeader("Recent Cases", "View all →",
-                                     lambda: self._nav_to(3)))
+        # ── Ultra Quality Showcase Grid ──
+        cl.addWidget(SectionHeader("Quick Actions"))
+        grid = QGridLayout()
+        grid.setSpacing(12)
+
+        # Hero card (spans 2 rows)
+        hero_card = ShowcaseCard(
+            "Investigate Evidence",
+            "Run deep forensic analysis on connected devices and gather artifacts.",
+            badge="FORENSICS", accent=BLUE,
+            gradient_start="#111827", gradient_end="#1e3a5f")
+        hero_card.setMinimumHeight(260)
+        grid.addWidget(hero_card, 0, 0, 2, 1)
+        hero_card.setCursor(Qt.CursorShape.PointingHandCursor)
+        hero_card.mousePressEvent = lambda e: self._nav_to(1)
+
+        # Side cards
+        cards_data = [
+            ("Quick Scan", "Scan devices for threats", "NEW", GREEN, 2),
+            ("Case Manager", "View and manage forensic cases", None, PURPLE, 3),
+            ("Playbooks", "Automated response procedures", None, ORANGE, 5),
+            ("Automate", "Execute forensic commands", "AI", BLUE, 7),
+        ]
+        for i, (title, desc, badge, accent, nav_idx) in enumerate(cards_data):
+            c = ShowcaseCard(title, desc, badge=badge, accent=accent,
+                           gradient_start="#131316", gradient_end="#1a1a1f")
+            c.setMinimumHeight(120)
+            c.mousePressEvent = lambda e, idx=nav_idx: self._nav_to(idx)
+            row = i // 2
+            col = 1 + (i % 2)
+            grid.addWidget(c, row, col)
+
+        grid.setColumnStretch(0, 2)
+        grid.setColumnStretch(1, 1)
+        grid.setColumnStretch(2, 1)
+        cl.addLayout(grid)
+
+        # ── Recent Cases Table ──
+        cl.addWidget(SectionHeader("Recent Cases", "View all →",
+                                   lambda: self._nav_to(3)))
         self.recent_table = QTableWidget(0, 4)
         self.recent_table.setHorizontalHeaderLabels(
             ["Case ID", "Date", "Status", "Mode"])
@@ -357,28 +399,15 @@ class ServosMainWindow(QMainWindow):
         self.recent_table.setEditTriggers(
             QTableWidget.EditTrigger.NoEditTriggers)
         self.recent_table.setAlternatingRowColors(True)
-        self.recent_table.setMinimumHeight(200)
+        self.recent_table.setMaximumHeight(220)
         self.recent_table.verticalHeader().setVisible(False)
-        left.addWidget(self.recent_table)
-        cols.addLayout(left, 1)
+        cl.addWidget(self.recent_table)
 
-        # Right: Devices
-        right = QVBoxLayout()
-        right.setSpacing(8)
-        right.addWidget(SectionHeader("Connected Devices"))
+        # Device table (hidden, used by refresh)
         self.dash_devices = QTableWidget(0, 4)
         self.dash_devices.setHorizontalHeaderLabels(
             ["Device", "Mount", "FS", "Capacity"])
-        self.dash_devices.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.Stretch)
-        self.dash_devices.setEditTriggers(
-            QTableWidget.EditTrigger.NoEditTriggers)
-        self.dash_devices.setAlternatingRowColors(True)
-        self.dash_devices.setMinimumHeight(200)
-        self.dash_devices.verticalHeader().setVisible(False)
-        right.addWidget(self.dash_devices)
-        cols.addLayout(right, 1)
-        cl.addLayout(cols)
+        self.dash_devices.setVisible(False)
 
         cl.addStretch()
         lay.addWidget(content, 1)
@@ -441,7 +470,7 @@ class ServosMainWindow(QMainWindow):
                     used_pct = usage.percent / 100.0
                 except Exception:
                     used_pct = 0.0
-                card = DiskShowcaseCard(
+                card = SpatialDeviceCard(
                     drive_letter=d.mount_point,
                     label=d.name or d.path or "Drive",
                     filesystem=d.filesystem or "Unknown",
