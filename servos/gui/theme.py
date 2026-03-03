@@ -1,33 +1,43 @@
 """
-Servos — Premium Design System.
-Inspired by Linear, Vercel, and Raycast: ultra-clean dark mode.
+Servos — Design System.
+Faithful reproduction of the Servos.pdf presentation design:
+warm grey backgrounds, lavender/purple accents, cream text.
 """
 
 # ── Color Tokens ─────────────────────────────────────────────
-BG_PRIMARY   = "#09090b"   # Near-black zinc
-BG_SURFACE   = "#0c0c0f"   # Sidebar
-BG_CARD      = "#131316"   # Card backgrounds
-BG_ELEVATED  = "#1a1a1f"   # Hover / elevated
-BG_HOVER     = "#1f1f24"
-BG_INPUT     = "#111114"
+# Pixel-sampled from Servos.pdf pages
 
-BORDER       = "#27272a"   # Zinc-800
-BORDER_FOCUS = "#3b82f6"
-BORDER_DIM   = "#1e1e22"
+BG_PRIMARY   = "#535353"   # Dominant warm grey (53-62% of pdf pages)
+BG_SURFACE   = "#4a4a4a"   # Sidebar, slightly darker
+BG_CARD      = "#5b595e"   # Card bg – purple-tinted grey
+BG_ELEVATED  = "#615d66"   # Hover/elevated – purple-grey blobs
+BG_HOVER     = "#6a6770"   # Lighter hover state
+BG_INPUT     = "#4e4e50"   # Input field bg
 
-CYAN         = "#22d3ee"
-BLUE         = "#3b82f6"
-GREEN        = "#22c55e"
-RED          = "#ef4444"
-ORANGE       = "#f97316"
-YELLOW       = "#eab308"
-PURPLE       = "#a78bfa"
-TEAL         = "#14b8a6"
+BORDER       = "#6e6b73"   # Subtle border on cards
+BORDER_FOCUS = "#9c8ab9"   # Focus = accent lavender
+BORDER_DIM   = "#5a585c"   # Faint separators
 
-TEXT         = "#e4e4e7"   # Zinc-200
-TEXT_SEC     = "#a1a1aa"   # Zinc-400
-TEXT_DIM     = "#71717a"   # Zinc-500
-TEXT_BRIGHT  = "#fafafa"   # Zinc-50
+# ── Accent palette (lavender/purple from PDF info cards) ─────
+ACCENT       = "#9c8ab9"   # Primary lavender accent (12-22% on info pages)
+ACCENT_DARK  = "#7b6b9a"   # Hover / pressed accent
+ACCENT_LIGHT = "#bfb0d4"   # Light accent for subtle highlights
+PURPLE       = "#9c8ab9"   # Alias
+
+# ── Functional colors (slightly muted to fit warm palette) ───
+CYAN         = "#6bc4d6"
+BLUE         = "#7d9fd6"   # Softer blue
+GREEN        = "#6dc06c"
+RED          = "#d46a6a"
+ORANGE       = "#d49a5a"
+YELLOW       = "#d4c15a"
+TEAL         = "#5ab8a8"
+
+# ── Text (cream from PDF) ───────────────────────────────────
+TEXT         = "#fff6e7"   # Cream – primary text
+TEXT_SEC     = "#c5c0b8"   # Warm mid-grey for secondary
+TEXT_DIM     = "#9a968e"   # De-emphasized labels
+TEXT_BRIGHT  = "#ffffff"   # Maximum emphasis (sparkles, icons)
 
 # ── Main Stylesheet ──────────────────────────────────────────
 STYLESHEET = f"""
@@ -52,34 +62,34 @@ QPushButton {{
 }}
 QPushButton:hover {{
     background-color: {BG_HOVER};
-    border-color: #3f3f46;
+    border-color: {ACCENT};
 }}
 QPushButton:pressed {{
-    background-color: {BG_PRIMARY};
+    background-color: {BG_ELEVATED};
 }}
 QPushButton:disabled {{
     color: {TEXT_DIM};
     border-color: {BORDER_DIM};
 }}
 QPushButton[cssClass="primary"] {{
-    background: {BLUE};
-    border: 1px solid #60a5fa;
+    background: {ACCENT};
+    border: 1px solid {ACCENT_LIGHT};
     color: #ffffff;
     font-weight: 600;
     border-radius: 8px;
 }}
 QPushButton[cssClass="primary"]:hover {{
-    background: #2563eb;
-    border-color: #93c5fd;
+    background: {ACCENT_DARK};
+    border-color: {ACCENT};
 }}
 QPushButton[cssClass="success"] {{
-    background-color: rgba(34, 197, 94, 0.12);
-    border: 1px solid rgba(34, 197, 94, 0.3);
+    background-color: rgba(109, 192, 108, 0.15);
+    border: 1px solid rgba(109, 192, 108, 0.35);
     color: {GREEN};
 }}
 QPushButton[cssClass="danger"] {{
-    background-color: rgba(239, 68, 68, 0.12);
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    background-color: rgba(212, 106, 106, 0.15);
+    border: 1px solid rgba(212, 106, 106, 0.35);
     color: {RED};
 }}
 QPushButton[cssClass="nav"] {{
@@ -93,17 +103,17 @@ QPushButton[cssClass="nav"] {{
     font-size: 13px;
 }}
 QPushButton[cssClass="nav"]:hover {{
-    background-color: {BG_HOVER};
+    background-color: {BG_ELEVATED};
     color: {TEXT};
 }}
 QPushButton[cssClass="navActive"] {{
     text-align: left;
     padding: 10px 16px;
     border: none;
-    border-left: 2px solid {BLUE};
+    border-left: 2px solid {ACCENT};
     border-radius: 0px 6px 6px 0px;
     font-weight: 600;
-    background-color: rgba(59, 130, 246, 0.08);
+    background-color: rgba(156, 138, 185, 0.12);
     color: {TEXT_BRIGHT};
 }}
 
@@ -115,11 +125,11 @@ QLineEdit, QTextEdit, QPlainTextEdit {{
     border-radius: 6px;
     padding: 8px 12px;
     font-size: 13px;
-    selection-background-color: {BLUE};
+    selection-background-color: {ACCENT};
     selection-color: white;
 }}
 QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus {{
-    border-color: {BLUE};
+    border-color: {ACCENT};
 }}
 QComboBox {{
     background-color: {BG_INPUT};
@@ -131,7 +141,7 @@ QComboBox {{
     min-height: 18px;
 }}
 QComboBox:focus {{
-    border-color: {BLUE};
+    border-color: {ACCENT};
 }}
 QComboBox::drop-down {{
     border: none;
@@ -140,7 +150,7 @@ QComboBox::drop-down {{
 QComboBox QAbstractItemView {{
     background-color: {BG_CARD};
     border: 1px solid {BORDER};
-    selection-background-color: {BG_HOVER};
+    selection-background-color: {BG_ELEVATED};
     color: {TEXT};
 }}
 
@@ -180,7 +190,7 @@ QProgressBar {{
 }}
 QProgressBar::chunk {{
     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-        stop:0 {BLUE}, stop:1 #60a5fa);
+        stop:0 {ACCENT_DARK}, stop:1 {ACCENT});
     border-radius: 5px;
 }}
 
@@ -190,7 +200,7 @@ QTableWidget {{
     border: 1px solid {BORDER};
     border-radius: 10px;
     gridline-color: {BORDER_DIM};
-    selection-background-color: rgba(59, 130, 246, 0.15);
+    selection-background-color: rgba(156, 138, 185, 0.18);
     alternate-background-color: {BG_PRIMARY};
     font-size: 12px;
 }}
@@ -238,7 +248,7 @@ QTabBar::tab:selected {{
     border-bottom: 1px solid {BG_CARD};
 }}
 QTabBar::tab:hover:!selected {{
-    background-color: {BG_HOVER};
+    background-color: {BG_ELEVATED};
     color: {TEXT};
 }}
 
@@ -258,7 +268,7 @@ QScrollBar::handle:vertical {{
     min-height: 40px;
 }}
 QScrollBar::handle:vertical:hover {{
-    background: {TEXT_DIM};
+    background: {ACCENT};
 }}
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical,
 QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
@@ -287,13 +297,13 @@ QListWidget::item {{
     color: {TEXT_SEC};
 }}
 QListWidget::item:hover {{
-    background-color: {BG_HOVER};
+    background-color: {BG_ELEVATED};
     color: {TEXT};
 }}
 QListWidget::item:selected {{
-    background-color: rgba(59, 130, 246, 0.1);
+    background-color: rgba(156, 138, 185, 0.15);
     color: {TEXT_BRIGHT};
-    border-left: 3px solid {BLUE};
+    border-left: 3px solid {ACCENT};
 }}
 
 /* ━━━ Labels ━━━ */

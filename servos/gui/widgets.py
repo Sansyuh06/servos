@@ -1,6 +1,6 @@
 """
-Servos – Custom Widgets inspired by 21st.dev components.
-Clean zinc aesthetic with premium touches.
+Servos – Custom Widgets.
+Styled to match Servos.pdf: warm grey backgrounds, lavender accents, cream text.
 """
 
 import random
@@ -20,20 +20,22 @@ from PyQt6.QtGui import (
 
 from servos.gui.theme import (
     BG_PRIMARY, BG_SURFACE, BG_CARD, BG_ELEVATED, BG_HOVER,
-    BORDER, BORDER_DIM, CYAN, BLUE, GREEN, RED, ORANGE, YELLOW, PURPLE,
+    BORDER, BORDER_DIM,
+    ACCENT, ACCENT_DARK, ACCENT_LIGHT, PURPLE,
+    CYAN, BLUE, GREEN, RED, ORANGE, YELLOW,
     TEXT, TEXT_SEC, TEXT_DIM, TEXT_BRIGHT,
 )
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Bento Metric Card
+# Bento Metric Card – PDF lavender accent bar, warm grey bg
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 class BentoCard(QWidget):
-    """Metric card with accent bar, label, value, sparkline."""
+    """Metric card with lavender accent bar, label, value, sparkline."""
 
     def __init__(self, icon: str, value: str, label: str,
-                 accent: str = BLUE, parent=None):
+                 accent: str = ACCENT, parent=None):
         super().__init__(parent)
         self.accent = accent
         self._value = value
@@ -62,43 +64,44 @@ class BentoCard(QWidget):
         w, h = self.width(), self.height()
         r = QRectF(0.5, 0.5, w - 1, h - 1)
 
-        # Background
+        # Background — warm grey from PDF
+        bg_color = QColor(BG_CARD)
         p.setPen(Qt.PenStyle.NoPen)
-        p.setBrush(QColor(19, 19, 22))
         path = QPainterPath()
         path.addRoundedRect(r, 10, 10)
-        p.fillPath(path, QBrush(QColor(19, 19, 22)))
+        p.fillPath(path, QBrush(bg_color))
 
         # Border
-        p.setPen(QPen(QColor(39, 39, 42), 1))
+        p.setPen(QPen(QColor(BORDER), 1))
         p.drawRoundedRect(r, 10, 10)
 
-        # Accent bar
+        # Accent bar — lavender from PDF
         p.setPen(Qt.PenStyle.NoPen)
         acc = QColor(self.accent)
-        acc.setAlpha(180)
+        acc.setAlpha(200)
         bar = QPainterPath()
         bar.addRoundedRect(14, 14, 3, 18, 1.5, 1.5)
         p.fillPath(bar, QBrush(acc))
 
-        # Label
-        p.setPen(QColor(113, 113, 122))
+        # Label — warm cream dim
+        p.setPen(QColor(TEXT_DIM))
         p.setFont(QFont("Segoe UI", 9, QFont.Weight.DemiBold))
         p.drawText(26, 28, self._label)
 
-        # Value
-        p.setPen(QColor(250, 250, 250))
+        # Value — cream bright
+        p.setPen(QColor(TEXT_BRIGHT))
         p.setFont(QFont("Segoe UI", 26, QFont.Weight.Bold))
         p.drawText(14, 68, self._value)
 
-        # Sparkline
+        # Sparkline track
         bx, by = 14, h - 18
         bw, bh = w - 28, 3
-        p.setBrush(QColor(39, 39, 42))
+        p.setBrush(QColor(BG_ELEVATED))
         tp = QPainterPath()
         tp.addRoundedRect(bx, by, bw, bh, 1.5, 1.5)
-        p.fillPath(tp, QBrush(QColor(39, 39, 42)))
+        p.fillPath(tp, QBrush(QColor(BG_ELEVATED)))
 
+        # Sparkline fill — lavender accent
         fw = bw * self._spark_pct
         if fw > 0:
             af = QColor(self.accent)
@@ -133,7 +136,7 @@ class SectionHeader(QWidget):
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
             btn.setFont(QFont("Segoe UI", 10))
             btn.setStyleSheet(
-                f"color: {BLUE}; background: transparent; "
+                f"color: {ACCENT_LIGHT}; background: transparent; "
                 f"border: none; padding: 4px 8px;")
             btn.clicked.connect(action_callback)
             lay.addWidget(btn)
@@ -160,10 +163,10 @@ class PanelCard(QFrame):
 
 class ToastNotification(QWidget):
     COLORS = {
-        "info":    (BLUE,   "ℹ️"),
-        "success": (GREEN,  "✅"),
-        "warning": (ORANGE, "⚠️"),
-        "error":   (RED,    "❌"),
+        "info":    (ACCENT,  "ℹ️"),
+        "success": (GREEN,   "✅"),
+        "warning": (ORANGE,  "⚠️"),
+        "error":   (RED,     "❌"),
     }
 
     def __init__(self, message: str, level: str = "info",
@@ -230,7 +233,7 @@ class ChatBubble(QWidget):
             sl = QLabel(sender)
             sl.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
             sl.setStyleSheet(
-                f"color: {BLUE if not is_user else PURPLE}; "
+                f"color: {ACCENT if not is_user else ACCENT_LIGHT}; "
                 f"background: transparent;")
             align = (Qt.AlignmentFlag.AlignRight if is_user
                      else Qt.AlignmentFlag.AlignLeft)
@@ -243,7 +246,7 @@ class ChatBubble(QWidget):
 
         if is_user:
             bubble.setStyleSheet(
-                f"background: {BLUE}; "
+                f"background: {ACCENT}; "
                 f"color: #ffffff; border-radius: 12px; "
                 f"padding: 10px 16px; border: none;")
         else:
@@ -264,7 +267,7 @@ class TerminalViewer(QWidget):
     def __init__(self, title: str = "Terminal", parent=None):
         super().__init__(parent)
         self.setStyleSheet(
-            f"background: {BG_PRIMARY}; "
+            f"background: {BG_SURFACE}; "
             f"border: 1px solid {BORDER}; "
             f"border-radius: 8px;")
 
@@ -302,7 +305,7 @@ class TerminalViewer(QWidget):
         self.output.setStyleSheet(
             f"background: transparent; color: {GREEN}; "
             f"border: none; padding: 8px; "
-            f"selection-background-color: rgba(59, 130, 246, 0.3);")
+            f"selection-background-color: rgba(156, 138, 185, 0.3);")
         lay.addWidget(self.output)
 
     def append(self, text: str, color: str = None):
@@ -324,7 +327,7 @@ class StatusPill(QLabel):
         "online":    (GREEN,  "● Online"),
         "offline":   (RED,    "● Offline"),
         "ready":     (GREEN,  "● Ready"),
-        "running":   (BLUE,   "◉ Running"),
+        "running":   (ACCENT, "◉ Running"),
         "completed": (GREEN,  "✓ Completed"),
         "error":     (RED,    "✗ Error"),
         "warning":   (ORANGE, "⚠ Warning"),
@@ -353,23 +356,22 @@ class StatusPill(QLabel):
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Spatial Device Showcase  (21st.dev/daiv09)
-# Dark card with radial gradient, specs panel, status pill
+# Spatial Device Showcase — Purple/lavender gradients from PDF
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 class SpatialDeviceCard(QWidget):
     """
     Spatial Product Showcase style device card.
-    Radial gradient bg, large drive icon, specs on right, status pill.
+    Uses warm purple-grey gradients matching Servos.pdf.
     """
 
     FS_GRADIENTS = {
-        "NTFS":  (QColor(15, 23, 42), QColor(30, 58, 138)),
-        "FAT32": (QColor(5, 46, 22), QColor(22, 101, 52)),
-        "exFAT": (QColor(46, 16, 101), QColor(88, 28, 135)),
-        "ext4":  (QColor(69, 10, 10), QColor(127, 29, 29)),
+        "NTFS":  (QColor(66, 60, 75), QColor(97, 93, 102)),   # Purple-grey from PDF
+        "FAT32": (QColor(58, 70, 58), QColor(85, 105, 85)),   # Slight green tint
+        "exFAT": (QColor(75, 60, 90), QColor(120, 95, 145)),  # Deeper purple
+        "ext4":  (QColor(70, 55, 55), QColor(110, 80, 80)),   # Warm red-grey
     }
-    DEFAULT_GRAD = (QColor(15, 15, 20), QColor(30, 30, 40))
+    DEFAULT_GRAD = (QColor(74, 74, 74), QColor(91, 89, 94))   # BG_SURFACE to BG_CARD
 
     def __init__(self, drive_letter="D:\\", label="USB Drive",
                  filesystem="NTFS", capacity="14.6 GB",
@@ -402,12 +404,12 @@ class SpatialDeviceCard(QWidget):
         card.addRoundedRect(QRectF(0, 0, w, h), 14, 14)
         p.fillPath(card, QBrush(rg))
 
-        # Border
-        p.setPen(QPen(QColor(255, 255, 255, 12), 1))
+        # Border — subtle lavender tint
+        p.setPen(QPen(QColor(156, 138, 185, 40), 1))
         p.drawRoundedRect(QRectF(0.5, 0.5, w-1, h-1), 14, 14)
 
         # Large drive letter (left)
-        p.setPen(QColor(255, 255, 255, 200))
+        p.setPen(QColor(TEXT))
         p.setFont(QFont("Segoe UI", 40, QFont.Weight.ExtraBold))
         letter = self.drive_letter.rstrip("\\").rstrip(":")
         p.drawText(24, 70, letter)
@@ -421,25 +423,25 @@ class SpatialDeviceCard(QWidget):
         pill = QPainterPath()
         pill.addRoundedRect(pill_x, pill_y, tw, 18, 9, 9)
         p.setPen(Qt.PenStyle.NoPen)
-        p.fillPath(pill, QBrush(QColor(34, 197, 94, 50)))
-        p.setPen(QColor(34, 197, 94, 200))
+        p.fillPath(pill, QBrush(QColor(109, 192, 108, 50)))
+        p.setPen(QColor(109, 192, 108, 220))
         p.drawText(pill_x + 8, pill_y + 13, f"● {status}")
 
         # Right side: specs
         rx = w * 0.48
-        p.setPen(QColor(255, 255, 255, 120))
+        p.setPen(QColor(TEXT_DIM))
         p.setFont(QFont("Segoe UI", 7, QFont.Weight.Bold))
         p.drawText(int(rx), 24, self.filesystem.upper())
 
-        p.setPen(QColor(255, 255, 255, 230))
+        p.setPen(QColor(TEXT))
         p.setFont(QFont("Segoe UI", 15, QFont.Weight.Bold))
         p.drawText(int(rx), 46, self.label)
 
-        p.setPen(QColor(255, 255, 255, 120))
+        p.setPen(QColor(TEXT_SEC))
         p.setFont(QFont("Segoe UI", 9))
         p.drawText(int(rx), 64, self.capacity)
 
-        # Usage bar
+        # Usage bar — lavender accent fill
         bar_x = int(rx)
         bar_y = 80
         bar_w = int(w - rx - 20)
@@ -454,16 +456,16 @@ class SpatialDeviceCard(QWidget):
         if fw > 0:
             fill = QPainterPath()
             fill.addRoundedRect(bar_x, bar_y, fw, bar_h, 2, 2)
-            p.fillPath(fill, QBrush(QColor(59, 130, 246, 200)))
+            p.fillPath(fill, QBrush(QColor(ACCENT)))
 
-        p.setPen(QColor(255, 255, 255, 100))
+        p.setPen(QColor(TEXT_SEC))
         p.setFont(QFont("Segoe UI", 8))
         p.drawText(bar_x, bar_y + 16, f"{int(self.used_pct*100)}% used")
 
-        # Glow circles (spatial effect)
+        # Glow circles (spatial effect) — lavender-tinted
         for radius in [60, 90, 120]:
-            glow = QColor(outer)
-            glow.setAlpha(max(3, 12 - radius // 10))
+            glow = QColor(ACCENT)
+            glow.setAlpha(max(3, 10 - radius // 15))
             p.setPen(QPen(glow, 0.5))
             p.setBrush(Qt.BrushStyle.NoBrush)
             p.drawEllipse(QPointF(w * 0.35, h * 0.4), radius, radius)
@@ -472,12 +474,11 @@ class SpatialDeviceCard(QWidget):
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# HALIDE Topo Hero Background  (21st.dev/shivendra9795kumar)
-# Monochrome topographical lines + film grain
+# HALIDE Topo Hero Background — warm grey from PDF
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 class TopoHeroBackground(QWidget):
-    """Topographic contour background with film grain."""
+    """Topographic contour background matching Servos.pdf warm grey."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -500,14 +501,16 @@ class TopoHeroBackground(QWidget):
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         w, h = self.width(), self.height()
 
-        # Background
-        p.fillRect(self.rect(), QColor(9, 9, 11))
+        # Background — warm grey matching PDF
+        p.fillRect(self.rect(), QColor(BG_PRIMARY))
 
-        # Contour rings
+        # Contour rings — lavender-tinted (matching PDF contour style)
         for cx_f, cy_f, r_f, alpha in self._rings:
             cx, cy = int(cx_f * w), int(cy_f * h)
             r = int(r_f * max(w, h))
-            p.setPen(QPen(QColor(161, 161, 170, alpha), 0.8))
+            ring_color = QColor(ACCENT)
+            ring_color.setAlpha(alpha)
+            p.setPen(QPen(ring_color, 0.8))
             p.setBrush(Qt.BrushStyle.NoBrush)
             p.drawEllipse(QPointF(cx, cy), r, r * 0.65)
 
@@ -517,28 +520,27 @@ class TopoHeroBackground(QWidget):
         for _ in range(400):
             x = random.randint(0, w)
             y = random.randint(0, h)
-            a = random.randint(4, 16)
-            p.setBrush(QColor(255, 255, 255, a))
+            a = random.randint(4, 14)
+            p.setBrush(QColor(255, 246, 231, a))  # Cream-tinted grain
             p.drawRect(x, y, 1, 1)
 
         p.end()
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Showcase Grid Card  (21st.dev/dhileepkumargm)
-# Bento-style card with badge, title, description
+# Showcase Grid Card — lavender gradient header from PDF
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 class ShowcaseCard(QWidget):
     """
-    Bento showcase card with gradient header, badge, title, description.
-    Used in the Ultra Quality Showcase Grid layout.
+    Bento showcase card with lavender gradient header, badge, title, description.
+    Matches Servos.pdf info card style.
     """
 
     def __init__(self, title: str, description: str = "",
-                 badge: str = None, gradient_start: str = "#1a1a1f",
-                 gradient_end: str = "#27272a",
-                 accent: str = BLUE, parent=None):
+                 badge: str = None, gradient_start: str = BG_CARD,
+                 gradient_end: str = BG_ELEVATED,
+                 accent: str = ACCENT, parent=None):
         super().__init__(parent)
         self._title = title
         self._desc = description
@@ -557,7 +559,7 @@ class ShowcaseCard(QWidget):
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         w, h = self.width(), self.height()
 
-        # Card background
+        # Card background — warm grey gradient
         bg = QLinearGradient(0, 0, w, h)
         bg.setColorAt(0.0, QColor(self._g_start))
         bg.setColorAt(1.0, QColor(self._g_end))
@@ -566,14 +568,17 @@ class ShowcaseCard(QWidget):
         p.fillPath(card, QBrush(bg))
 
         # Border
-        p.setPen(QPen(QColor(39, 39, 42), 1))
+        p.setPen(QPen(QColor(BORDER), 1))
         p.drawRoundedRect(QRectF(0.5, 0.5, w-1, h-1), 12, 12)
 
-        # Gradient image area (top half)
+        # Top gradient area — lavender-tinted (matching PDF info cards)
         top_h = int(h * 0.45)
         ig = QLinearGradient(0, 0, w, top_h)
-        ig.setColorAt(0.0, QColor(self._accent).darker(200))
-        ig.setColorAt(1.0, QColor(39, 39, 42))
+        accent_color = QColor(self._accent)
+        accent_dark = QColor(accent_color)
+        accent_dark.setAlpha(80)
+        ig.setColorAt(0.0, accent_dark)
+        ig.setColorAt(1.0, QColor(BG_CARD))
         img_area = QPainterPath()
         img_area.addRoundedRect(QRectF(1, 1, w-2, top_h), 11, 11)
         p.fillPath(img_area, QBrush(ig))
@@ -581,31 +586,31 @@ class ShowcaseCard(QWidget):
         # Content area
         cy = top_h + 10
 
-        # Badge
+        # Badge — lavender pill
         if self._badge:
             p.setPen(Qt.PenStyle.NoPen)
             badge_w = len(self._badge) * 8 + 16
             bp = QPainterPath()
             bp.addRoundedRect(14, cy, badge_w, 20, 4, 4)
             badge_color = QColor(self._accent)
-            badge_color.setAlpha(30)
+            badge_color.setAlpha(40)
             p.fillPath(bp, QBrush(badge_color))
             p.setPen(QColor(self._accent))
             p.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
             p.drawText(22, cy + 14, self._badge)
             cy += 28
 
-        # Title
-        p.setPen(QColor(250, 250, 250))
+        # Title — cream text
+        p.setPen(QColor(TEXT_BRIGHT))
         p.setFont(QFont("Segoe UI", 13, QFont.Weight.Bold))
         p.drawText(QRectF(14, cy, w - 28, 40),
                    Qt.AlignmentFlag.AlignLeft | Qt.TextFlag.TextWordWrap,
                    self._title)
         cy += 32
 
-        # Description
+        # Description — warm dim text
         if self._desc:
-            p.setPen(QColor(113, 113, 122))
+            p.setPen(QColor(TEXT_SEC))
             p.setFont(QFont("Segoe UI", 10))
             p.drawText(QRectF(14, cy, w - 28, h - cy - 10),
                        Qt.AlignmentFlag.AlignLeft | Qt.TextFlag.TextWordWrap,

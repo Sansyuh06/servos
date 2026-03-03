@@ -1,6 +1,7 @@
 """
 Servos – Authentication System.
 Real login with SQLite-backed user accounts and SHA-256 password hashing.
+Styled to match Servos.pdf design: warm grey + lavender accents + cream text.
 """
 
 import os
@@ -17,8 +18,9 @@ from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QTimer, pyqtSigna
 from PyQt6.QtGui import QFont, QColor, QPainter, QLinearGradient, QBrush, QPainterPath
 
 from servos.gui.theme import (
-    BG_PRIMARY, BG_SURFACE, CYAN, BLUE, GREEN, RED,
-    TEXT, TEXT_SEC, TEXT_DIM, TEXT_BRIGHT, BORDER,
+    BG_PRIMARY, BG_SURFACE, BG_CARD, BG_ELEVATED,
+    ACCENT, ACCENT_DARK, ACCENT_LIGHT,
+    TEXT, TEXT_SEC, TEXT_DIM, TEXT_BRIGHT, BORDER, RED,
 )
 from servos.config import get_config
 
@@ -89,7 +91,7 @@ def _verify_user(username: str, password: str) -> bool:
 class LoginScreen(QWidget):
     """
     Full-screen login / create-account screen.
-    Gradient border card, centered, dark background.
+    Warm grey background with lavender accent card, matching Servos.pdf design.
     Emits `login_success(username)` on valid login.
     """
 
@@ -105,31 +107,41 @@ class LoginScreen(QWidget):
         outer = QVBoxLayout(self)
         outer.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Card
+        # Card — matches PDF purple-tinted grey
         card = QWidget()
-        card.setFixedSize(400, 460)
+        card.setFixedSize(420, 520)
         card.setStyleSheet(
-            f"background: #131316; "
+            f"background: {BG_CARD}; "
             f"border: 1px solid {BORDER}; "
-            f"border-radius: 16px;")
+            f"border-radius: 18px;")
         cl = QVBoxLayout(card)
-        cl.setContentsMargins(36, 36, 36, 36)
-        cl.setSpacing(12)
+        cl.setContentsMargins(40, 36, 40, 36)
+        cl.setSpacing(10)
 
-        # Logo
-        logo = QLabel("⚔️")
-        logo.setFont(QFont("Segoe UI Emoji", 36))
+        # Logo — Servos atom icon
+        logo = QLabel("⚛")
+        logo.setFont(QFont("Segoe UI Emoji", 38))
         logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         logo.setStyleSheet("background: transparent;")
         cl.addWidget(logo)
 
-        # Title
-        title = QLabel("SERVOS")
-        title.setFont(QFont("Segoe UI", 24, QFont.Weight.ExtraBold))
+        # Title — "SERVOS"
+        title = QLabel("Servos")
+        title.setFont(QFont("Segoe UI", 28, QFont.Weight.ExtraBold))
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setStyleSheet(f"color: {TEXT_BRIGHT}; background: transparent; "
-                            f"letter-spacing: 3px;")
+                            f"letter-spacing: 2px;")
         cl.addWidget(title)
+
+        # Tagline from PDF
+        tagline = QLabel("Forensics for the Rest of Us")
+        tagline.setFont(QFont("Segoe UI", 11))
+        tagline.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        tagline.setStyleSheet(f"color: {ACCENT_LIGHT}; background: transparent; "
+                              f"font-style: italic;")
+        cl.addWidget(tagline)
+
+        cl.addSpacerItem(QSpacerItem(0, 8))
 
         # Subtitle
         sub_text = "Create your account" if self._is_signup else "Sign in to continue"
@@ -139,7 +151,7 @@ class LoginScreen(QWidget):
         sub.setStyleSheet(f"color: {TEXT_DIM}; background: transparent;")
         cl.addWidget(sub)
 
-        cl.addSpacerItem(QSpacerItem(0, 16))
+        cl.addSpacerItem(QSpacerItem(0, 12))
 
         # Username
         ulbl = QLabel("Username")
@@ -149,7 +161,7 @@ class LoginScreen(QWidget):
 
         self.user_input = QLineEdit()
         self.user_input.setPlaceholderText("Enter username")
-        self.user_input.setMinimumHeight(40)
+        self.user_input.setMinimumHeight(42)
         self.user_input.setStyleSheet(
             f"background: {BG_PRIMARY}; color: {TEXT}; "
             f"border: 1px solid {BORDER}; "
@@ -165,7 +177,7 @@ class LoginScreen(QWidget):
         self.pass_input = QLineEdit()
         self.pass_input.setPlaceholderText("Enter password")
         self.pass_input.setEchoMode(QLineEdit.EchoMode.Password)
-        self.pass_input.setMinimumHeight(40)
+        self.pass_input.setMinimumHeight(42)
         self.pass_input.setStyleSheet(
             f"background: {BG_PRIMARY}; color: {TEXT}; "
             f"border: 1px solid {BORDER}; "
@@ -173,20 +185,20 @@ class LoginScreen(QWidget):
         self.pass_input.returnPressed.connect(self._submit)
         cl.addWidget(self.pass_input)
 
-        cl.addSpacerItem(QSpacerItem(0, 10))
+        cl.addSpacerItem(QSpacerItem(0, 14))
 
-        # Submit button
+        # Submit button — lavender accent matching PDF
         btn_text = "Create Account" if self._is_signup else "Sign In"
         self.submit_btn = QPushButton(f"→  {btn_text}")
-        self.submit_btn.setMinimumHeight(44)
+        self.submit_btn.setMinimumHeight(46)
         self.submit_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.submit_btn.setFont(QFont("Segoe UI", 12, QFont.Weight.Bold))
         self.submit_btn.setStyleSheet(
             f"QPushButton {{ "
-            f"  color: #fff; background: {BLUE}; "
-            f"  border: none; border-radius: 8px; "
+            f"  color: #fff; background: {ACCENT}; "
+            f"  border: none; border-radius: 10px; "
             f"}}  "
-            f"QPushButton:hover {{ background: #2563eb; }}")
+            f"QPushButton:hover {{ background: {ACCENT_DARK}; }}")
         self.submit_btn.clicked.connect(self._submit)
         cl.addWidget(self.submit_btn)
 
@@ -195,7 +207,7 @@ class LoginScreen(QWidget):
         self.toggle_btn = QPushButton(toggle_text)
         self.toggle_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.toggle_btn.setStyleSheet(
-            f"color: {BLUE}; background: transparent; "
+            f"color: {ACCENT_LIGHT}; background: transparent; "
             f"border: none; font-size: 11px;")
         self.toggle_btn.clicked.connect(self._toggle_mode)
         cl.addWidget(self.toggle_btn, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -243,6 +255,7 @@ class LoginScreen(QWidget):
                 self.error_lbl.setText("Invalid username or password")
 
     def paintEvent(self, event):
+        """Fill background with warm grey from PDF."""
         p = QPainter(self)
-        p.fillRect(self.rect(), QColor(9, 9, 11))
+        p.fillRect(self.rect(), QColor(BG_PRIMARY))
         p.end()
