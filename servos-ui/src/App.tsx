@@ -4,6 +4,11 @@ import { useAuthStore } from '@/store/authStore'
 import LoginPage from '@/pages/LoginPage'
 import DashboardPage from '@/pages/DashboardPage'
 import InvestigatePage from '@/pages/InvestigatePage'
+import NetworkScanPage from '@/pages/NetworkScanPage'
+import MemoryPage from '@/pages/MemoryPage'
+import LogPage from '@/pages/LogPage'
+import RegistryPage from '@/pages/RegistryPage'
+import MalwareDeepPage from '@/pages/MalwareDeepPage'
 import WorkspacePage from '@/pages/WorkspacePage'
 import ReportPage from '@/pages/ReportPage'
 import SettingsPage from '@/pages/SettingsPage'
@@ -33,6 +38,11 @@ export default function App() {
                                     <Route index element={<ChatPage />} />
                                     <Route path="dashboard" element={<DashboardPage />} />
                                     <Route path="investigate" element={<InvestigatePage />} />
+                                    <Route path="network" element={<NetworkScanPage />} />
+                                    <Route path="memory" element={<MemoryPage />} />
+                                    <Route path="logs" element={<LogPage />} />
+                                    <Route path="registry" element={<RegistryPage />} />
+                                    <Route path="deep" element={<MalwareDeepPage />} />
                                     <Route path="workspace/:caseId" element={<WorkspacePage />} />
                                     <Route path="report/:caseId" element={<ReportPage />} />
                                     <Route path="settings" element={<SettingsPage />} />

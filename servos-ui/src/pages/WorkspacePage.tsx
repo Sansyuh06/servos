@@ -5,10 +5,13 @@ import PageTransition from '@/components/PageTransition'
 import {
     FolderTree, Shield, Bug, FileText, Clock, Cpu,
     AlertTriangle, CheckCircle2, LightbulbIcon, ThumbsUp, Pencil, Play,
-    ChevronLeft, Download
+    ChevronLeft, Download, Wrench
 } from 'lucide-react'
+import UltraQualityShowcaseGrid from '@/components/UltraQualityShowcaseGrid'
+import SpatialProductShowcase from '@/components/SpatialProductShowcase'
 
 const TABS = [
+    { id: 'tools', label: 'Tools', icon: Wrench },
     { id: 'files', label: 'Files', icon: FolderTree },
     { id: 'malware', label: 'Malware', icon: Bug },
     { id: 'artifacts', label: 'Artifacts', icon: FileText },
@@ -30,7 +33,18 @@ export default function WorkspacePage() {
     useEffect(() => {
         if(caseId) {
             getCaseDetail(caseId)
-                .then((d) => { setCaseData(d); setLoading(false) })
+                .then(async (d) => {
+                    setCaseData(d);
+                    // also fetch tool list and merge
+                    try {
+                        const resp = await fetch('/api/tools/available');
+                        const toolsData = await resp.json();
+                        setCaseData((prev: any) => ({ ...prev, tools: toolsData.tools || [] }));
+                    } catch {
+                        // ignore
+                    }
+                    setLoading(false)
+                })
                 .catch(() => setLoading(false))
         }
     }, [caseId])
@@ -91,6 +105,22 @@ export default function WorkspacePage() {
                         <Download size={12} /> View Report
                     </button>
                 </div>
+
+                {/* Case summary hero (spatial showcase) */}
+                {caseData && (
+                    <div className="px-4 py-4">
+                        <SpatialProductShowcase
+                            caseNumber={caseData.id}
+                            investigator={caseData.investigator}
+                            deviceInfo={caseData.device_info?.mount_point || ''}
+                            criticalFindings={
+                                (caseData.findings?.malware_indicators || [])
+                                    .slice(0,3)
+                                    .map((i:any)=>i.rule)
+                            }
+                        />
+                    </div>
+                )}
 
                 <div className="flex-1 flex overflow-hidden">
                     {/* ── Left: Evidence Tree ── */}
@@ -159,6 +189,41 @@ export default function WorkspacePage() {
 
                         {/* Tab content */}
                         <div className="flex-1 overflow-y-auto p-5">
+                            {activeTab === 'tools' && (
+                                <div>
+                                    <h3 className="text-sm font-semibold text-cream mb-3">Available Forensic Tools</h3>
+                                    <UltraQualityShowcaseGrid
+                                        tools={caseData?.tools || []}
+                                        onRun={(tool) => {
+                                            if(tool.id === 'network-scan'){
+                                                navigate('/network');
+                                            } else {
+                                                fetch(`/api/tools/run`, {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify({ tool_id: tool.id, case_id: caseData?.id }),
+                                                })
+                                            }
+                                        }}
+                                    />
+                                </div>
+                            )}
+                            {activeTab === 'tools' && (
+                                <div>
+                                    <h3 className="text-sm font-semibold text-cream mb-3">Available Forensic Tools</h3>
+                                    <UltraQualityShowcaseGrid
+                                        tools={caseData?.tools || []}
+                                        onRun={(tool) => {
+                                            // call backend API to run tool
+                                            fetch(`/api/tools/run`, {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ tool_id: tool.id, case_id: caseData?.id }),
+                                            })
+                                        }}
+                                    />
+                                </div>
+                            )}
                             {activeTab === 'files' && (
                                 <div>
                                     <h3 className="text-sm font-semibold text-cream mb-3">File System Analysis</h3>

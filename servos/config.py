@@ -28,6 +28,8 @@ DEFAULT_CONFIG = {
     # Detection
     "usb_poll_interval": 2.0,    # seconds
     "auto_detect_usb": True,
+    # automatically launch a full investigation when a new drive appears
+    "auto_investigate": True,
 
     # Analysis
     "max_file_size_mb": 500,     # skip files larger than this for hashing

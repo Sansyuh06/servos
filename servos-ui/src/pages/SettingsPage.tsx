@@ -77,6 +77,36 @@ export default function SettingsPage() {
                             ))}
                         </div>
                     </div>
+                    {/* Automation */}
+                    <div className="bg-servos-surface border border-servos-border rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Cpu size={14} className="text-accent" />
+                            <h3 className="text-sm font-semibold text-cream">Automation</h3>
+                        </div>
+                        <div className="space-y-2 text-xs">
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={!!settings.auto_investigate}
+                                    onChange={e => setSettings({...settings, auto_investigate: e.target.checked})}
+                                    className="accent-accent"
+                                />
+                                Automatically investigate new devices
+                            </label>
+                            <div>
+                                <label className="block text-[10px] font-semibold text-cream-dim uppercase tracking-wider mb-1">
+                                    USB poll interval (sec)
+                                </label>
+                                <input
+                                    type="number"
+                                    step="0.5"
+                                    value={settings.usb_poll_interval || 2}
+                                    onChange={e => setSettings({...settings, usb_poll_interval: parseFloat(e.target.value)})}
+                                    className="w-24 bg-servos-bg border border-servos-border rounded-lg py-1 px-2 text-xs text-cream font-mono focus:border-accent focus:outline-none"
+                                />
+                            </div>
+                        </div>
+                    </div>
 
                     {/* Security */}
                     <div className="bg-servos-surface border border-servos-border rounded-lg p-4">

@@ -181,7 +181,7 @@ class ServosMainWindow(QMainWindow):
             f"padding: 4px; background: transparent;")
         sl.addWidget(self.llm_label)
 
-        ver = QLabel("v1.0.0  •  CyberHack V4")
+        ver = QLabel("Servos v1.0.0  •  Offline AI Forensic Platform")
         ver.setStyleSheet(
             f"color: {TEXT_DIM}; font-size: 10px; background: transparent;")
         sl.addWidget(ver)
@@ -285,7 +285,7 @@ class ServosMainWindow(QMainWindow):
         morph.setFixedHeight(56)
         hero_lay.addWidget(morph)
 
-        hero_sub = QLabel("Offline AI Forensic Platform  ·  CyberHack V4")
+        hero_sub = QLabel("Servos — Offline AI Forensic Platform")
         hero_sub.setFont(QFont("Segoe UI", 11))
         hero_sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
         hero_sub.setStyleSheet(f"color: {TEXT_DIM}; background: transparent;")
@@ -295,7 +295,7 @@ class ServosMainWindow(QMainWindow):
         meta_row = QHBoxLayout()
         meta_row.setSpacing(20)
         meta_row.addStretch()
-        for txt in ["[ CYBERHACK V4 ]", "EVIDENCE PROTECTION", "REAL-TIME ANALYSIS"]:
+        for txt in ["[ SERVOS ]", "EVIDENCE PROTECTION", "REAL-TIME ANALYSIS"]:
             ml = QLabel(txt)
             ml.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
             ml.setStyleSheet(f"color: rgba(161,161,170,0.6); background: transparent; letter-spacing: 1px;")

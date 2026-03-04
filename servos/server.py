@@ -62,12 +62,37 @@ class AuthRequest(BaseModel):
     password: str
     role: str = "investigator"
 
+class GoogleAuthRequest(BaseModel):
+    token: str
+
 # ── Lifecycle ────────────────────────────────────────────────
 
 @app.on_event("startup")
 async def startup():
     ensure_dirs()
     init_db()
+
+    # start USB monitor for automatic investigations if enabled
+    cfg = get_config()
+    poll = cfg.get("usb_poll_interval", 2.0)
+    loop = asyncio.get_event_loop()
+
+    def _usb_callback(dev):
+        # executed in USBDetectionService thread
+        cfg2 = get_config()
+        if not cfg2.get("auto_investigate", False):
+            return
+        # schedule the investigation on the FastAPI event loop
+        case = Case(device_info=dev, mode="full_auto")
+        _investigations[case.id] = {
+            "status": "started", "progress": 0, "step": "Initializing...",
+            "case": case, "result": None, "error": None,
+        }
+        asyncio.run_coroutine_threadsafe(_run_investigation(case.id, dev, "full_auto"), loop)
+
+    svc = USBDetectionService(callback=_usb_callback, poll_interval=poll)
+    svc.start_monitoring()
+    app.state.usb_service = svc
 
 # ── API: Devices ─────────────────────────────────────────────
 
@@ -92,8 +117,9 @@ async def register(req: AuthRequest):
     raise HTTPException(400, "Username already taken")
 
 @app.post("/api/auth/google")
-async def google_login():
+async def google_login(req: GoogleAuthRequest):
     """Mock Google OAuth callback. In production this would exchange an auth code for a token and fetch user info."""
+    # We now receive req.token from the frontend successfully
     username = "Google User"
     if not _user_exists() or not _verify_user(username, "google_oauth_mock"):
         _create_user(username, "google_oauth_mock")
@@ -288,10 +314,128 @@ async def download_report(case_id: str, fmt: str):
              "csv": "text/csv"}.get(fmt, "application/octet-stream")
     return FileResponse(path, media_type=media, filename=f"{case_id}_report.{fmt}")
 
+# ── API: Tools / Workbench ─────────────────────────────────────
+
+@app.get("/api/tools/available")
+async def available_tools():
+    # In a real implementation this would inspect installed utilities or configuration.
+    tools = [
+        {"id": "fs-scan", "name": "File System Scan", "category": "Disk", "status": "available", "last_run": None},
+        {"id": "malware-scan", "name": "Malware Scan", "category": "Malware", "status": "available", "last_run": None},
+        {"id": "hash-integrity", "name": "Hash Integrity", "category": "Disk", "status": "available", "last_run": None},
+        {"id": "network-scan", "name": "Network Scan", "category": "Network", "status": "available", "last_run": None},
+        {"id": "memory-scan", "name": "Memory Scan", "category": "Memory", "status": "available", "last_run": None},
+        {"id": "log-analysis", "name": "Log Analysis", "category": "Logs", "status": "available", "last_run": None},
+        {"id": "registry-analysis", "name": "Registry Analysis", "category": "Registry", "status": "available", "last_run": None},
+        {"id": "deep-malware", "name": "Malware Deep Scan", "category": "Malware", "status": "available", "last_run": None},
+    ]
+    return {"tools": tools}
+
+class ToolRunRequest(BaseModel):
+    tool_id: str
+    case_id: Optional[str] = None
+
+# ── API: Network Scanning ───────────────────────────────────────
+
+@app.get("/api/network/interfaces")
+async def network_interfaces():
+    from servos.forensics.network_scanner import NetworkScanner
+    return {"interfaces": NetworkScanner().list_interfaces()}
+
+@app.get("/api/network/connections")
+async def network_connections():
+    from servos.forensics.network_scanner import NetworkScanner
+    return {"connections": NetworkScanner().active_connections()}
+
+@app.get("/api/network/listen")
+async def network_listen():
+    from servos.forensics.network_scanner import NetworkScanner
+    return {"ports": NetworkScanner().listening_ports()}
+
+@app.get("/api/network/arp")
+async def network_arp():
+    from servos.forensics.network_scanner import NetworkScanner
+    return {"arp": NetworkScanner().arp_table()}
+
+@app.get("/api/network/dns")
+async def network_dns():
+    from servos.forensics.network_scanner import NetworkScanner
+    return {"dns": NetworkScanner().dns_cache()}
+
+# ── API: Memory Scanning ───────────────────────────────────────
+
+@app.post("/api/memory/capture")
+async def memory_capture():
+    from servos.forensics.memory_scanner import MemoryScanner
+    path = os.path.join(get_config().get("data_dir"), "ramdump.bin")
+    success = MemoryScanner().capture_ram(path)
+    return {"success": success, "path": path if success else ""}
+
+@app.post("/api/memory/analyze")
+async def memory_analyze(req: dict):
+    from servos.forensics.memory_scanner import MemoryScanner
+    dump = req.get("dump_path")
+    plugin = req.get("plugin", "pslist")
+    results = MemoryScanner().analyze_dump(dump, plugin)
+    return {"output": results}
+
+# ── API: Log Analysis ─────────────────────────────────────────
+
+@app.post("/api/logs/analyze")
+async def logs_analyze(req: dict):
+    from servos.forensics.log_analyzer import LogAnalyzer
+    path = req.get("path")
+    analyzer = LogAnalyzer()
+    if os.path.isdir(path):
+        result = analyzer.analyze_directory(path)
+    else:
+        result = {path: analyzer.analyze_file(path)}
+    return {"results": result}
+
+# ── API: Registry Analysis ────────────────────────────────────
+
+@app.post("/api/registry/analyze")
+async def registry_analyze(req: dict):
+    from servos.forensics.registry_analyzer import RegistryAnalyzer
+    path = req.get("hive_path")
+    analyzer = RegistryAnalyzer()
+    hive = analyzer.load_hive(path)
+    return {"keys": analyzer.list_keys(hive)}
+
+# ── API: Deep Malware Scan ────────────────────────────────────
+
+@app.post("/api/malware/deep")
+async def malware_deep(req: dict):
+    from servos.forensics.deep_malware_scanner import DeepMalwareScanner
+    root = req.get("root")
+    rules = req.get("yara_rules")
+    dms = DeepMalwareScanner()
+    findings = dms.scan_path(root, rules)
+    return {"findings": findings}
+
+@app.post("/api/tools/run")
+async def run_tool(req: ToolRunRequest):
+    # stub implementation: in a full system this would enqueue the tool execution
+    # and stream output via WebSocket. Here we simply acknowledge.
+    return {"status": "scheduled", "tool_id": req.tool_id, "case_id": req.case_id}
+
 # ── API: Settings ────────────────────────────────────────────
 
 @app.get("/api/settings")
 async def get_settings():
+    return {"settings": get_config()}
+
+@app.put("/api/settings")
+async def update_settings(req: SettingsUpdate):
+    save_config(req.settings)
+    # if usb poll interval changed, restart monitor
+    if "usb_poll_interval" in req.settings or "auto_investigate" in req.settings:
+        svc: USBDetectionService = getattr(app.state, "usb_service", None)
+        if svc:
+            svc.stop_monitoring()
+            cfg = get_config()
+            svc.poll_interval = cfg.get("usb_poll_interval", svc.poll_interval)
+            svc.start_monitoring()
     return {"settings": get_config()}
 
 @app.put("/api/settings")
@@ -323,100 +467,54 @@ async def llm_status():
 
 class ChatRequest(BaseModel):
     message: str
-    case_id: Optional[str] = None
+    history: Optional[List[dict]] = None
 
 @app.post("/api/chat")
-async def rag_chat(req: ChatRequest):
-    """RAG-powered forensic chat: retrieves context from investigations, then prompts LLM."""
+async def general_chat(req: ChatRequest):
+    """General-purpose conversational AI chat with multi-turn context."""
     llm = LLMInvestigator()
-    retrieved_sources: List[dict] = []
 
-    # ── Step 1: Retrieve context from investigations ──
-    context_parts = []
+    history = req.history or []
 
-    # Get case data if a specific case is referenced
-    if req.case_id:
-        session = get_session()
-        record = session.query(CaseRecord).filter_by(id=req.case_id).first()
-        session.close()
-        if record:
-            findings = json.loads(record.findings_json) if record.findings_json else {}
-            interp = json.loads(record.interpretation_json) if record.interpretation_json else {}
-            device = json.loads(record.device_info_json) if record.device_info_json else {}
-
-            if device:
-                context_parts.append(f"CASE {record.id} — Device: {device.get('name', 'Unknown')}, "
-                                     f"Mount: {device.get('mount_point', '?')}")
-                retrieved_sources.append({"type": "device_info", "label": f"Device: {device.get('name', 'Unknown')}", "data": device})
-            if findings:
-                context_parts.append(f"Findings: {json.dumps(findings, indent=0)[:2000]}")
-                retrieved_sources.append({"type": "findings", "label": f"Case {record.id[:12]} Findings", "data": findings})
-            if interp:
-                context_parts.append(f"AI Interpretation: {json.dumps(interp, indent=0)[:1000]}")
-                retrieved_sources.append({"type": "interpretation", "label": "AI Risk Assessment", "data": interp})
-    else:
-        # Pull context from ALL recent cases
-        session = get_session()
-        records = session.query(CaseRecord).order_by(CaseRecord.created_at.desc()).limit(5).all()
-        session.close()
-        for r in records:
-            findings = json.loads(r.findings_json) if r.findings_json else {}
-            interp = json.loads(r.interpretation_json) if r.interpretation_json else {}
-            if findings or interp:
-                summary = f"CASE {r.id}: status={r.status}, mode={r.mode}"
-                if interp.get("risk"):
-                    summary += f", risk={interp['risk']}"
-                if interp.get("summary"):
-                    summary += f". Summary: {interp['summary'][:300]}"
-                context_parts.append(summary)
-                retrieved_sources.append({"type": "case_summary", "label": f"Case {r.id[:12]}", "data": {"status": r.status, "risk": interp.get("risk", "?"), "summary": interp.get("summary", "")[:200]}})
-
-    # ── Step 2: Build RAG prompt ──
-    context_block = "\n".join(context_parts) if context_parts else "No investigation data available yet."
-
-    rag_prompt = f"""You are SERVOS AI, an offline forensic investigation assistant.
-You have access to the following investigation context retrieved from the evidence database:
-
---- RETRIEVED CONTEXT ---
-{context_block}
---- END CONTEXT ---
-
-The investigator asks: {req.message}
-
-Provide a clear, professional, forensic-grade response. Reference specific evidence when possible.
-If the data is insufficient, say so and suggest what additional analysis could help.
-Keep responses concise but thorough."""
-
-    # ── Step 3: Generate response ──
+    # Generate response using conversation history for context
     if llm.is_available():
-        response_text = llm._generate(rag_prompt)
+        response_text = llm.chat(req.message, history)
+        model_used = llm.model
     else:
-        # Rule-based fallback
-        msg_lower = req.message.lower()
-        if any(w in msg_lower for w in ["malware", "threat", "virus", "suspicious"]):
-            response_text = _fallback_malware_response(context_parts)
-        elif any(w in msg_lower for w in ["timeline", "when", "time", "history"]):
-            response_text = "Based on the investigation timeline, review the Logs tab in the workspace for chronological file activity. Key events are typically: file creation, modification, and last access times."
-        elif any(w in msg_lower for w in ["recommend", "next", "should", "suggest"]):
-            response_text = "Recommended next steps:\n1. Cross-reference file hashes against threat intelligence databases\n2. Review the timeline for unusual activity patterns\n3. Check extracted artifacts for browser history and recent file access\n4. Export and preserve the forensic report for chain-of-custody"
-        elif any(w in msg_lower for w in ["risk", "score", "assessment"]):
-            risk_info = [s for s in context_parts if "risk" in s.lower()]
-            response_text = f"Risk assessment based on retrieved cases:\n{chr(10).join(risk_info) if risk_info else 'No risk assessments found. Run an investigation first.'}"
-        else:
-            response_text = f"I analyzed your query against {len(retrieved_sources)} retrieved sources. " \
-                           f"{'Here is what I found: ' + context_parts[0][:300] if context_parts else 'No investigation data available yet. Please run an investigation first, then I can answer questions about the findings.'}"
+        response_text = llm._fallback_chat(req.message)
+        model_used = "offline-fallback"
+
+    # Build lightweight context info for the sidebar
+    context_info = []
+    if history:
+        topic_words = set()
+        for msg in history[-5:]:
+            words = msg.get("content", "").split()[:5]
+            topic_words.update(w.lower() for w in words if len(w) > 3)
+        if topic_words:
+            context_info.append({
+                "type": "conversation",
+                "label": "Active Conversation",
+                "data": {
+                    "messages": len(history),
+                    "topics": ", ".join(list(topic_words)[:6]),
+                }
+            })
+
+    context_info.append({
+        "type": "model_info",
+        "label": f"Model: {model_used}",
+        "data": {
+            "status": "connected" if llm.is_available() else "offline",
+            "model": model_used,
+        }
+    })
 
     return {
         "response": response_text,
-        "sources": retrieved_sources,
-        "model": llm.model if llm.is_available() else "rule-based-fallback",
+        "sources": context_info,
+        "model": model_used,
     }
-
-def _fallback_malware_response(context_parts):
-    malware_info = [c for c in context_parts if any(w in c.lower() for w in ["malware", "risk", "indicator"])]
-    if malware_info:
-        return f"Based on the investigation data:\n{chr(10).join(malware_info[:3])}\n\nReview the Malware tab in the workspace for detailed indicator breakdown."
-    return "No malware indicators found in recent investigations. Run a scan on a target device to detect threats."
 
 
 # ── Serve static frontend (React SPA) ────────────────────────

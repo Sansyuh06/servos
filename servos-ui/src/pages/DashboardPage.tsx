@@ -1,10 +1,11 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '@/store/appStore'
 import { useAuthStore } from '@/store/authStore'
 import PageTransition from '@/components/PageTransition'
 import TopoBackground from '@/components/TopoBackground'
 import GooeyTextMorph from '@/components/GooeyTextMorph'
+import HalideTopoHero from '@/components/HalideTopoHero'
 import SpatialDeviceCard from '@/components/SpatialDeviceCard'
 import {
     Shield, FolderOpen, Clock, AlertTriangle,
@@ -15,42 +16,45 @@ export default function DashboardPage() {
     const navigate = useNavigate()
     const { username, role } = useAuthStore()
     const { devices, cases, fetchDevices, fetchCases, devicesLoading, casesLoading } = useAppStore()
+    const [prevCount, setPrevCount] = useState(0)
+    const [newCaseId, setNewCaseId] = useState<string | null>(null)
 
     useEffect(() => {
         fetchDevices()
         fetchCases()
+        const interval = setInterval(async () => {
+            const before = cases.length
+            await fetchCases()
+            if(cases.length > before) {
+                // set latest added case id
+                setNewCaseId(cases[0]?.id || null)
+            }
+        }, 5000) // refresh every 5s to show auto cases
+        return () => clearInterval(interval)
     }, [])
 
     return (
         <PageTransition>
             <div className="h-full overflow-y-auto">
-                {/* ── Hero Section ── */}
-                <div className="relative h-52 overflow-hidden border-b border-servos-border-dim">
-                    <div className="absolute inset-0 opacity-30">
-                        <TopoBackground />
-                    </div>
-                    <div className="relative z-10 h-full flex flex-col justify-center px-8">
-                        <div className="flex items-center gap-3 mb-2">
-                            <Shield size={28} className="text-accent" />
-                            <h1 className="text-2xl font-bold tracking-wide text-cream-bright">SERVOS</h1>
-                        </div>
-                        <GooeyTextMorph
-                            texts={[
-                                'Forensics for the Rest of Us',
-                                'Offline AI Forensic Platform',
-                                'Structured Investigation',
-                                'Evidence-Preserving Analysis',
-                            ]}
-                            intervalMs={4000}
-                            className="text-sm text-cream-dim italic"
-                        />
-                        <p className="text-[10px] text-cream-dim/60 mt-2 tracking-wider uppercase">
-                            CyberHack V4 • Air-gapped • Secure
-                        </p>
-                    </div>
-                </div>
+                {/* ── Hero Section (HalideTopoHero) ── */}
+                <HalideTopoHero
+                    title="SERVOS"
+                    subtitle="Offline AI Forensic Platform"
+                    statusBadge={
+                        <span className={`px-2 py-1 text-xs rounded-md ${cases.filter(c => c.status === 'running').length > 0 ? 'bg-warning text-black' : 'bg-success text-white'}`}>
+                            {cases.filter(c => c.status === 'running').length > 0 ? 'Active Investigations' : 'No Active Investigations'}
+                        </span>
+                    }
+                />
+
 
                 <div className="p-6 space-y-6">
+                    {newCaseId && (
+                        <div className="bg-success-muted border border-success rounded-lg p-3 text-success text-sm flex justify-between items-center">
+                            <span>New investigation started: {newCaseId.slice(0,8)}</span>
+                            <button onClick={()=>setNewCaseId(null)} className="text-success hover:text-success-dark">✖</button>
+                        </div>
+                    )}
                     {/* ── Top Bar Info ── */}
                     <div className="flex items-center justify-between">
                         <div>

@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuthStore } from '@/store/authStore'
+import { useGoogleLogin } from '@react-oauth/google'
 import { AtSign, Lock, ChevronRight, AlertTriangle, Shield } from 'lucide-react'
 
 /* ─────────────────────────────────────────────
-   Floating SVG Elements — Inspired by CyberHack V4 Slide
+   Floating SVG Elements — Servos design system
    Uses real generated artwork for face/hand and polyhedron,
    SVG sparkles and blobs for geometric accents
    ───────────────────────────────────────────── */
@@ -172,7 +173,28 @@ export default function LoginPage() {
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
     const [isLoading, setIsLoading] = useState(false)
-    const [showGoogleModal, setShowGoogleModal] = useState(false)
+
+    const googleLogin = useGoogleLogin({
+        onSuccess: async (tokenResponse) => {
+            setIsLoading(true)
+            setError('')
+            try {
+                // In a production app, we would send `tokenResponse.access_token` or `code`
+                // to the FastAPI backend to be verified by Google's servers.
+                // For this demo, we can just trigger the backend's dummy Google login
+                // since the user *did* actually just authenticate with Google successfully on the frontend!
+                await loginWithGoogle(tokenResponse.access_token)
+                navigate('/')
+            } catch(err: any) {
+                setError(err.message || 'Google Auth failed')
+            } finally {
+                setIsLoading(false)
+            }
+        },
+        onError: () => {
+            setError('Google login failed or was cancelled.')
+        }
+    })
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -424,7 +446,7 @@ export default function LoginPage() {
                             <button
                                 type="button"
                                 disabled={isLoading}
-                                onClick={() => setShowGoogleModal(true)}
+                                onClick={() => googleLogin()}
                                 className="w-full flex items-center justify-center gap-4 py-3 rounded-xl bg-servos-bg border border-servos-border hover:bg-servos-surface hover:border-servos-hover transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <svg width="24" height="24" viewBox="0 0 48 48">
@@ -458,99 +480,6 @@ export default function LoginPage() {
                     </p>
                 </motion.div>
             </div>
-
-            {/* Simulated Google OAuth Modal */}
-            {showGoogleModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                        className="bg-white rounded-2xl w-full max-w-[420px] overflow-hidden shadow-2xl flex flex-col"
-                    >
-                        {/* Fake Browser Top Bar */}
-                        <div className="bg-[#f1f3f4] border-b border-[#dadce0] px-4 py-2 flex items-center gap-2">
-                            <div className="flex gap-1.5">
-                                <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
-                                <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
-                                <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
-                            </div>
-                            <div className="bg-white rounded border border-[#dadce0] px-3 py-1 flex-1 text-[11px] text-[#5f6368] font-mono text-center truncate m-0 ml-4 mr-1">
-                                <Lock size={10} className="inline mr-1 -mt-0.5 text-green-600" />
-                                https://accounts.google.com/o/oauth2/auth
-                            </div>
-                        </div>
-
-                        {/* Google Login Content */}
-                        <div className="p-10 flex flex-col items-center flex-1">
-                            <svg className="w-12 h-12 mb-4" viewBox="0 0 48 48">
-                                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
-                                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
-                                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
-                                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
-                            </svg>
-                            <h2 className="text-2xl font-normal text-[#202124] mb-2">Choose an account</h2>
-                            <p className="text-[15px] text-[#202124] mb-8">to continue to <span className="font-semibold">Servos</span></p>
-
-                            {/* Account List */}
-                            <div className="w-full border border-[#dadce0] rounded-lg overflow-hidden">
-                                {/* Simulated User Account */}
-                                <button
-                                    onClick={async () => {
-                                        setShowGoogleModal(false);
-                                        setIsLoading(true);
-                                        setError('');
-                                        try {
-                                            await loginWithGoogle();
-                                            navigate('/');
-                                        } catch(err: any) {
-                                            setError(err.message || 'Google Auth failed');
-                                        } finally {
-                                            setIsLoading(false);
-                                        }
-                                    }}
-                                    className="w-full flex items-center gap-4 p-3 hover:bg-[#f8f9fa] transition-colors text-left border-b border-[#dadce0] last:border-0"
-                                >
-                                    <div className="w-10 h-10 rounded-full bg-[#188038] text-white flex items-center justify-center text-lg font-medium">
-                                        M
-                                    </div>
-                                    <div className="flex-1 overflow-hidden">
-                                        <div className="text-sm font-medium text-[#3c4043] truncate">Marco Forensics</div>
-                                        <div className="text-sm text-[#5f6368] truncate">marco.forensics@gmail.com</div>
-                                    </div>
-                                </button>
-
-                                {/* Add another account */}
-                                <button
-                                    onClick={() => setShowGoogleModal(false)}
-                                    className="w-full flex items-center gap-4 p-3 hover:bg-[#f8f9fa] transition-colors text-left"
-                                >
-                                    <div className="w-10 h-10 flex items-center justify-center">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="#5f6368"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" /></svg>
-                                    </div>
-                                    <div className="text-sm font-medium text-[#3c4043]">Use another account</div>
-                                </button>
-                            </div>
-
-                            <div className="mt-12 text-[#5f6368] text-[13px] text-center max-w-xs">
-                                To continue, Google will share your name, email address, and profile picture with Servos.
-                            </div>
-                        </div>
-
-                        {/* Footer Bar */}
-                        <div className="bg-white px-6 py-4 flex items-center justify-between border-t border-[#dadce0]">
-                            <select className="bg-transparent text-sm text-[#5f6368] outline-none cursor-pointer">
-                                <option>English (United States)</option>
-                            </select>
-                            <div className="flex gap-4 text-[12px] text-[#5f6368]">
-                                <a href="#" className="hover:bg-[#f1f3f4] px-2 py-1 rounded">Help</a>
-                                <a href="#" className="hover:bg-[#f1f3f4] px-2 py-1 rounded">Privacy</a>
-                                <a href="#" className="hover:bg-[#f1f3f4] px-2 py-1 rounded">Terms</a>
-                            </div>
-                        </div>
-                    </motion.div>
-                </div>
-            )}
         </div>
     )
 }

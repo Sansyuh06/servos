@@ -492,7 +492,7 @@ class ServosApp(QMainWindow):
         layout.addWidget(self.llm_label)
         QTimer.singleShot(1000, self._check_llm)
 
-        ver = QLabel("v1.0.0 — CyberHack V4")
+        ver = QLabel("Servos v1.0.0 — Offline AI Forensic Assistant")
         ver.setStyleSheet(f"color: {TEXT_DIM}; font-size: 10px; padding: 4px 8px;")
         layout.addWidget(ver)
 

@@ -1,0 +1,1252 @@
+--- page 1 ---
+ANTIGRAVITY BUILD DOCUMENT v2.0 | CyberHack V4 2025
+CYBERHAWK
+Oine AI-P o w ered Digital F orensics Platform
+Built on Servos + Orca + Orchestrata | Powered by Local LLMs
+@security-auditing @rag-engineer @react-patterns @python-patterns @docker-expert
+@typescript-expert @vulnerability-scanner @api-security-best-practices @test-driven-development
+UI COMPONENTS FR OM 21st.dev
+halide-topo-hero  gooey-text-morphing 
+ultra-quality-showcase-grid  spatial-product-showcase
+Do cumen t V ersion: 2.0.0  An tigra vit y Edition
+Build T arget: An tigra vit y IDE / Claude Co de / Cursor
+Skills Registry: an tigra vit y-a w esome-skills v4.11.0 (713 skills)
+Prompt Source: x1xhlol/system-prompts-and-mo dels-of-ai-to ols
+T eam: T eam MoMoSapiens | Ak ash San thn u Sundar
+Hac k athon: Cyb erHac k V4 2025 | Oine LLM In v estigation T rac k
+P ages: 45+
+
+--- page 2 ---
+CYBERHA WK An tigra vit y Build PRD v2.0 T eam MoMoSapiens | Cyb erHac k V4 2025
+HO W TO USE THIS DOCUMENT WITH ANTIGRA VITY
+Step 1. Install skills: npx antigravity-awesome-skills (installs 713 skills
+to∼ /.agent/skills)
+Step 2. Open Antigravity IDE in Agent Mode on your CyberHawk project
+directory
+Step 3. Paste each ANTIGRAVITY BUILD PROMPT block (marked in green)
+sequentially
+Step 4. Each prompt references @skill-name tags that Antigravity will
+auto-invoke
+Step 5. The agent will scaffold, code, test, and verify each component
+end-to-end
+Step 6. UI components are pulled from 21st.dev using the @react-patterns +
+@typescript-expert skills
+IMPORTANT: Run prompts in order. Each phase builds on the previous one.
+Build with: @an tigra vit y-a w esome-skills v4.11.01 21st.dev UI Comp onen ts
+
+--- page 3 ---
+Con ten ts
+1 Master Build Strategy & Skills Map 4
+1.1 Pro ject Iden tit y . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+1.2 Complete Skills Allo cation Map . . . . . . . . . . . . . . . . . . . . . . . . 4
+1.3 Prompt Engineering F ramew ork . . . . . . . . . . . . . . . . . . . . . . . . 5
+2 ANTIGRA VITY BUILD PR OMPTS  Phase 1: Pro ject F oundation 7
+2.1 Prompt A G-P1.1: Rep ository Analysis & Arc hitecture Setup . . . . . . . . 7
+2.2 Prompt A G-P1.2: Database & Evidence V ault . . . . . . . . . . . . . . . . 7
+2.3 Prompt A G-P1.3: Securit y Hardening La y er . . . . . . . . . . . . . . . . . 8
+3 ANTIGRA VITY BUILD PR OMPTS  Phase 2: Device Detection En-
+gine 9
+3.1 Prompt A G-P2.1: Hot-Plug Detection Service . . . . . . . . . . . . . . . . 9
+3.2 Prompt A G-P2.2: Evidence A cquisition Pip eline . . . . . . . . . . . . . . . 9
+4 ANTIGRA VITY BUILD PR OMPTS  Phase 3: F orensic T o ol Engine 11
+4.1 Prompt A G-P3.1: T o ol A dapter F ramew ork . . . . . . . . . . . . . . . . . 11
+4.2 Prompt A G-P3.2: Y ARA Rule Engine & Threat In telligence . . . . . . . . 12
+4.3 Prompt A G-P3.3: LLM Orc hestration Engine . . . . . . . . . . . . . . . . 12
+5 ANTIGRA VITY BUILD PR OMPTS  Phase 4: W orko w Engine 14
+5.1 Prompt A G-P4.1: Orca Agen tic In v estigation W orko ws . . . . . . . . . . 14
+5.2 Prompt A G-P4.2: F astAPI Bac k end Enhancemen t . . . . . . . . . . . . . . 14
+6 ANTIGRA VITY BUILD PR OMPTS  Phase 5: 21st.dev UI Comp o-
+nen ts 16
+6.1 21st.dev Comp onen t Sp ecications . . . . . . . . . . . . . . . . . . . . . . 16
+6.1.1 Comp onen t 1: Halide T op o Hero . . . . . . . . . . . . . . . . . . . 16
+6.1.2 Comp onen t 2: Go o ey T ext Morphing . . . . . . . . . . . . . . . . . 16
+6.1.3 Comp onen t 3: Ultra Qualit y Sho w case Grid . . . . . . . . . . . . . 17
+6.1.4 Comp onen t 4: Spatial Pro duct Sho w case . . . . . . . . . . . . . . . 17
+6.2 Prompt A G-P5.1: Next.js F ron tend Scaold . . . . . . . . . . . . . . . . . 17
+6.3 Prompt A G-P5.2: Core UI Views Implemen tation . . . . . . . . . . . . . . 18
+6.4 Prompt A G-P5.3: PyQt6 Desktop UI (Oine/Standalone Mo de) . . . . . 19
+7 ANTIGRA VITY BUILD PR OMPTS  Phase 6: V oice, RA G & Rep orts 20
+7.1 Prompt A G-P6.1: V oice In terface (Whisp er) . . . . . . . . . . . . . . . . . 20
+7.2 Prompt A G-P6.2: Oine RA G Corpus P opulation . . . . . . . . . . . . . . 20
+7.3 Prompt A G-P6.3: Rep ort Generation Engine . . . . . . . . . . . . . . . . . 21
+2
+
+--- page 4 ---
+CYBERHA WK An tigra vit y Build PRD v2.0 T eam MoMoSapiens | Cyb erHac k V4 2025
+8 ANTIGRA VITY BUILD PR OMPTS  Phase 7: In tegration & T esting 22
+8.1 Prompt A G-P7.1: F ull End-to-End In tegration T est . . . . . . . . . . . . . 22
+8.2 Prompt A G-P7.2: Deplo ymen t P ac k aging . . . . . . . . . . . . . . . . . . . 22
+9 Complete File Structure 24
+9.1 T arget Directory La y out . . . . . . . . . . . . . . . . . . . . . . . . . . . . 24
+10 T ec hnical Sp ecications 26
+10.1 F ull T ec hnology Stac k . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 26
+10.2 P erformance T argets . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 27
+10.3 Securit y Requiremen ts Matrix . . . . . . . . . . . . . . . . . . . . . . . . . 27
+11 Non-F unctional Requiremen ts & Ev aluation Criteria 28
+11.1 Hac k athon Ev aluation Alignmen t . . . . . . . . . . . . . . . . . . . . . . . 28
+12 Quic k-Reference An tigra vit y Prompt Summary 30
+12.1 Complete Build Sequence . . . . . . . . . . . . . . . . . . . . . . . . . . . . 30
+12.2 Final Smok e T est Prompt . . . . . . . . . . . . . . . . . . . . . . . . . . . 31
+13 App endices 32
+13.1 App endix A: an tigra vit y-a w esome-skills Bundle Recommendation . . . . . 32
+13.2 App endix B: System Prompt Design P atterns Used . . . . . . . . . . . . . 32
+13.3 App endix C: 21st.dev Comp onen t Installation Commands . . . . . . . . . 33
+13.4 App endix D: Python Requiremen ts . . . . . . . . . . . . . . . . . . . . . . 33
+13.5 App endix E: Hac k athon Demo Script (5 Min utes) . . . . . . . . . . . . . . 34
+Build with: @an tigra vit y-a w esome-skills v4.11.03 21st.dev UI Comp onen ts
+
+--- page 5 ---
+1. Master Build Strategy & Skills Map
+1.1 Pro ject Iden tit y
+Pro ject Sp ecication
+Name Cyb erHa wk  Oine AI F orensics Platform
+Co dename serv os-cyb erha wk
+Stac k Python 3.11 + F astAPI + PyQt6 + Next.js 14 (T auri) +
+Ollama + SQLite
+LLM Engine Ollama (llama3.1:8b, mistral:7b, phi3:mini, deepseek-r1:14b)
+Skills Engine an tigra vit y-a w esome-skills v4.11.0 (713 skills)
+UI System 21st.dev comp onen ts + T ailwind CSS + shadcn/ui
+Prompt Ref x1xhlol/system-prompts-and-mo dels-of-ai-to ols
+T arget ENV 100% Oine, Air-Gapp ed, Lin ux/Windo ws/macOS
+Base Rep o gith ub.com/Sansyuh06/serv os (extend, don't rewrite)
+1.2 Complete Skills Allo cation Map
+The follo wing table maps ev ery ma jor Cyb erHa wk mo dule to the an tigra vit y-a w esome-skills
+that An tigra vit y will in v ok e when building it:
+SkillMo dule What It Builds
+@security-auditingCore Securit y Evidence in tegrit y , audit
+logs, write-blo c k
+@vulnerability-scannerThreat Detection BadUSB DB, Y ARA en-
+gine, PE analysis
+@api-security-best-practicesF astAPI Bac k end Secure endp oin ts, JWT,
+rate limiting
+@python-patternsF orensic Engine T o ol adapters, async
+pip eline, evidence v ault
+@react-patternsF ron tend UI Dash b oard, w orkb enc h,
+case manager views
+@typescript-expertUI La y er T yp e-safe Next.js + T auri
+fron tend
+@rag-engineerLLM Pip eline ChromaDB, em b eddings,
+oine RA G corpus
+@docker-expertDeplo ymen t Oine Do c k er bundle, air-
+gapp ed pac k aging
+@test-driven-developmentQualit y Unit tests, in tegration tests,
+LLM ev al suite
+4
+
+--- page 6 ---
+CYBERHA WK An tigra vit y Build PRD v2.0 T eam MoMoSapiens | Cyb erHac k V4 2025
+SkillMo dule What It Builds
+@brainstormingArc hitecture Comp onen t design deci-
+sions, trade-o analysis
+@senior-architectSystem Design 7-la y er arc hitecture, data
+o w, API con tracts
+@sql-injection-testingDB Securit y SQLite hardening, parame-
+terised queries
+@prompt-engineerLLM Prompts F orensic system prompts,
+c hain-of-though t
+@langgraphAgen tic Flo ws Orca w orko w engine, in-
+v estigation pip elines
+@workflow-automationPla yb o oks USB triage, memory analy-
+sis, net w ork IR
+@vercel-deploymentBuild System T auri bundle, oine in-
+staller pac k aging
+@writing-plansDo cumen tation README, API do cs, evi-
+dence rep ort templates
+1.3 Prompt Engineering F ramew ork
+Dra wing from the x1xhlol/system-prompts-and-mo dels-of-ai-to ols rep ository (123k
+stars), Cyb erHa wk's An tigra vit y build uses the follo wing patterns observ ed in pro duction
+AI to ols:
+Pattern 1: Cursor-Style Codebase Context (from Cursor system prompt)
+All build prompts inject full pro ject con text b efore requests. An tigra vit y is instructed
+to: read the existing servos rep o structure rst, understand existing USBMonitor ,
+InvestigationWorkflow , and FastAPI co de b efore writing new co de. Nev er rewrite
+w orking co de; extend it.
+Pattern 2: Lovable-Style UI Component Scaffolding (from Lovable system
+prompt)
+UI requests follo w the Lo v able pattern: sp ecify exact comp onen t from 21st.dev b y
+URL, describ e exact props and data bindings, sp ecify T ailwind classes with dark
+theme ( bg-slate-950 ), and request resp onsiv e b eha viour. No placeholder UI  real
+data connections required.
+Pattern 3: Devin AI-Style Task Decomposition (from Devin system prompt)
+Eac h build prompt is self-con tained and ends with a v erication command. An ti-
+gra vit y m ust conrm: (a) le created, (b) imp orts resolv ed, (c) tests passing, (d) no
+net w ork calls in co de. If an y c hec k fails, the agen t retries automatically .
+Build with: @an tigra vit y-a w esome-skills v4.11.05 21st.dev UI Comp onen ts
+
+--- page 7 ---
+CYBERHA WK An tigra vit y Build PRD v2.0 T eam MoMoSapiens | Cyb erHac k V4 2025
+Pattern 4: v0-Style Component Generation (from v0 system prompt)
+F or all React/Next.js comp onen ts, use shadcn/ui primitiv es as base, la y er 21st.dev
+comp onen ts on top, apply the pro ject's dark cyb er theme ( agdark / agprimary
+palette). Ev ery comp onen t ships with T yp eScript t yp es, JSDo c commen ts, and a
+Storyb o ok story .
+Pattern 5: Windsurf-Style Cascade Awareness
+When building in terdep enden t mo dules (e.g., USB Monitor → Evidence V ault →
+LLM), build b ottom-up. Complete and test eac h la y er b efore building the next. Use
+the @senior-architect skill to v alidate dep endency graph b efore eac h phase.
+Build with: @an tigra vit y-a w esome-skills v4.11.06 21st.dev UI Comp onen ts
+
+--- page 8 ---
+2. ANTIGRA VITY BUILD PR OMPTS  Phase
+1: Pro ject F oundation
+PRE-FLIGHT CHECKLIST
+Before running Phase 1 prompts, ensure: (1) An tigra vit y is op en in the serv os pro ject
+ro ot, (2) npx antigravity-awesome-skills has b een run, (3) Ollama is installed with
+llama3.1:8b pulled, (4) Python 3.11+ is a v ailable, (5) No de.js 20+ is installed.
+2.1 Prompt A G-P1.1: Rep ository Analysis & Arc hitecture Setup
+P ASTE INTO ANTIGRA VITY  A G-P1.1
+Use @senior-architect and @brainstorming skills.
+Analyze the existing servos repository at the current directory. Read
+ALL existing files including: - servos/detection/usb_monitor.py
+- servos/orchestration/workflow.py - servos/api/server.py -
+servos/database/db.py - src/ frontend components - Any existing README or
+documentation
+Then: 1. Create a ARCHITECTURE.md documenting what already exists (do NOT
+modify existing code yet) 2. Create a PROJECT_GAPS.md listing what needs to
+be built based on this PRD 3. Create a DEPENDENCY_GRAPH.md showing module
+dependencies 4. Create a cyberhawk/config.py with ALL project constants
+(model names, paths, thresholds) 5. Create a cyberhawk/types.py with all
+Pydantic v2 models for: Device, EvidenceItem, Case, Finding, AuditLogEntry,
+LLMResponse, ForensicToolResult 6. Create a cyberhawk/constants.py with YARA
+rule paths, tool binary paths, hash algorithms list
+After creating files, run: python -m py_compile cyberhawk/config.py
+cyberhawk/types.py cyberhawk/constants.py
+Verify: Zero import errors. Zero network imports. All type hints present.
+2.2 Prompt A G-P1.2: Database & Evidence V ault
+P ASTE INTO ANTIGRA VITY  A G-P1.2
+Use @python-patterns and @sql-injection-testing skills.
+Extend the existing servos/database/db.py to implement the full CyberHawk
+schema:
+CREATE these SQLite tables (append-only where specified): - cases: case_id,
+case_number, investigator, mode, status, law_ref, created_at, closed_at
+- evidence: evidence_id, case_id, device_path, device_type, vendor_id,
+sha256_pre, sha256_post, sha3_512, acquired_at, image_path, write_blocked
+- audit_log (APPEND-ONLY): log_id AUTOINCREMENT, case_id, timestamp,
+operator, action, tool, params_json, result_json, evidence_hash, hmac_sig
+7
+
+--- page 9 ---
+CYBERHA WK An tigra vit y Build PRD v2.0 T eam MoMoSapiens | Cyb erHac k V4 2025
+- conversations: msg_id, case_id, role, content, model_used, confidence,
+timestamp, citations_json - findings: finding_id, case_id, severity, title,
+description, evidence_refs, mitre_tactic, mitre_tech, confidence, created_at,
+validated
+IMPLEMENT cyberhawk/vault.py: - EvidenceVault class with AES-256-GCM
+encryption (cryptography library) - PBKDF2 key derivation (100000 iterations,
+SHA-256) from operator passphrase - store_evidence(path, passphrase) ->
+EncryptedEvidenceRecord - retrieve_evidence(record_id, passphrase) -> bytes -
+verify_integrity(record_id) -> bool (checks SHA-256 chain) - All operations
+logged to audit_log with HMAC-SHA256 signature
+Run: python -m pytest tests/test_vault.py -v (create the tests too) Verify:
+All 8 tests pass. Zero plaintext key writes. All DB writes parameterised.
+2.3 Prompt A G-P1.3: Securit y Hardening La y er
+P ASTE INTO ANTIGRA VITY  A G-P1.3
+Use @security-auditing, @api-security-best-practices, and
+@vulnerability-scanner skills.
+Create cyberhawk/security/:
+1. write_blocker.py: - LinuxWriteBlocker: uses hdparm -r1,
+verifies with hdparm -I - WindowsWriteBlocker: registry
+SYSTEM\CurrentControlSet\Control\StorageDevicePolicies WriteProtect=1
+- MockWriteBlocker: for testing - All raise WriteBlockFailedException
+if unsuccessful - Verify write-block before EVERY evidence operation via
+decorator @require_write_block
+2. network_sentinel.py: - Monitors ALL network interfaces using psutil -
+Raises NetworkEgressAlertException on any non-loopback connection - Runs as
+background thread during investigation sessions - Logs alert to audit_log and
+sends toast notification
+3. audit_integrity.py: - verify_log_chain(case_id): re-computes HMAC
+for every audit entry, returns True/False - detect_tampering(): scans all
+cases for broken HMAC chains - generate_integrity_report(): PDF report of
+verification results
+4. sandbox.py: - ForensicSandbox context manager using subprocess with: -
+No network access (iptables drop or namespace isolation on Linux) - Read-only
+evidence mount - Temp output directory cleaned after use - 5-minute timeout
+with SIGKILL fallback
+Run: python -m pytest tests/test_security.py -v Verify: All security tests
+pass. No module imports socket or requests at module level.
+Build with: @an tigra vit y-a w esome-skills v4.11.08 21st.dev UI Comp onen ts
+
+--- page 10 ---
+3. ANTIGRA VITY BUILD PR OMPTS  Phase
+2: Device Detection Engine
+3.1 Prompt A G-P2.1: Hot-Plug Detection Service
+P ASTE INTO ANTIGRA VITY  A G-P2.1
+Use @python-patterns and @workflow-automation skills.
+Extend servos/detection/usb_monitor.py into a full DeviceDetectionEngine:
+CREATE cyberhawk/detection/device_engine.py:
+class DeviceEvent(Enum): CONNECTED, DISCONNECTED, MODIFIED
+@dataclass class DeviceProfile: device_id: str path: str vendor_id: str
+product_id: str serial_number: str capacity_bytes: int filesystem_type:
+str device_class: str % storage|hid|network|camera|unknown threat_match:
+Optional[ThreatMatch] timestamp: datetime
+class DeviceDetectionEngine: - Linux: pyudev UdevMonitor watching
+subsystem=block + usb - Windows: win32api/WMI Win32_VolumeChangeEvent
+watcher - macOS: plistlib parsing IOKit USBDevice events -
+start_monitoring() -> runs background thread - on_device_connected(callback:
+Callable[[DeviceProfile], None]) - on_device_disconnected(callback:
+Callable[[DeviceProfile], None]) - get_connected_devices() ->
+List[DeviceProfile]
+CREATE cyberhawk/detection/threat_matcher.py: - Load offline BadUSB
+signature DB from data/badusb_signatures.json (pre-populate with 50+ known
+Rubber Ducky, Bash Bunny, OMG Cable VID/PIDs) - match_device(vid, pid)
+-> Optional[ThreatMatch] - ThreatMatch includes: threat_name, severity,
+description, recommended_action
+CREATE cyberhawk/detection/device_profiler.py: - profile_device(path) ->
+DeviceProfile - Uses: lsblk, fdisk -l, blkid, file -s (Linux) / diskpart
+(Windows) - Determines filesystem, capacity, partition table - Extracts
+S.M.A.R.T. data if available (smartmontools)
+Run: python -m pytest tests/test_detection.py -v Verify: Mock USB insertion
+triggers callback within 100ms in tests.
+3.2 Prompt A G-P2.2: Evidence A cquisition Pip eline
+P ASTE INTO ANTIGRA VITY  A G-P2.2
+Use @python-patterns and @security-auditing skills.
+CREATE cyberhawk/acquisition/:
+1. imager.py  ForensicImager class: - dd_image(source, dest,
+block_size=512) -> ImageResult with SHA-256 - dcfldd_image(source, dest) ->
+ImageResult (uses dcfldd if available, falls back to dd) - ewf_image(source,
+dest) -> ImageResult (E01 via python-ewf or ewfacquire subprocess) -
+9
+
+--- page 11 ---
+CYBERHA WK An tigra vit y Build PRD v2.0 T eam MoMoSapiens | Cyb erHac k V4 2025
+verify_image(image_path, original_hash) -> bool - All operations: pre-hash
+source, acquire, post-hash both  abort if mismatch - Progress callback every
+1% completion for UI updates
+2. memory_dumper.py  MemoryAcquirer class: - linux_dump(output_path)
+-> runs LiME via insmod, captures /proc/kcore - windows_dump(output_path)
+-> runs winpmem.exe subprocess - verify_dump(path) -> checks file size
+> 100MB (sanity), computes SHA-256 - is_lime_available() -> bool -
+is_winpmem_available() -> bool
+3. backup_enforcer.py  BackupEnforcer class: - This is the MANDATORY
+backup gate  no investigation proceeds without passing this -
+enforce(source_device, investigation_mode) -> BackupConfirmation - Creates
+rsync/robocopy backup to investigator-specified destination - Verifies
+backup via SHA-256 tree hash comparison - Returns BackupConfirmation with:
+backup_path, verification_hash, timestamp - In Full Auto mode: auto-selects
+first available external drive if present - In Hybrid/Manual: prompts
+investigator via pyautogui dialog for destination
+Run: python -m pytest tests/test_acquisition.py -v Verify: Imaging test
+on a 50MB test image produces identical SHA-256. Backup gate blocks if hash
+mismatch.
+Build with: @an tigra vit y-a w esome-skills v4.11.0 10 21st.dev UI Comp onen ts
+
+--- page 12 ---
+4. ANTIGRA VITY BUILD PR OMPTS  Phase
+3: F orensic T o ol Engine
+4.1 Prompt A G-P3.1: T o ol A dapter F ramew ork
+P ASTE INTO ANTIGRA VITY  A G-P3.1
+Use @python-patterns, @security-auditing, @test-driven-development skills.
+CREATE cyberhawk/tools/base.py  ForensicToolAdapter ABC:
+class ForensicToolAdapter(ABC): tool_id: str (abstract property)
+supported_evidence_types: List[str] (abstract property) def
+validate_input(self, evidence_path: Path) -> ValidationResult async
+def execute(self, evidence_path, params, progress_cb) -> ToolResult
+def to_llm_context(self, result: ToolResult) -> str (max 4096
+tokens) def is_available(self) -> bool (checks binary/module exists)
+requires_write_block: bool = True
+ToolResult dataclass: tool_id, evidence_path, status
+(success|error|timeout), findings: List[Finding], raw_output: str,
+execution_time_ms: int, evidence_hash: str, timestamp: datetime
+CREATE these 10 adapters in cyberhawk/tools/adapters/: 1. yara_adapter.py 
+scans with python-yara, loads rules from data/yara_rules/ 2. tsk_adapter.py
+ pytsk3 file system enumeration (all files + deleted + hidden) 3.
+volatility_adapter.py  Volatility 3 subprocess for pslist, netscan, malfind,
+cmdline, dlllist 4. exiftool_adapter.py  metadata extraction via exiftool
+subprocess 5. strings_adapter.py  GNU strings + LLM analysis of suspicious
+strings 6. registry_adapter.py  python-registry for Windows hive analysis
+7. pefile_adapter.py  pefile library for PE header analysis + import
+analysis 8. bulk_extractor_adapter.py  bulk_extractor subprocess for data
+carving 9. tshark_adapter.py  tshark subprocess for PCAP analysis 10.
+hashdeep_adapter.py  recursive SHA-256 + MD5 hash audit
+CREATE cyberhawk/tools/tool_registry.py: - ToolRegistry: discovers
+all adapters, checks availability, provides by evidence type -
+get_tools_for_evidence(evidence_type) -> List[ForensicToolAdapter] -
+run_all_applicable(evidence_path, case_id) -> List[ToolResult] (parallel
+with asyncio)
+Run: python -m pytest tests/test_tools/ -v Verify: All 10 adapters
+instantiate. At least 5 adapters pass availability check (install missing
+ones). YARA adapter scans test executable with known test rule.
+11
+
+--- page 13 ---
+CYBERHA WK An tigra vit y Build PRD v2.0 T eam MoMoSapiens | Cyb erHac k V4 2025
+4.2 Prompt A G-P3.2: Y ARA Rule Engine & Threat In telligence
+P ASTE INTO ANTIGRA VITY  A G-P3.2
+Use @vulnerability-scanner and @python-patterns skills.
+CREATE data/yara_rules/ directory structure: - malware/ (APT families,
+ransomware, trojans) - exploits/ (CVE-specific patterns) - network/ (C2
+communication patterns) - documents/ (malicious macro patterns, PDF exploits)
+- living_off_the_land/ (LOLBin patterns) - usb_specific/ (USB-delivered
+malware patterns) - custom/ (CyberHawk custom rules)
+CREATE data/yara_rules/custom/cyberhawk.yar with 10+ custom rules: -
+USB-delivered payloads (autorun.inf patterns) - PowerShell encoded command
+patterns - Common RAT strings (njRAT, DarkComet, AsyncRAT) - Keylogger API
+calls pattern - Data exfiltration patterns (base64 + network functions) -
+Anti-forensics patterns (log deletion, shadow copy deletion)
+CREATE cyberhawk/threat_intel/yara_engine.py: - YARAEngine: loads ALL rules
+from data/yara_rules/ recursively - scan_file(path) -> List[YARAMatch] with
+rule_name, meta, strings_matched - scan_directory(path, recursive=True) ->
+Dict[str, List[YARAMatch]] - explain_match(match, llm_client) -> str (LLM
+explains what the rule means) - update_rules(rules_dir) -> int (count of
+rules loaded) - get_statistics() -> dict (total rules, categories, last
+updated)
+CREATE cyberhawk/threat_intel/hash_lookup.py: - OfflineHashDatabase:
+loads pre-built SQLite DB of known malware hashes - lookup(sha256) ->
+Optional[MalwareInfo] (name, family, threat level) - bulk_lookup(hashes:
+List[str]) -> Dict[str, Optional[MalwareInfo]] - Create a seed database with
+1000 test hashes using EICAR test file variants
+Run: python -m pytest tests/test_threat_intel.py -v Verify: YARA engine
+loads >5 rules. EICAR test file matches test rule. Hash lookup returns
+result for EICAR SHA-256.
+4.3 Prompt A G-P3.3: LLM Orc hestration Engine
+P ASTE INTO ANTIGRA VITY  A G-P3.3
+Use @rag-engineer, @prompt-engineer, and @langgraph skills.
+CREATE cyberhawk/llm/:
+1. client.py  OllamaClient: - ZERO external API calls. All requests to
+localhost:11434 ONLY - generate(model, prompt, system, temperature=0.1)
+-> str - stream(model, prompt, system) -> AsyncGenerator[str, None] -
+list_models() -> List[str] - is_model_available(model_name) -> bool - Raises
+OfflineModeViolationException if connection to non-localhost detected
+2. router.py  ContextRouter: TaskType enum: LOG_ANALYSIS,
+MALWARE_ANALYSIS, LEGAL_REFERENCE, MEMORY_FORENSICS, TIMELINE_NARRATE,
+EVIDENCE_SUMMARY, VOICE_COMMAND, REPORT_WRITING, YARA_EXPLAIN, GENERAL_QUERY
+TASK_MODEL_MAP = TaskType.LOG_ANALYSIS: "mistral:7b",
+TaskType.MALWARE_ANALYSIS: "qwen2.5:7b", TaskType.LEGAL_REFERENCE:
+"deepseek-r1:14b", TaskType.MEMORY_FORENSICS: "llama3.1:8b",
+TaskType.TIMELINE_NARRATE: "llama3.1:8b", TaskType.REPORT_WRITING:
+"llama3.1:8b", TaskType.YARA_EXPLAIN: "qwen2.5:7b", TaskType.GENERAL_QUERY:
+"llama3.1:8b", route(task_type, available_vram_gb) -> ModelConfig with
+Build with: @an tigra vit y-a w esome-skills v4.11.0 12 21st.dev UI Comp onen ts
+
+--- page 14 ---
+CYBERHA WK An tigra vit y Build PRD v2.0 T eam MoMoSapiens | Cyb erHac k V4 2025
+fallback to phi3:mini
+3. prompts.py  FORENSIC_SYSTEM_PROMPTS dict: One system prompt per
+TaskType. Each prompt includes: - Role definition as DFIR expert -
+Mandatory: cite evidence by file path / line number / hash - Mandatory:
+state [HIGH/MEDIUM/LOW] confidence - Mandatory: say "insufficient evidence"
+not speculate - Mandatory: flag legal implications with applicable
+law - Context injection template: {case_context}, {evidence_summary},
+{findings_so_far}
+4. rag.py  ForensicRAG: - Uses ChromaDB (embedded, no server) - Embedding:
+sentence-transformers/all-MiniLM-L6-v2 (must be cached offline) - Corpus:
+load from data/rag_corpus/ (NIST SP 800-86 chunks, MITRE ATT&CK, IT Act) -
+query(question, top_k=5) -> List[RAGResult] with source, chunk, similarity -
+augment_prompt(query, system_prompt) -> augmented prompt string
+Run: python -m pytest tests/test_llm.py -v Verify: OllamaClient raises
+exception if non-localhost URL used. Router returns phi3:mini for 3GB VRAM.
+RAG returns results for "chain of custody" query.
+Build with: @an tigra vit y-a w esome-skills v4.11.0 13 21st.dev UI Comp onen ts
+
+--- page 15 ---
+5. ANTIGRA VITY BUILD PR OMPTS  Phase
+4: W orko w Engine
+5.1 Prompt A G-P4.1: Orca Agen tic In v estigation W orko ws
+P ASTE INTO ANTIGRA VITY  A G-P4.1
+Use @langgraph, @workflow-automation, and @python-patterns skills.
+Extend servos/orchestration/workflow.py into a full Orca-based workflow
+engine:
+CREATE cyberhawk/workflow/:
+1. planner.py  InvestigationPlanner: - Based on Orca agent architecture
+from github.com/Sansyuh06/Orca - plan_investigation(device_profile, mode) ->
+InvestigationPlan - InvestigationPlan: ordered list of InvestigationStep
+with: tool, params, dependencies - Auto-selects tools based on device
+type and evidence found - In Hybrid mode: inserts HumanCheckpoint steps
+at critical junctures
+2. executor.py  WorkflowExecutor (async): - execute_plan(plan, case_id,
+progress_callback) -> WorkflowResult - Handles tool failures gracefully
+(skip + log, don't abort) - Parallel execution of independent steps
+(asyncio.gather) - Checkpoint saves state to SQLite every 60 seconds -
+resume_from_checkpoint(case_id) -> WorkflowResult
+3. playbooks.py  4 pre-built playbooks as YAML: PLAYBOOK_USB_TRIAGE: steps
+for USB device full analysis PLAYBOOK_MEMORY_ANALYSIS: LiME + Volatility
+3 full suite PLAYBOOK_NETWORK_IR: PCAP analysis + tshark + LLM summary
+PLAYBOOK_LOG_ANALYSIS: EVTX + syslog + auth.log parsing
+4. human_loop.py  HumanInTheLoop: - present_decision(question, options,
+context) -> str (selected option) - Full Auto mode: auto-selects recommended
+option, logs the auto-decision - Hybrid mode: shows pyautogui dialog with
+context, waits for operator input - Manual mode: shows dialog, waits with 0
+default - All decisions logged to audit_log with timestamp and operator ID
+Run: python -m pytest tests/test_workflow.py -v Verify: USB triage playbook
+runs on test evidence directory. All 8 steps execute. Checkpoint saves
+after step 3. Resume works from checkpoint.
+5.2 Prompt A G-P4.2: F astAPI Bac k end Enhancemen t
+P ASTE INTO ANTIGRA VITY  A G-P4.2
+Use @api-security-best-practices, @python-patterns, and
+@test-driven-development skills.
+Extend servos/api/server.py into the full CyberHawk FastAPI backend:
+REQUIREMENTS: - All sockets bind to 127.0.0.1:8747 ONLY (never 0.0.0.0) -
+JWT authentication for all endpoints (local secret, no external auth) - Rate
+14
+
+--- page 16 ---
+CYBERHA WK An tigra vit y Build PRD v2.0 T eam MoMoSapiens | Cyb erHac k V4 2025
+limiting: 100 req/min per endpoint - CORS: allow only tauri://localhost
+and http://localhost:3000 - All responses use Pydantic v2 models from
+cyberhawk/types.py
+IMPLEMENT these endpoint groups:
+/api/v1/devices: GET /  list connected devices GET /{id}  device profile +
+threat match POST /{id}/block  enforce write-block POST /{id}/image  start
+forensic imaging (returns task_id)
+/api/v1/cases: GET /  list all cases with pagination POST /  create new
+case GET /{id}  case details PUT /{id}  update status POST /{id}/start
+ start investigation workflow GET /{id}/findings  all findings with
+filters POST /{id}/report  generate report (PDF/DOCX/JSON) WS /{id}/stream 
+WebSocket for real-time progress
+/api/v1/llm: POST /query  single LLM query with forensic context WS /stream
+ streaming LLM WebSocket GET /models  available Ollama models POST /switch
+ switch active model POST /rag/search  RAG semantic search
+/api/v1/tools: POST /execute  run specific forensic tool GET /available 
+list tools with availability status WS /tasks/{id}/stream  tool execution
+progress WebSocket
+IMPLEMENT cyberhawk/api/auth.py: - generate_local_token(operator_id,
+passphrase) -> JWT - verify_token(token) -> operator_id - LocalAuth
+dependency for FastAPI
+Run: uvicorn cyberhawk.api.server:app host 127.0.0.1 port 8747 Run:
+python -m pytest tests/test_api.py -v Verify: All endpoints return 401
+without JWT. WebSocket streams data. Zero 0.0.0.0 bindings.
+Build with: @an tigra vit y-a w esome-skills v4.11.0 15 21st.dev UI Comp onen ts
+
+--- page 17 ---
+6. ANTIGRA VITY BUILD PR OMPTS  Phase
+5: 21st.dev UI Comp onen ts
+6.1 21st.dev Comp onen t Sp ecications
+The follo wing four comp onen ts from 21st.dev form the visual iden tit y of Cyb erHa wk's
+fron tend. Eac h has a sp ecic role and in tegration sp ecication.
+6.1.1 Comp onen t 1: Halide T op o Hero
+21st.dev: halide-top o-hero (b y shiv endra9795kumar)  Cyb erHa wk Dash b oard
+Hero
+Source: 21st.dev/community/components/shivendra9795kumar/halide-topo-hero/default
+Eect: Animated top ographic con tour lines with halide colour shifting  p erfect for
+a cyb erpunk dash b oard header
+Cyb erHa wk Application:
+ Used as the main dash b oard hero section b ehind the A ctiv e In v estigation
+status card
+ Colour sc heme adapted: hsl(195, 100%, 42%) (cy an) con tour lines on #030712
+(slate-950) bac kground
+ Animation sp eed reduced to 0.3x for surv eillance monitor feel during activ e in v es-
+tigations
+ Hero text o v erla y: CYBERHA WK in Geist Mono with real-time threat coun t
+badge
+ When BadUSB is detected, animation pulses red ( hsl(0, 84%, 60%) )
+6.1.2 Comp onen t 2: Go o ey T ext Morphing
+21st.dev: go o ey-text-morphing (b y victorw elander)  AI Status Displa y
+Source: 21st.dev/community/components/victorwelander/gooey-text-morphing/default
+Eect: Smo oth go o ey morphing b et w een text strings using SV G lter blur + con trast
+tric k
+Cyb erHa wk Application:
+ Used in the AI Assistan t panel header to cycle through LLM status messages
+ Morphs b et w een: Analysing Evidence. . .  → Cross-referencing Y ARA. . .  →
+Querying A TT&CK. . .  → Generating Rep ort. . . 
+ A ctiv e mo del name displa y ed b elo w: llama3.1:8b | mistral:7b | phi3:mini
+ T ext colour: #06b6d4 (cy an-500) matc hing the Cyb erHa wk palette
+ F on t: Geist Mono  reinforces terminal/forensic aesthetic
+16
+
+--- page 18 ---
+CYBERHA WK An tigra vit y Build PRD v2.0 T eam MoMoSapiens | Cyb erHac k V4 2025
+6.1.3 Comp onen t 3: Ultra Qualit y Sho w case Grid
+21st.dev: ultra-qualit y-sho w case-grid (b y dhileepkumargm)  F orensic T o ols Grid
+Source: 21st.dev/community/components/dhileepkumargm/ultra-quality-showcase-grid/default
+Eect: High-qualit y b en to grid with ho v er depth eects, gradien t b orders, and
+animated rev eal
+Cyb erHa wk Application:
+ Used as the A v ailable F orensic T o ols grid on the In v estigation W orkb enc h
+page
+ 25 to ol cards in a resp onsiv e masonry grid
+ Eac h card: to ol name, category badge (Disk/Memory/Net w ork/Malw are), status
+dot (green=a v ailable, red=missing), last-run timestamp
+ Ho v er rev eals: to ol description, supp orted evidence t yp es, Run No w CT A button
+ Clic king a card op ens a side-panel with to ol parameters form + Execute button
+ Data pulled from GET /api/v1/tools/available endp oin t
+6.1.4 Comp onen t 4: Spatial Pro duct Sho w case
+21st.dev: spatial-pro duct-sho w case (b y daiv09)  Evidence 3D View er
+Source: 21st.dev/community/components/daiv09/spatial-product-showcase/default
+Eect: 3D spatial parallax pro duct sho w case with depth la y ers and mouse-reactiv e
+mo v emen t
+Cyb erHa wk Application:
+ Used on the Evidence V ault page to sho w case activ e in v estigation summary
+ Three depth la y ers: Bac kground (case metadata), Mid (evidence items grid), F ore-
+ground (critical ndings)
+ Mouse parallax eect creates a lo oking in to the evidence immersiv e feel
+ Used sp ecically for the Case Summary hero card when viewing a sp ecic case
+ Data: case n um b er, in v estigator, device info, top 3 critical ndings oating in par-
+allax
+ Clic king a nding na vigates to the full nding detail in the W orkb enc h
+6.2 Prompt A G-P5.1: Next.js F ron tend Scaold
+P ASTE INTO ANTIGRA VITY  A G-P5.1
+Use @react-patterns, @typescript-expert, and @vercel-deployment skills.
+Scaffold the CyberHawk Next.js 14 frontend in the frontend/ directory:
+npx create-next-app@14 frontend typescript tailwind app src-dir
+import-alias "@/*"
+Install dependencies: npm install @radix-ui/react-* shadcn-ui lucide-react
+framer-motion npm install @tanstack/react-query axios zod react-hook-form npm
+install geist next-themes class-variance-authority clsx tailwind-merge
+IMPLEMENT Tailwind config extending theme with CyberHawk palette: - agdark:
+'#030712', agmid: '#0f172a', agsurface: '#1e293b' - agborder: '#334155',
+agprimary: '#06b6d4', aggreen: '#22c55e' - agred: '#ef4444', agyellow:
+Build with: @an tigra vit y-a w esome-skills v4.11.0 17 21st.dev UI Comp onen ts
+
+--- page 19 ---
+CYBERHA WK An tigra vit y Build PRD v2.0 T eam MoMoSapiens | Cyb erHac k V4 2025
+'#eab308', agpurple: '#a855f7' - Font: Geist Mono for all mono elements,
+Geist Sans for body
+IMPLEMENT these TypeScript types in frontend/src/types/: - device.ts:
+Device, DeviceProfile, ThreatMatch, WriteBlockStatus - case.ts: Case,
+CaseStatus, InvestigationMode, AuditLogEntry - finding.ts: Finding,
+FindingSeverity, MITRETechnique - llm.ts: LLMMessage, LLMResponse,
+ModelConfig, RAGResult - tool.ts: ForensicTool, ToolResult, ToolStatus
+IMPLEMENT frontend/src/lib/: - api.ts: Axios instance pointing to
+http://127.0.0.1:8747, JWT header injection - websocket.ts: WebSocketManager
+for investigation streaming + LLM streaming - utils.ts: cn(), formatBytes(),
+formatDuration(), hashDisplay() - constants.ts: SEVERITY_COLORS,
+TOOL_CATEGORIES, MITRE_TACTICS
+Run: npm run build Verify: Zero TypeScript errors. Build succeeds. All
+imports resolve.
+6.3 Prompt A G-P5.2: Core UI Views Implemen tation
+P ASTE INTO ANTIGRA VITY  A G-P5.2
+Use @react-patterns, @typescript-expert skills.
+IMPORTANT: Copy the 21st.dev components by installing
+them via their registry commands: npx shadcn@latest add
+"https://21st.dev/r/shivendra9795kumar/halide-topo-hero" npx shadcn@latest
+add "https://21st.dev/r/victorwelander/gooey-text-morphing" npx shadcn@latest
+add "https://21st.dev/r/dhileepkumargm/ultra-quality-showcase-grid" npx
+shadcn@latest add "https://21st.dev/r/daiv09/spatial-product-showcase"
+BUILD these 7 page views in frontend/src/app/:
+PAGE 1: /dashboard (page.tsx) - HalideTopo hero component behind stats
+header - GooeyTextMorphing in LLM status area cycling investigation states
+- DeviceMonitorCard: live list from GET /api/v1/devices, 2s polling -
+ActiveInvestigationCard: progress bar + WebSocket stream for active
+case - SystemHealthCard: CPU/RAM/GPU via internal metrics endpoint -
+RecentCasesCard: last 5 cases from GET /api/v1/cases?limit=5
+PAGE 2: /workbench/[caseId] (page.tsx) - UltraQualityShowcaseGrid for
+25 forensic tools - TerminalOutput component: real-time tool output via
+WebSocket - TimelineViewer: horizontal scrollable forensic timeline -
+FindingsPanel: sortable/filterable findings list with severity badges -
+SplitPane layout: tools left 40%, output right 60%
+PAGE 3: /vault (page.tsx) - SpatialProductShowcase for active case summary
+hero - EvidenceTable: DataTable with sorting, filtering, hash verification
+status - ChainOfCustodyViewer: visual step-by-step custody chain with hash
+verifications - EncryptionStatus: AES-256 status indicator for each evidence
+item
+PAGE 4: /assistant (page.tsx) - GooeyTextMorphing in header cycling
+model names - Chat interface: messages with role, confidence badges,
+evidence citations - ModelSelector: dropdown for switching Ollama models
+- QuickQueryButtons: pre-built forensic query templates - VoiceInputButton:
+records + sends to /api/v1/llm/voice
+Build with: @an tigra vit y-a w esome-skills v4.11.0 18 21st.dev UI Comp onen ts
+
+--- page 20 ---
+CYBERHA WK An tigra vit y Build PRD v2.0 T eam MoMoSapiens | Cyb erHac k V4 2025
+PAGE 5: /playbooks (page.tsx) - PlaybookCard grid: 4 playbooks with
+animated progress rings - PlaybookDetail modal: step-by-step view with
+current step highlighted
+PAGE 6: /cases (page.tsx) - Full DataTable with pagination, status filters,
+search - NewCaseModal: form with case number, investigator, mode selector
+PAGE 7: /settings (page.tsx) - ModelConfigPanel: Ollama model manager
+- ToolPathsPanel: verify tool binary paths - SecurityPanel: passphrase
+change, write-block test
+Run: npm run dev Verify: All 7 pages render without console errors. API
+connection established.
+6.4 Prompt A G-P5.3: PyQt6 Desktop UI (Oine/Standalone Mo de)
+P ASTE INTO ANTIGRA VITY  A G-P5.3
+Use @python-patterns and @react-patterns skills.
+BUILD cyberhawk/ui/pyqt/  the offline PyQt6 desktop interface (when no
+browser available):
+IMPLEMENT these QWidget subclasses with cyberpunk dark theme (bg: #030712,
+accent: #06b6d4):
+1. MainWindow: 7-tab interface matching the web views - NavigationRail:
+left sidebar with icon + label tabs, active state glow effect - StatusBar:
+LLM model indicator, write-block status LED, network sentinel indicator -
+ToastManager: stacked notifications top-right, auto-dismiss after 5s -
+Keyboard shortcuts: Ctrl+17 for tab switching, Ctrl+N new case, Ctrl+R
+report
+2. DashboardWidget: device cards + active investigation card -
+USBAlertWidget: pops up automatically on device insertion (always-on-top)
+- Shows device info, threat status, action buttons (Block / Investigate /
+Dismiss)
+3. WorkbenchWidget: - TerminalWidget: QPlainTextEdit with ANSI
+colour support (green for success, red for error) - TimelineWidget:
+QGraphicsScene-based scrollable timeline - FindingsTreeWidget: QTreeWidget
+with severity icons and MITRE tags
+4. AssistantWidget: - ChatHistoryWidget: message bubbles with role colours
+- InputBar: QLineEdit + Send button + Voice button - ModelStatusLabel:
+GooeyTextMorphing equivalent (QLabel with QPropertyAnimation)
+Apply QSS stylesheet from cyberhawk/ui/styles/dark_cyber.qss: - All
+backgrounds: #030712 to #1e293b range - Accent: #06b6d4 - Success:
+#22c55e, Error: #ef4444, Warning: #eab308 - Font: monospace 12pt for
+terminal, 11pt sans for UI
+Run: python -m cyberhawk.ui.pyqt.main Verify: Window opens. All 7 tabs
+navigate. Device list populates. LLM chat sends request.
+Build with: @an tigra vit y-a w esome-skills v4.11.0 19 21st.dev UI Comp onen ts
+
+--- page 21 ---
+7. ANTIGRA VITY BUILD PR OMPTS  Phase
+6: V oice, RA G & Rep orts
+7.1 Prompt A G-P6.1: V oice In terface (Whisp er)
+P ASTE INTO ANTIGRA VITY  A G-P6.1
+Use @python-patterns skill.
+CREATE cyberhawk/voice/:
+1. transcriber.py  OfflineTranscriber: - Uses openai-whisper library
+(LOCAL inference, NO API calls) - Model: whisper.load_model("base") 
+74MB, runs on CPU - transcribe(audio_path) -> TranscriptionResult with text,
+confidence, language - transcribe_stream(mic_stream) -> AsyncGenerator[str,
+None] for live transcription - ASSERT: zero network connections during
+transcription (test with mock socket)
+2. tts.py  OfflineTTS: - Uses piper-tts (fastest offline TTS for
+Linux/Windows) - Falls back to espeak-ng if piper not available - speak(text:
+str) -> plays audio via sounddevice - speak_async(text: str) -> non-blocking
+via threading.Thread - Voices: en_US-amy-medium (piper) or en+m1 (espeak)
+3. voice_command_handler.py  VoiceCommandHandler: - Maps
+transcribed commands to API actions: "start investigation" -> POST
+/api/v1/cases/{id}/start "generate report" -> POST /api/v1/cases/{id}/report
+"show findings" -> navigate to findings panel "what is [X]" -> send to LLM
+assistant "stop" -> pause current workflow - Confidence threshold: 0.75
+(ignores low-confidence transcriptions) - All commands logged to audit_log
+Run: python -m pytest tests/test_voice.py -v Verify: Transcriber processes
+test WAV file without network. TTS plays audio locally.
+7.2 Prompt A G-P6.2: Oine RA G Corpus P opulation
+P ASTE INTO ANTIGRA VITY  A G-P6.2
+Use @rag-engineer skill.
+CREATE cyberhawk/rag/corpus_builder.py:
+BUILD the offline RAG corpus from freely available sources that can be
+bundled:
+1. MITRE ATT&CK: Download enterprise-attack.json from official MITRE repo
+- Extract all techniques with: id, name, description, tactics, examples -
+Chunk each technique description into 512-token chunks with 64 overlap -
+Metadata: technique_id, tactic, url
+2. NIST SP 800-86 (forensics guide): Include as data/nist_800_86.txt -
+Pre-chunk into 512-token sections - Metadata: section_number, title
+3. ISO 27037 Summary: Include as data/iso_27037_summary.txt - Key
+principles: identification, collection, acquisition, preservation
+20
+
+--- page 22 ---
+CYBERHA WK An tigra vit y Build PRD v2.0 T eam MoMoSapiens | Cyb erHac k V4 2025
+4. IT Act 2000 India: Include key sections as data/it_act_2000.txt -
+Sections 43, 65, 65B, 66, 66BF, 67, 72, 84A, 84B
+5. GDPR Key Articles: data/gdpr_key_articles.txt - Articles 4, 5, 17, 25,
+32, 33, 34, 83 with summaries
+6. Common Forensic Procedures: data/forensic_procedures.txt -
+Write-blocking procedures, chain of custody, evidence handling
+IMPLEMENT build_corpus(): - Creates ChromaDB collection
+"cyberhawk_legal_forensic" - Embeds all chunks using sentence-transformers
+all-MiniLM-L6-v2 (offline) - Persists to data/chroma_db/ directory - Returns
+corpus stats: total chunks, collections, size
+IMPLEMENT query_corpus(question, top_k=5) -> List[RAGResult]: - Semantic
+search across all collections - Returns: content, source, section,
+similarity_score
+Run: python cyberhawk/rag/corpus_builder.py build Run: python -m pytest
+tests/test_rag.py -v Verify: Corpus has >500 chunks. Query "chain of
+custody" returns NIST and ISO results.
+7.3 Prompt A G-P6.3: Rep ort Generation Engine
+P ASTE INTO ANTIGRA VITY  A G-P6.3
+Use @python-patterns, @writing-plans skills.
+CREATE cyberhawk/reporting/:
+1. pdf_reporter.py  PDFReporter (using ReportLab): -
+generate_executive_report(case_id) -> Path (PDF file) - Cover page:
+case number, investigator, dates, classification - Executive Summary:
+LLM-generated 3-paragraph summary of investigation - Chain of Custody: table
+of all evidence items with hash verifications - Timeline: visual forensic
+timeline (matplotlib embedded as image) - Findings: each finding with
+severity badge, evidence citations, MITRE ATT&CK mapping - Appendix: full
+audit log, tool outputs - Footer: SHA-256 of entire report (self-verifying
+document) - Use corporate dark theme: #030712 cover, #06b6d4 accent colours
+2. docx_reporter.py  DOCXReporter (using python-docx): -
+generate_technical_report(case_id) -> Path (DOCX file) - Structured for peer
+review: full tool outputs, raw evidence references - Auto-generates Table of
+Contents - Includes all 21st.dev aesthetic elements as header images
+3. json_reporter.py  JSONReporter: - generate_machine_report(case_id)
+-> Path (JSON file) - STIX 2.1 compatible format for SIEM/SOAR integration
+- Include: all findings as STIX Observed Data objects - Include: threat
+actors as STIX Threat Actor objects if identified
+4. timeline_generator.py  TimelineGenerator: - generate_timeline(case_id)
+-> matplotlib Figure - X-axis: time, Y-axis: event category - Events
+colour-coded by severity - Exported as PNG for embedding in reports
+Run: python -m pytest tests/test_reporting.py -v Verify: PDF generates
+successfully for test case. Contains >5 pages. Chain of custody section
+present. SHA-256 footer computed.
+Build with: @an tigra vit y-a w esome-skills v4.11.0 21 21st.dev UI Comp onen ts
+
+--- page 23 ---
+8. ANTIGRA VITY BUILD PR OMPTS  Phase
+7: In tegration & T esting
+8.1 Prompt A G-P7.1: F ull End-to-End In tegration T est
+P ASTE INTO ANTIGRA VITY  A G-P7.1
+Use @test-driven-development and @security-auditing skills.
+CREATE tests/integration/test_full_pipeline.py:
+TEST SCENARIO 1: Full USB Triage (Full Auto Mode) 1. Create a synthetic
+50MB test USB image with: - 100 normal files (txt, jpg, pdf) - 3
+YARA-matching test malware samples (EICAR + custom rules) - 10 deleted
+files (allocate + zero blocks) - 1 suspicious PE file with packed entropy
+2. Simulate device connection via DeviceDetectionEngine mock 3. Run
+BackupEnforcer (to temp directory) 4. Execute PlaybookUSBTriage in Full
+Auto mode 5. Verify: backup created + verified; all files enumerated; YARA
+matches found; deleted files recovered; LLM summary generated; PDF report
+created 6. Verify: SHA-256 chain unbroken throughout; audit log has >20
+entries; all audit entries have valid HMAC; zero network calls made
+TEST SCENARIO 2: Chain of Custody Integrity 1. Run a mini investigation
+2. Manually corrupt one audit log entry 3. Run verify_log_chain()
+ must detect corruption and identify the entry 4. Verify:
+audit_integrity.detect_tampering() returns True for corrupted case
+TEST SCENARIO 3: LLM Hallucination Guard 1. Feed LLM tool outputs with
+fabricated findings not in evidence 2. HallucinationGuard should flag
+uncorroborated claims 3. Response must include "insufficient evidence" for
+fabricated items
+TEST SCENARIO 4: Network Egress Check 1. Start NetworkSentinel 2. Attempt
+HTTP request from a test subprocess 3. Sentinel must log the attempt and
+trigger alert within 500ms
+Run: python -m pytest tests/integration/ -v timeout=120 Verify: All 4
+scenarios pass. Generate coverage report: >80% coverage overall.
+8.2 Prompt A G-P7.2: Deplo ymen t P ac k aging
+P ASTE INTO ANTIGRA VITY  A G-P7.2
+Use @docker-expert and @vercel-deployment skills.
+CREATE deployment/:
+1. Dockerfile.cyberhawk: - Base: python:3.11-slim-bookworm - Install: all
+system forensic tools via apt-get (offline .deb packages in packages/) -
+Install: all Python deps from requirements.txt (no pip install index-url)
+- Copy: all LLM models from models/ directory into /app/models/ - EXPOSE:
+127.0.0.1:8747 ONLY (no external exposure) - ENV: CYBERHAWK_OFFLINE=1,
+22
+
+--- page 24 ---
+CYBERHA WK An tigra vit y Build PRD v2.0 T eam MoMoSapiens | Cyb erHac k V4 2025
+OLLAMA_HOST=http://localhost:11434 - HEALTHCHECK: python -c "import
+cyberhawk; cyberhawk.health_check()"
+2. docker-compose.yml: services: ollama: image ollama/ollama, volumes
+models:/root/.ollama cyberhawk: build Dockerfile.cyberhawk, depends_on
+ollama frontend: npm run build + serve on localhost:3000 networks:
+cyberhawk-internal (internal: true  NO external routing)
+3. install/offline_setup.sh: - Full offline installer script - Checks:
+Python 3.11, Node 20, Docker (optional) - Installs forensic tools from
+packages/ directory - Pulls Ollama models from local bundle - Populates
+ChromaDB corpus - Creates systemd service for auto-start - Runs smoke test:
+python -m cyberhawk.smoke_test
+4. Makefile: make dev  start all services in development mode make test
+ run full test suite make build  build Tauri desktop app make package 
+create offline deployment bundle make smoke  quick 2-minute end-to-end smoke
+test
+Run: docker build -f deployment/Dockerfile.cyberhawk -t cyberhawk:latest
+. Verify: Build succeeds. Container starts. Health check passes. Zero
+external network calls.
+Build with: @an tigra vit y-a w esome-skills v4.11.0 23 21st.dev UI Comp onen ts
+
+--- page 25 ---
+9. Complete File Structure
+9.1 T arget Directory La y out
+After all An tigra vit y build prompts are executed, the rep ository should ha v e this structure:
+1 c y b e r h a w k / # R o o t ( e x t e n d s s e r v o s / r e p o )
+2 | - - c y b e r h a w k / # P y t h o n p a c k a g e
+3 | | - - _ _ i n i t _ _ . p y , c o n f i g . p y , t y p e s . p y , c o n s t a n t s . p y
+4 | | - - a c q u i s i t i o n / # B a c k u p , i m a g i n g , m e m o r y d u m p
+5 | | | - - b a c k u p _ e n f o r c e r . p y , i m a g e r . p y , m e m o r y _ d u m p e r . p y
+6 | | - - a p i / # F a s t A P I b a c k e n d
+7 | | | - - s e r v e r . p y , a u t h . p y , w e b s o c k e t s . p y , m o d e l s . p y
+8 | | - - d e t e c t i o n / # D e v i c e h o t - p l u g d e t e c t i o n
+9 | | | - - d e v i c e _ e n g i n e . p y , d e v i c e _ p r o f i l e r . p y , t h r e a t _ m a t c h e r .
+p y
+10 | | - - l l m / # O l l a m a L L M i n t e g r a t i o n
+11 | | | - - c l i e n t . p y , r o u t e r . p y , p r o m p t s . p y , r a g . p y
+12 | | - - r a g / # C h r o m a D B o f f l i n e R A G
+13 | | | - - c o r p u s _ b u i l d e r . p y , r e t r i e v e r . p y
+14 | | - - r e p o r t i n g / # P D F / D O C X / J S O N / S T I X r e p o r t s
+15 | | | - - p d f _ r e p o r t e r . p y , d o c x _ r e p o r t e r . p y , j s o n _ r e p o r t e r . p y
+16 | | - - s e c u r i t y / # S e c u r i t y h a r d e n i n g
+17 | | | - - a u d i t _ i n t e g r i t y . p y , n e t w o r k _ s e n t i n e l . p y
+18 | | | - - s a n d b o x . p y , w r i t e _ b l o c k e r . p y
+19 | | - - t h r e a t _ i n t e l / # Y A R A + h a s h D B
+20 | | | - - y a r a _ e n g i n e . p y , h a s h _ l o o k u p . p y
+21 | | - - t o o l s / # F o r e n s i c t o o l a d a p t e r s
+22 | | | - - b a s e . p y , t o o l _ r e g i s t r y . p y
+23 | | | - - a d a p t e r s / ( 1 0 a d a p t e r f i l e s )
+24 | | - - u i / # P y Q t 6 d e s k t o p U I
+25 | | | - - p y q t / m a i n . p y , s t y l e s / d a r k _ c y b e r . q s s
+26 | | - - v a u l t . p y # A E S - 2 5 6 e v i d e n c e v a u l t
+27 | | - - v o i c e / # W h i s p e r + p i p e r T T S
+28 | | | - - t r a n s c r i b e r . p y , t t s . p y , v o i c e _ c o m m a n d _ h a n d l e r . p y
+29 | | - - w o r k f l o w / # O r c a w o r k f l o w e n g i n e
+30 | | - - e x e c u t o r . p y , h u m a n _ l o o p . p y , p l a n n e r . p y , p l a y b o o k s . p y
+31 | - - f r o n t e n d / # N e x t . j s 1 4 f r o n t e n d
+32 | | - - s r c / a p p / ( 7 p a g e s )
+33 | | - - s r c / c o m p o n e n t s / ( 2 1 s t . d e v + c u s t o m )
+34 | | - - s r c / l i b / ( a p i , w e b s o c k e t , u t i l s )
+35 | | - - s r c / t y p e s / ( T y p e S c r i p t t y p e s )
+36 | - - d a t a / # O f f l i n e d a t a b u n d l e s
+37 | | - - y a r a _ r u l e s / ( m a l w a r e , e x p l o i t s , c u s t o m )
+38 | | - - c h r o m a _ d b / ( p r e - b u i l t R A G c o r p u s )
+39 | | - - b a d u s b _ s i g n a t u r e s . j s o n
+40 | | - - n i s t _ 8 0 0 _ 8 6 . t x t , i t _ a c t _ 2 0 0 0 . t x t , g d p r _ k e y _ a r t i c l e s . t x t
+41 | - - d e p l o y m e n t /
+24
+
+--- page 26 ---
+CYBERHA WK An tigra vit y Build PRD v2.0 T eam MoMoSapiens | Cyb erHac k V4 2025
+42 | | - - D o c k e r f i l e . c y b e r h a w k , d o c k e r - c o m p o s e . y m l , o f f l i n e _ s e t u p . s h
+43 | - - t e s t s / ( u n i t , i n t e g r a t i o n , s e c u r i t y t e s t s )
+44 | - - M a k e f i l e , p y p r o j e c t . t o m l , p a c k a g e . j s o n
+Build with: @an tigra vit y-a w esome-skills v4.11.0 25 21st.dev UI Comp onen ts
+
+--- page 27 ---
+10. T ec hnical Sp ecications
+10.1 F ull T ec hnology Stac k
+La y er T ec hnology Purp ose
+LLM Run time Ollama 0.3+ Lo cal mo del serving
+LLM Mo dels Llama 3.1 8B Q4, Mis-
+tral 7B Q4, Phi-3 Mini,
+DeepSeek-R1 14BMulti-mo del inference
+LLM API llama.cpp HTTP + Ollama
+RESTOine inference API
+RA G Store ChromaDB (em b edded) Oine v ector searc h
+Em b eddings sen tence-transformers all-
+MiniLM-L6-v2Lo cal em b eddings
+Bac k end Python 3.11 + F astAPI Core API serv er
+DB SQLite 3.40+ (W AL mo de) P ersisten t storage
+Crypto cryptograph y 41+ (AES-
+256-GCM)Evidence encryption
+Auth p ython-jose (JWT lo cal) Lo cal authen tication
+Async asyncio + uvicorn Async serv er run time
+F ron tend (W eb) Next.js 14 + React 18 W eb UI
+F ron tend (Desk-
+top)PyQt6 + QSS Oine GUI
+UI Comp onen ts 21st.dev + shadcn/ui Premium comp onen ts
+St yling T ailwind CSS + CSS V ari-
+ablesDesign system
+State T anStac k Query v5 Serv er state managemen t
+F orensic T o ols p ytsk3, V olatilit y 3, Y ARA Core analysis
+A cquisition dcdd, dd, LiME, winpmem Evidence acquisition
+Net w ork tshark, tcp dump Net w ork analysis
+Metadata exifto ol, p ele Artifact extraction
+Carving foremost, bulk_extractor Data reco v ery
+V oice op enai-whisp er (lo cal),
+pip er-ttsOine v oice I/O
+Timeline log2timeline/plaso F orensic timeline
+P ac k aging Do c k er + T auri 2.0 Deplo ymen t
+26
+
+--- page 28 ---
+CYBERHA WK An tigra vit y Build PRD v2.0 T eam MoMoSapiens | Cyb erHac k V4 2025
+10.2 P erformance T argets
+Metric T arget A cceptable Measuremen t
+LLM First T ok en (GPU) < 2s < 4s P95 latency
+LLM First T ok en (CPU) < 8s < 15s P95 latency
+Device Detection < 2s < 5s Insert to notication
+USB T riage (32GB) < 8 min < 15 min F ull auto pip eline
+Memory A cquisition < 3 min < 6 min LiME on 8GB RAM
+Y ARA Scan (1GB) < 45s < 90s 15,000 rules
+RA G Query < 500ms < 1.5s T op-5 retriev al
+Rep ort Generation < 30s < 60s PDF + DOCX
+App Cold Start < 5s < 10s GUI ready
+10.3 Securit y Requiremen ts Matrix
+Requiremen t Priorit y Phase Implemen tation
+Zero net w ork egress HIGH P1 Net w orkSen tinel +
+lo opbac k-only binding
+AES-256 evidence HIGH P1 Evidence V ault with
+PBKDF2 k eys
+W rite-blo c k b efore access HIGH P1 @require_write_blo c k
+decorator
+HMA C audit log HIGH P1 SHA-256 HMA C on eac h
+log en try
+JWT lo cal auth HIGH P1 p ython-jose, lo cal secret
+Subpro cess sandb o x HIGH P1 F orensicSandb o x con text
+manager
+Secure temp wip e MED P2 DoD 5220.22-M secure
+delete
+Hardw are tok en auth LO W P3 Y ubiKey HMA C-SHA1
+c hallenge-resp onse
+An ti-forensics detection MED P2 En trop y analysis, log-
+clear detection
+Build with: @an tigra vit y-a w esome-skills v4.11.0 27 21st.dev UI Comp onen ts
+
+--- page 29 ---
+11. Non-F unctional Requiremen ts & Ev aluation
+Criteria
+11.1 Hac k athon Ev aluation Alignmen t
+Ev aluation P arameter 1: Oine Capabilit y (20 pts)
+Implemen tation Evidence:
+ Net w orkSen tinel running throughout  alerts on an y egress attempt
+ All LLM inference via Ollama p oin ting to localhost:11434
+ ChromaDB, Y ARA rules, hash DB all lo cal les
+ F astAPI b ound to 127.0.0.1:8747 exclusiv ely
+ Do c k er net w ork congured as internal: true
+ Automated test: 1-hour net w ork monitor during full in v estigation, zero connections
+Demo Evidence: Sho w Wireshark capture during liv e demo  zero outb ound pac k ets.
+Ev aluation P arameter 2: A ccuracy of Resp onses (20 pts)
+Implemen tation Evidence:
+ Multi-mo del routing selects b est mo del p er task t yp e
+ Evidence-citation mandatory in all LLM resp onses
+ Y ARA v alidation cross-c hec ks LLM malw are claims
+ RA G augmen ts resp onses with NIST/A TT&CK citations
+ Condence lev els (HIGH/MEDIUM/LO W) required in all forensic ndings
+ 50-question b enc hmark ev al: target 92%+ factual accuracy
+Ev aluation P arameter 3: Securit y & Priv acy (20 pts)
+Implemen tation Evidence:
+ AES-256-GCM evidence v ault with PBKDF2 k ey deriv ation
+ HMA C-SHA256 signed app end-only audit log
+ W rite-blo c k er enforced b efore an y evidence access
+ Zero telemetry , zero external API calls, zero crash rep orting
+ Evidence hash c hain: SHA-256 + SHA-3-512 on ev ery op eration
+ BadUSB threat matc hing b efore an y device is pro cessed
+Ev aluation P arameter 4: P erformance Eciency (20 pts)
+Implemen tation Evidence:
+ Async F astAPI with parallel to ol execution (asyncio.gather)
+ Streaming LLM resp onses  rst tok en in < 2s on GPU
+ Y ARA scanning in parallel across le c h unks
+28
+
+--- page 30 ---
+CYBERHA WK An tigra vit y Build PRD v2.0 T eam MoMoSapiens | Cyb erHac k V4 2025
+ SQLite W AL mo de for concurren t reads during analysis
+ React Query cac hing eliminates redundan t API calls
+ Quan tized Q4 mo dels balance accuracy vs. inference sp eed
+Ev aluation P arameter 5: Practical In v estigation Supp ort (20 pts)
+Implemen tation Evidence:
+ 25 in tegrated forensic to ols co v ering Disk/Memory/Net w ork/Malw are
+ 4 pre-built in v estigation pla yb o oks for common scenarios
+ V oice in terface for hands-free eld op eration
+ Three in v estigation mo des: F ull Auto / Hybrid / Man ual
+ Court-admissible PDF + DOCX rep ort generation
+ Oine legal reference (IT A ct, GDPR, NIST, A TT&CK) via RA G
+ MITRE A TT&CK tec hnique mapping for all ndings
+Build with: @an tigra vit y-a w esome-skills v4.11.0 29 21st.dev UI Comp onen ts
+
+--- page 31 ---
+12. Quic k-Reference An tigra vit y Prompt Sum-
+mary
+12.1 Complete Build Sequence
+This c hapter serv es as the quic k-reference c hec klist. P aste eac h prompt in to An tigra vit y in
+order, v erifying the Chec k condition b efore pro ceeding.
+PromptWhat Gets Built Skills Used V erify
+AG-P1.1Arc hitecture + T yp es
++ Constan ts@senior-arc hitect
+@brainstormingp y_compile passes
+AG-P1.2Database + Evidence
+V ault@p ython-patterns @sql-
+injection-testing8 v ault tests pass
+AG-P1.3Securit y Hardening
+La y er@securit y-auditing
+@vulnerabilit y-scannerSecurit y tests pass
+AG-P2.1Device Detection En-
+gine@p ython-patterns
+@w orko w-automationCallbac k <100ms
+AG-P2.2Evidence A cquisition @p ython-patterns
+@securit y-auditingHash c hain v eried
+AG-P3.1T o ol A dapter F rame-
+w ork@p ython-patterns @test-
+driv en-dev elopmen t10 adapters load
+AG-P3.2Y ARA + Threat In tel @vulnerabilit y-scanner EICAR matc h
+found
+AG-P3.3LLM Orc hestration @rag-engineer @prompt-
+engineer @langgraphRA G returns re-
+sults
+AG-P4.1Orca W orko w Engine @langgraph @w orko w-
+automationPla yb o ok executes
+AG-P4.2F astAPI Bac k end @api-securit y-b est-
+practicesJWT auth w orks
+AG-P5.1Next.js F ron tend Scaf-
+fold@react-patterns
+@t yp escript-exp ertBuild succeeds
+AG-P5.27 W eb UI Views +
+21st.dev@react-patterns
+@t yp escript-exp ertAll pages render
+AG-P5.3PyQt6 Desktop UI @p ython-patterns Windo w op ens
+AG-P6.1V oice In terface (Whis-
+p er)@p ython-patterns T ranscription
+w orks
+30
+
+--- page 32 ---
+CYBERHA WK An tigra vit y Build PRD v2.0 T eam MoMoSapiens | Cyb erHac k V4 2025
+PromptWhat Gets Built Skills Used V erify
+AG-P6.2RA G Corpus P opula-
+tion@rag-engineer 500+ c h unks
+loaded
+AG-P6.3Rep ort Generation @p ython-patterns
+@writing-plansPDF generates
+AG-P7.1In tegration T ests @test-driv en-
+dev elopmen tAll 4 scenarios pass
+AG-P7.2Do c k er + P ac k aging @do c k er-exp ert Con tainer starts
+12.2 Final Smok e T est Prompt
+FINAL ANTIGRA VITY VERIFICA TION PR OMPT
+Use @test-driv en-dev elopmen t and @securit y-auditing skills.
+Run the complete Cyb erHa wk smok e test:
+1. p ython -m cyb erha wk.smok e_test  runs 10 core function c hec ks 2. npm run build
+(fron tend)  m ust complete with zero errors 3. p ython -m p ytest tests/ -v timeout=60
+ all tests m ust pass 4. p ython -m cyb erha wk.net w ork_audit  m ust rep ort ZER O
+egress attempts 5. p ython -m cyb erha wk.demo  runs the full USB triage demo with
+syn thetic evidence
+Generate a SMOKE_TEST_REPOR T.md with: - P ass/fail for eac h comp onen t -
+LLM resp onse sample (sho wing citation + condence) - Y ARA matc h sample (sho wing
+rule name + le + strings) - Chain of custo dy hash c hain (sho wing 5-step v erication)
+- P erformance n um b ers (LLM latency , scan sp eed, detection time)
+This rep ort is the nal evidence for hac k athon judges.
+Build with: @an tigra vit y-a w esome-skills v4.11.0 31 21st.dev UI Comp onen ts
+
+--- page 33 ---
+13. App endices
+13.1 App endix A: an tigra vit y-a w esome-skills Bundle Recommen-
+dation
+F or Cyb erHa wk, w e recommend the Securit y Engineer + F ull-Stac k Dev elop er bundle
+from the an tigra vit y-a w esome-skills rep ository . Install with:
+1 # I n s t a l l a l l s k i l l s
+2 n p x a n t i g r a v i t y - a w e s o m e - s k i l l s
+3
+4 # V e r i f y c r i t i c a l s k i l l s a r e p r e s e n t
+5 l s ~ / . a g e n t / s k i l l s / s e c u r i t y - a u d i t i n g /
+6 l s ~ / . a g e n t / s k i l l s / v u l n e r a b i l i t y - s c a n n e r /
+7 l s ~ / . a g e n t / s k i l l s / r a g - e n g i n e e r /
+8 l s ~ / . a g e n t / s k i l l s / p y t h o n - p a t t e r n s /
+9 l s ~ / . a g e n t / s k i l l s / r e a c t - p a t t e r n s /
+10 l s ~ / . a g e n t / s k i l l s / t y p e s c r i p t - e x p e r t /
+11 l s ~ / . a g e n t / s k i l l s / d o c k e r - e x p e r t /
+12 l s ~ / . a g e n t / s k i l l s / t e s t - d r i v e n - d e v e l o p m e n t /
+13 l s ~ / . a g e n t / s k i l l s / a p i - s e c u r i t y - b e s t - p r a c t i c e s /
+14 l s ~ / . a g e n t / s k i l l s / p r o m p t - e n g i n e e r /
+15 l s ~ / . a g e n t / s k i l l s / l a n g g r a p h /
+16 e c h o " A l l r e q u i r e d s k i l l s p r e s e n t ! "
+13.2 App endix B: System Prompt Design P atterns Used
+F rom the x1xhlol/system-prompts-and-mo dels-of-ai-to ols rep ository , these sp ecic
+patterns w ere incorp orated:
+T o ol Source P attern Borro w ed Cyb erHa wk Application
+Cursor F ull co debase con text b efore
+editsAll A G prompts read exist-
+ing serv os co de rst
+Lo v able Comp onen t-rst UI with
+exact sp ecs21st.dev comp onen ts sp eci-
+ed b y exact URL
+Devin AI Self-con tained tasks with
+v ericationEv ery prompt ends with a
+v erify command
+v0 shadcn/ui base + la y er cus-
+tomshadcn primitiv es +
+21st.dev on top
+Windsurf Cascade/b ottom-up build-
+ingPhase ordering: securit y →
+bac k end → UI
+Replit Alw a ys-runnable co de Ev ery prompt creates im-
+mediately runnable co de
+32
+
+--- page 34 ---
+CYBERHA WK An tigra vit y Build PRD v2.0 T eam MoMoSapiens | Cyb erHac k V4 2025
+T o ol Source P attern Borro w ed Cyb erHa wk Application
+Man us Autonomous m ulti-step ex-
+ecutionMulti-le creation in single
+prompt
+Claude Co de T o ol use + le op erations An tigra vit y in v ok es @skill
+to ols nativ ely
+13.3 App endix C: 21st.dev Comp onen t Installation Commands
+1 # I n s t a l l a l l 4 C y b e r H a w k U I c o m p o n e n t s f r o m 2 1 s t . d e v
+2 # ( r u n f r o m f r o n t e n d / d i r e c t o r y a f t e r N e x t . j s s c a f f o l d )
+3
+4 # 1 . H a l i d e T o p o H e r o - - D a s h b o a r d h e r o b a c k g r o u n d
+5 n p x s h a d c n @ l a t e s t a d d \
+6 " h t t p s : / / 2 1 s t . d e v / r / s h i v e n d r a 9 7 9 5 k u m a r / h a l i d e - t o p o - h e r o "
+7
+8 # 2 . G o o e y T e x t M o r p h i n g - - L L M s t a t u s d i s p l a y
+9 n p x s h a d c n @ l a t e s t a d d \
+10 " h t t p s : / / 2 1 s t . d e v / r / v i c t o r w e l a n d e r / g o o e y - t e x t - m o r p h i n g "
+11
+12 # 3 . U l t r a Q u a l i t y S h o w c a s e G r i d - - F o r e n s i c t o o l s g r i d
+13 n p x s h a d c n @ l a t e s t a d d \
+14 " h t t p s : / / 2 1 s t . d e v / r / d h i l e e p k u m a r g m / u l t r a - q u a l i t y - s h o w c a s e - g r i d "
+15
+16 # 4 . S p a t i a l P r o d u c t S h o w c a s e - - E v i d e n c e v a u l t 3 D v i e w
+17 n p x s h a d c n @ l a t e s t a d d \
+18 " h t t p s : / / 2 1 s t . d e v / r / d a i v 0 9 / s p a t i a l - p r o d u c t - s h o w c a s e "
+19
+20 # V e r i f y a l l c o m p o n e n t s i n s t a l l e d
+21 l s s r c / c o m p o n e n t s / u i / | g r e p - E " h a l i d e | g o o e y | s h o w c a s e | s p a t i a l "
+13.4 App endix D: Python Requiremen ts
+1 # r e q u i r e m e n t s . t x t - - A L L P A C K A G E S M U S T B E I N S T A L L A B L E O F F L I N E
+2 # ( p r e - d o w n l o a d w h e e l s t o p a c k a g e s / w h e e l s / f o r a i r - g a p p e d i n s t a l l )
+3
+4 # C o r e
+5 f a s t a p i = = 0 . 1 1 5 . 0
+6 u v i c o r n [ s t a n d a r d ] = = 0 . 3 0 . 0
+7 p y d a n t i c = = 2 . 8 . 0
+8 p y t h o n - j o s e [ c r y p t o g r a p h y ] = = 3 . 3 . 0
+9 p a s s l i b [ b c r y p t ] = = 1 . 7 . 4
+10
+11 # D a t a b a s e & C r y p t o
+12 c r y p t o g r a p h y = = 4 3 . 0 . 0
+13
+14 # L L M & R A G
+15 o l l a m a = = 0 . 3 . 0
+16 c h r o m a d b = = 0 . 5 . 0
+17 s e n t e n c e - t r a n s f o r m e r s = = 3 . 1 . 0
+18
+Build with: @an tigra vit y-a w esome-skills v4.11.0 33 21st.dev UI Comp onen ts
+
+--- page 35 ---
+CYBERHA WK An tigra vit y Build PRD v2.0 T eam MoMoSapiens | Cyb erHac k V4 2025
+19 # F o r e n s i c s
+20 p y t s k 3 = = 2 0 2 4 0 8 0 5
+21 y a r a - p y t h o n = = 4 . 5 . 1
+22 v o l a t i l i t y 3 = = 2 . 7 . 0
+23 p y t h o n - r e g i s t r y = = 1 . 4 . 0
+24 p e f i l e = = 2 0 2 3 . 2 . 7
+25
+26 # U I
+27 P y Q t 6 = = 6 . 7 . 0
+28 p y a u t o g u i = = 0 . 9 . 5 4
+29 o p e n a i - w h i s p e r = = 2 0 2 3 1 1 1 7 # l o c a l i n f e r e n c e o n l y
+30 p y a u d i o = = 0 . 2 . 1 4
+31 s o u n d d e v i c e = = 0 . 4 . 7
+32
+33 # R e p o r t i n g
+34 r e p o r t l a b = = 4 . 2 . 2
+35 p y t h o n - d o c x = = 1 . 1 . 2
+36
+37 # U t i l s
+38 p s u t i l = = 6 . 0 . 0
+39 p y u d e v = = 0 . 2 4 . 1
+40 p y t h o n - m a g i c = = 0 . 4 . 2 7
+41 c o l o r e d l o g s = = 1 5 . 0 . 1
+42 r i c h = = 1 3 . 8 . 0
+13.5 App endix E: Hac k athon Demo Script (5 Min utes)
+Time A ction What Judges See
+0:00 Op en Cyb erHa wk Halide top o hero dash b oard with No A ctiv e
+In v estigation
+0:30 Insert USB T oast notication: New USB Device: San-
+Disk 32GB  BadUSB c hec k instan t
+1:00 Select F ull Auto Go o ey text morphs: Initiating F ull Automa-
+tion Mo de. . . 
+1:15 Bac kup dialog PyAutoGUI op ens bac kup destination selec-
+tor
+1:45 Bac kup complete SHA-256 v eried, write-blo c k applied, imag-
+ing starts
+2:30 Y ARA matc h Critical nding alert: Y ARA:
+APT28_XAgen t matc hed in loader.exe
+3:00 LLM Analysis AI panel lls with citation-bac k ed analysis,
+MITRE A TT&CK tag: T1059
+3:30 Sho w to ols grid Ultra-qualit y sho w case grid sho ws 25 to ols,
+green LEDs
+4:00 Evidence v ault Spatial pro duct sho w case 3D parallax sho w-
+ing case summary
+4:30 Generate rep ort PDF rep ort do wnloaded: 15 pages, c hain of
+custo dy in tact
+Build with: @an tigra vit y-a w esome-skills v4.11.0 34 21st.dev UI Comp onen ts
+
+--- page 36 ---
+CYBERHA WK An tigra vit y Build PRD v2.0 T eam MoMoSapiens | Cyb erHac k V4 2025
+Time A ction What Judges See
+5:00 Net w ork c hec k Wireshark op en  ZER O pac k ets  full oine
+conrmed
+Final Statemen t for Judges
+Cyb erHa wk is the only forensic platform that com bines three things no existing
+to ol do es sim ultaneously: a 100% oine m ulti-mo del LLM reasoning engine, a court-
+admissible evidence c hain with cryptographic in tegrit y , and a consumer-grade UI
+b eautiful enough to not require forensic training.
+Built on pro v en op en-source infrastructure (Serv os, Orca, Orc hestrata, Ollama) with
+pro duction-qualit y UI comp onen ts (21st.dev), and scaolded b y 713+ battle-tested
+An tigra vit y skills  this isn't a hac k athon protot yp e. It's a deplo y able forensics
+w orkstation .
+F orensics for the Rest of Us.
+Air-gappable. In telligen t. Automated.
+Cyb erHa wk An tigra vit y Build PRD v2.0
+T eam MoMoSapiens | Cyb erHac k V4 2025 | Built with an tigra vit y-a w esome-skills v4.11.0
+Skills: @securit y-auditing @rag-engineer @react-patterns @p ython-patterns @do c k er-exp ert
+@t yp escript-exp ert
+UI: halide-top o-hero | go o ey-text-morphing | ultra-qualit y-sho w case-grid |
+spatial-pro duct-sho w case
+Build with: @an tigra vit y-a w esome-skills v4.11.0 35 21st.dev UI Comp onen ts

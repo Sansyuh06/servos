@@ -10,11 +10,14 @@ export interface ChatResponse {
     model: string
 }
 
-export async function sendChatMessage(message: string, caseId?: string): Promise<ChatResponse> {
+export async function sendChatMessage(
+    message: string,
+    history?: { role: string; content: string }[]
+): Promise<ChatResponse> {
     const res = await fetch(`${BASE}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, case_id: caseId || null }),
+        body: JSON.stringify({ message, history: history || [] }),
     })
     if(!res.ok) throw new Error(`Chat error: ${res.status}`)
     return res.json()

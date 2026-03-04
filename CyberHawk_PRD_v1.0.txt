@@ -1,0 +1,1464 @@
+--- page 1 ---
+PRODUCT REQUIREMENTS DOCUMENT v1.0
+CYBERHA WK
+Oine AI-P o w ered F orensics Platform
+Built on Servos + Orca + Orchestrata Framework
+Hac k athon: Cyb erHac k V4 2025 | T rac k:
+Oine LLM for A dv anced Cyb er In v estigation
+T eam: MoMoSapiens | Lead: Ak ash San thn u Sundar
+Do cumen t V ersion: 1.0.0
+Date: Marc h 2025
+Status: FINAL  HA CKA THON SUBMISSION
+Classication: CONFIDENTIAL
+T otal P ages: 40+
+Based on: Serv os F ramew ork | Orca Agen tic Engine | Orc hestrata W orko w | Chillax.AI LLM Core
+
+--- page 2 ---
+Con ten ts
+1 Executiv e Summary 4
+1.1 Pro duct Vision . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+1.2 Key V alue Prop ositions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+1.3 Success Metrics for Hac k athon Ev aluation . . . . . . . . . . . . . . . . . . 5
+2 Problem Statemen t & Mark et Con text 6
+2.1 The Cyb ercrime In v estigation Challenge . . . . . . . . . . . . . . . . . . . 6
+2.1.1 Core P ain P oin ts . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+2.2 T arget Users . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+2.3 Comp etitiv e Landscap e . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+3 System Arc hitecture 8
+3.1 High-Lev el Arc hitecture Ov erview . . . . . . . . . . . . . . . . . . . . . . . 8
+3.2 Comp onen t Arc hitecture . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+3.2.1 Core Subsystems . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+3.3 Data Flo w Arc hitecture . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9
+4 F unctional Requiremen ts 10
+4.1 Requiremen t Categories . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+4.2 FR-1: Device Detection & Hot-Plug Monitoring . . . . . . . . . . . . . . . 10
+4.3 FR-2: In v estigation Mo de Managemen t . . . . . . . . . . . . . . . . . . . . 10
+4.4 FR-3: Evidence A cquisition . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+4.5 FR-4: F orensic Analysis Capabilities . . . . . . . . . . . . . . . . . . . . . 12
+4.6 FR-5: LLM Query & AI In v estigation Assistance . . . . . . . . . . . . . . 12
+5 F orensic T o ols In tegration Sp ecication 14
+5.1 Complete T o ol In v en tory . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14
+5.2 T o ol A dapter In terface Sp ecication . . . . . . . . . . . . . . . . . . . . . . 15
+5.3 V olatilit y 3 Memory Analysis In tegration . . . . . . . . . . . . . . . . . . . 16
+5.4 Y ARA Rule Engine . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+6 LLM Arc hitecture & Mo del Selection 17
+6.1 Multi-Mo del Strategy . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17
+6.2 Con textRouter Logic . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17
+6.3 F orensic System Prompts . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+6.4 Oine RA G Arc hitecture . . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+7 Non-F unctional Requiremen ts 19
+7.1 P erformance Requiremen ts . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+7.2 Securit y Requiremen ts . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+1
+
+--- page 3 ---
+Cyb erHa wk  Oine AI F orensics Platform Pro duct Requiremen ts Do cumen t v1.0
+7.3 Reliabilit y Requiremen ts . . . . . . . . . . . . . . . . . . . . . . . . . . . . 20
+7.4 Usabilit y Requiremen ts . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 20
+8 User In terface Design Sp ecication 21
+8.1 UI Arc hitecture Ov erview . . . . . . . . . . . . . . . . . . . . . . . . . . . 21
+8.2 Application La y out . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 21
+8.3 View 1: Dash b oard . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 21
+8.4 View 2: In v estigation W orkb enc h . . . . . . . . . . . . . . . . . . . . . . . 22
+8.5 View 4: AI Assistan t Chat In terface . . . . . . . . . . . . . . . . . . . . . . 22
+8.6 T oast Notication System . . . . . . . . . . . . . . . . . . . . . . . . . . . 22
+9 Data Arc hitecture & Mo dels 23
+9.1 Database Sc hema . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 23
+9.1.1 Core En tit y Mo del . . . . . . . . . . . . . . . . . . . . . . . . . . . 23
+9.2 Evidence Con tainer F ormat (DFXML) . . . . . . . . . . . . . . . . . . . . 24
+9.3 Rep ort Data Mo del . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 25
+10 API & In tegration Sp ecication 26
+10.1 In ternal REST API (F astAPI) . . . . . . . . . . . . . . . . . . . . . . . . . 26
+10.1.1 Device Managemen t Endp oin ts . . . . . . . . . . . . . . . . . . . . 26
+10.1.2 In v estigation Endp oin ts . . . . . . . . . . . . . . . . . . . . . . . . 26
+10.1.3 LLM Endp oin ts . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 26
+10.2 T o ol Execution API . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 27
+11 Securit y Arc hitecture 28
+11.1 Securit y Design Principles . . . . . . . . . . . . . . . . . . . . . . . . . . . 28
+11.2 Evidence Chain of Custo dy . . . . . . . . . . . . . . . . . . . . . . . . . . 28
+11.3 Threat Mo del . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 28
+12 Deplo ymen t Arc hitecture 30
+12.1 Deplo ymen t Congurations . . . . . . . . . . . . . . . . . . . . . . . . . . . 30
+12.2 Installation & Setup . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 31
+12.3 Oine Bundle Con ten ts . . . . . . . . . . . . . . . . . . . . . . . . . . . . 31
+13 In v estigation Pla yb o oks 32
+13.1 Pla yb o ok System Ov erview . . . . . . . . . . . . . . . . . . . . . . . . . . 32
+13.2 Pla yb o ok 1: USB / Remo v able Media T riage . . . . . . . . . . . . . . . . . 32
+13.3 Pla yb o ok 2: Memory Analysis (Liv e System) . . . . . . . . . . . . . . . . . 32
+13.4 Pla yb o ok 3: Net w ork Inciden t Resp onse . . . . . . . . . . . . . . . . . . . 33
+13.5 Pla yb o ok 4: Log Analysis & In trusion In v estigation . . . . . . . . . . . . . 33
+14 T esting Strategy 34
+14.1 T esting Philosoph y . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 34
+14.2 T est Categories . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 34
+14.2.1 Unit T ests . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 34
+14.2.2 In tegration T ests . . . . . . . . . . . . . . . . . . . . . . . . . . . . 34
+14.2.3 LLM Ev aluation Metrics . . . . . . . . . . . . . . . . . . . . . . . . 34
+14.3 Securit y T esting . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 34
+CONFIDENTIAL  T eam MoMoSapiens 2 Cyb erHac k V4 2025
+
+--- page 4 ---
+Cyb erHa wk  Oine AI F orensics Platform Pro duct Requiremen ts Do cumen t v1.0
+15 Implemen tation Roadmap 36
+15.1 Dev elopmen t Phases . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 36
+15.2 Hac k athon Sprin t Plan (48-Hour Breakdo wn) . . . . . . . . . . . . . . . . 37
+16 Risk Managemen t 38
+16.1 Risk Register . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 38
+16.2 Con tingency Proto cols . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 38
+17 Legal & Compliance F ramew ork 39
+17.1 Evidence A dmissibilit y Standards . . . . . . . . . . . . . . . . . . . . . . . 39
+17.2 Priv acy & Data Protection Compliance . . . . . . . . . . . . . . . . . . . . 39
+17.3 Disclaimer & Authorized Use . . . . . . . . . . . . . . . . . . . . . . . . . 39
+18 T ec hnical Glossary 40
+19 App endices 41
+19.1 App endix A: Existing Co debase Analysis (Serv os Rep o) . . . . . . . . . . . 41
+19.2 App endix B: System Prompts Design . . . . . . . . . . . . . . . . . . . . . 41
+19.3 App endix C: Hardw are Requiremen ts Matrix . . . . . . . . . . . . . . . . . 42
+19.4 App endix D: Oine Resource In v en tory . . . . . . . . . . . . . . . . . . . 42
+19.5 App endix E: Comp etitor Analysis  System Prompts & LLM Design Insigh ts 42
+19.6 App endix F: Hac k athon Ev aluation Scorecard . . . . . . . . . . . . . . . . 43
+CONFIDENTIAL  T eam MoMoSapiens 3 Cyb erHac k V4 2025
+
+--- page 5 ---
+1. Executiv e Summary
+Mission Statemen t
+Cyb erHa wk is an air-gapp ed, oine Large Language Mo del (LLM)-p o w ered Digital
+F orensics and Inciden t Resp onse (DFIR) platform that enables cyb ercrime in v estiga-
+tors, la w enforcemen t p ersonnel, and en terprise securit y teams to conduct thorough,
+automated, and court-admissible cyb er in v estigations without an y in ternet con-
+nectivit y  preserving c hain-of-custo dy and data conden tialit y at ev ery step.
+1.1 Pro duct Vision
+Mo dern cyb er in v estigations are hamp ered b y three fundamen tal constrain ts: sensitiv e
+evidence cannot b e sen t to cloud-based AI services, forensic exp ertise is scarce and ex-
+p ensiv e, and man ual evidence collection is error-prone under time pressure. Cyb erHa wk
+eliminates all three constrain ts sim ultaneously .
+Built on the pro v en Serv os orc hestration framew ork and p o w ered b y quan tized lo cal
+LLMs (Llama 3.1, Mistral, Phi-3, DeepSeek-R1), Cyb erHa wk deliv ers an automated
+forensics w orkstation that op erates in fully air-gapp ed en vironmen ts, detecting evidence
+sources, forcing protectiv e bac kups, executing forensic to olc hains, and generating court-
+admissible rep orts  all guided b y natural-language AI.
+1.2 Key V alue Prop ositions
+1. 100% Oine Op eration  Zero dep endency on in ternet; runs on a Raspb erry Pi 5
+or standard laptop.
+2. Evidence In tegrit y First  Mandatory cryptographic bac kup b efore an y analysis;
+write-blo c king enforced in hardw are and soft w are.
+3. Three In v estigation Mo des  F ull Automation, Hybrid (AI-guided h uman steps),
+and Man ual with AI do cumen tation.
+4. Proactiv e Device Detection  Real-time USB/NVMe/SD monitoring; instan t guided
+triage w orko w.
+5. 20+ In tegrated F orensic T o ols  Autopsy , V olatilit y 3, Wireshark, TSK/p ytsk3,
+Sleuth Kit, Y ARA, and more  all oine.
+6. Court-A dmissible Rep orting  SHA-256/SHA-3 hash v erication, timestamp ed
+c hain-of-custo dy logs, PDF/DOCX rep orts.
+7. Multi-Mo del LLM Routing  Automatically selects b est lo cal mo del p er task t yp e
+(legal queries vs. malw are analysis vs. log parsing).
+4
+
+--- page 6 ---
+Cyb erHa wk  Oine AI F orensics Platform Pro duct Requiremen ts Do cumen t v1.0
+1.3 Success Metrics for Hac k athon Ev aluation
+Ev aluation Criterion Cyb erHa wk A c hiev emen t Score T arget
+Oine Capabilit y 100% air-gapp ed, no net w ork calls 10/10
+A ccuracy of Resp onses Multi-mo del ensem ble + Y ARA v alidation 9/10
+Securit y & Priv acy AES-256 evidence v ault, zero telemetry 10/10
+P erformance Eciency <3s LLM resp onse, <2min USB triage 9/10
+Practical In v estigation 20+ to ols, v oice UI, case managemen t 10/10
+CONFIDENTIAL  T eam MoMoSapiens 5 Cyb erHac k V4 2025
+
+--- page 7 ---
+2. Problem Statemen t & Mark et Con text
+2.1 The Cyb ercrime In v estigation Challenge
+The global cost of cyb ercrime exceeded $8 trillion USD in 2023 and is pro jected to reac h
+$10.5 trillion b y 2025. Y et the to ols a v ailable to in v estigators remain fragmen ted, in ternet-
+dep enden t, and inaccessible to man y organisations.
+2.1.1 Core P ain P oin ts
+P ain P oin t 1  Data So v ereign t y Crisis
+Sensitiv e forensic evidence (disk images, memory dumps, net w ork captures) cannot
+b e uploaded to cloud-based AI to ols lik e ChatGPT, Gemini, or Copilot. In v estigators
+who attempt this risk violating GDPR, HIP AA, and national securit y regulations,
+p oten tially in v alidating evidence in court.
+P ain P oin t 2  Exp ert Scarcit y
+The global shortage of certied Digital F orensics examiners exceeds 3.4 million p o-
+sitions. Small la w enforcemen t agencies, corp orate IR teams, and dev eloping-nation
+in v estigators lac k access to $50,000+ forensic w orkstations and certied p ersonnel.
+P ain P oin t 3  Evidence Con tamination Risk
+63% of forensic in v estigation failures are caused b y improp er initial evidence handling
+ connecting a USB without write-blo c king, mo difying timestamps b y moun ting a
+le system, or failing to hash evidence b efore analysis. Non-exp ert rst resp onders
+routinely mak e these mistak es.
+P ain P oin t 4  T o ol F ragmen tation
+A t ypical DFIR w orko w requires 15-25 separate to ols (Autopsy , V olatilit y , Wire-
+shark, RegRipp er, log2timeline, etc.), eac h with separate in terfaces and steep learn-
+ing curv es. An in v estigator m ust men tally orc hestrate these to ols while managing
+evidence in tegrit y  cognitiv e o v erload under pressure.
+P ain P oin t 5  Oine En vironmen t Demands
+Critical in v estigations  military systems, n uclear facilities, classied net w orks, seized
+devices  o ccur in en vironmen ts with zero in ternet connectivit y b y design. Existing
+AI to ols are en tirely non-functional in these scenarios.
+2.2 T arget Users
+6
+
+--- page 8 ---
+Cyb erHa wk  Oine AI F orensics Platform Pro duct Requiremen ts Do cumen t v1.0
+User Segmen t Use Case T ec hnical Lev el
+La w Enforcemen t
+OcersFirst-resp onder triage of seized
+devicesLo wMedium
+Corp orate IR
+T eamsInciden t resp onse in air-
+gapp ed en vironmen tsMediumHigh
+Digital F orensics
+ExaminersCourt-case evidence analysis High
+Cyb ersecurit y Re-
+searc hersMalw are rev erse engineering High
+Military/In telligence
+UnitsClassied net w ork forensics High
+Univ ersit y F oren-
+sics LabsT raining and education en vi-
+ronmen tsMedium
+SMB Securit y
+T eamsBudget-constrained IR with-
+out exp ert staLo wMedium
+2.3 Comp etitiv e Landscap e
+Solution Oine AI-Guided Automated Op en Source V oice UI Price
+Cyb erHa wk ✓ ✓ ✓ ✓ ✓ F ree
+Autopsy ✓ ✗ ✗ ✓ ✗ F ree
+FTK (A ccessData) ✓ ✗ ✗ ✗ ✗ $5,000+
+Cellebrite UFED ✓ ✗ ✗ ✗ ✗ $15,000+
+Axiom (Magnet) ✓ ✗ Limited ✗ ✗ $4,000+
+Op enAI GPT-4 ✗ ✓ ✗ ✗ ✗ $0.03/1k
+Go ogle Gemini ✗ ✓ ✗ ✗ ✗ Cloud only
+CONFIDENTIAL  T eam MoMoSapiens 7 Cyb erHac k V4 2025
+
+--- page 9 ---
+3. System Arc hitecture
+3.1 High-Lev el Arc hitecture Ov erview
+Cyb erHa wk is structured as a sev en-la y er arc hitecture, with eac h la y er main taining strict
+isolation to preserv e evidence in tegrit y and enable oine op eration.
+Cyb erHa wk System Arc hitecture  7-La y er Mo del
+La y er 7: REPOR TING ENGINE  PDF/DOCX/JSON Chain-of-Custo dy Rep orts
+La y er 6: LLM OR CHESTRA TION  Multi-Mo del Router (Llama, Mistral, Phi-3, DeepSeek)
+La y er 5: F ORENSIC TOOL ENGINE  20+ T o ols (Autopsy , V olatilit y , TSK, Y ARA, Wireshark)
+La y er 4: W ORKFLO W ENGINE  Orca Agen tic Planner + Orc hestrata Pip elines
+La y er 3: EVIDENCE V A UL T  AES-256 Encrypted Storage + Hash Registry
+La y er 2: DEVICE MONITOR  USB/NVMe/SD Hot-plug Detection (psutil/p yudev)
+La y er 1: UI LA YER  PyQt6 GUI + V oice UI (Whisp er) + CLI Mo de
+3.2 Comp onen t Arc hitecture
+3.2.1 Core Subsystems
+Subsystem 1: Device Detection & Monitoring (DDM)
+ USBMonitor  pyudev -based real-time udev ev en t listener for Lin ux; pywin32
+WMI w atc her for Windo ws
+ DeviceProler  Iden ties device t yp e (storage, HID, net w ork adapter, camera)
+and metadata (v endor ID, pro duct ID, serial n um b er, capacit y)
+ ThreatIn telMatc her  Matc hes device ngerprin ts against oine BadUSB/Rub-
+b er Duc ky signature database
+ W riteBlo c kEnforcer  Issues hdparm -r1 (Lin ux) or registry blo c k (Windo ws)
+b efore an y evidence collection
+Subsystem 2: Orca Agen tic W orko w Engine
+ A dapted from the op en-source Orca autonomous agen t framew ork
+ A ctionPlanner  Breaks natural-language in v estigation goals in to atomic to ol
+calls
+8
+
+--- page 10 ---
+Cyb erHa wk  Oine AI F orensics Platform Pro duct Requiremen ts Do cumen t v1.0
+ StateManager  Main tains in v estigation con text across m ulti-step w orko ws
+ T o olDispatc her  Routes tasks to appropriate forensic to ols with parameter auto-
+ll
+ HumanInTheLo op  In Hybrid mo de, surfaces decision c hec kp oin ts via PyAu-
+toGUI dialog b o xes
+Subsystem 3: LLM Core (Chillax.AI In tegration)
+ Mo delRegistry  Manages lo cal quan tized mo dels via Ollama or llama.cpp bac k-
+ends
+ Con textRouter  Selects optimal mo del p er query t yp e (see Chapter 6)
+ PromptEngine  F orensic-domain system prompts with c hain-of-though t en-
+forcemen t
+ HallucinationGuard  Cross-v alidates LLM resp onses against to ol outputs and
+Y ARA signatures
+ RA G Pip eline  Oine v ector store (ChromaDB) with NIST, MITRE A TT&CK,
+and cyb er la w corp ora
+Subsystem 4: Evidence V ault
+ All acquired evidence encrypted at rest with AES-256-GCM
+ SHA-256 and SHA-3-512 hash computed b efore and after ev ery op eration
+ Imm utable audit log stored in app end-only SQLite with W AL mo de
+ Automatic dieren tial bac kup via rsync b efore in v estigation b egins
+ Evidence metadata stored in DFXML (Digital F orensics XML) format
+3.3 Data Flo w Arc hitecture
+Device
+DetectedProle
+DeviceThreat
+Detected?Alert +
+Blo c k Device
+F orce
+Bac kup
+Hash
+EvidenceSelect
+Mo de
+Run
+F orensic T o olsLLM
+Analysis
+Generate
+Rep ortY es
+No
+CONFIDENTIAL  T eam MoMoSapiens 9 Cyb erHac k V4 2025
+
+--- page 11 ---
+4. F unctional Requiremen ts
+4.1 Requiremen t Categories
+All requiremen ts are tagged with: Priorit y ( HIGH / MED / LO W ), Phase (P1=MVP ,
+P2=F ull, P3=F uture), and unique iden tier.
+4.2 FR-1: Device Detection & Hot-Plug Monitoring
+[FR-1.1] USB Hot-Plug Detection  HIGH | P1
+The system SHALL detect the connection of an y USB mass storage device within 2
+seconds of ph ysical insertion. The detection SHALL capture: device v endor, pro duct
+name, serial n um b er, capacit y , lesystem t yp e, and VID/PID. A p ersisten t monitoring
+daemon SHALL b e started on system b o ot.
+[FR-1.2] Multi-Device T yp e Supp ort  HIGH | P1
+The system SHALL detect and prole: USB 2.0/3.x storage, NVMe external driv es,
+SD cards (via reader), optical media, mobile devices (MTP), net w ork in terface
+adapters, and HID devices (k eyb oard/mouse/BadUSB). Eac h device t yp e triggers
+its sp ecic forensic w orko w.
+[FR-1.3] BadUSB Signature Matc hing  HIGH | P1
+The system SHALL main tain an oine database of kno wn-malicious USB rm w are
+signatures (VID/PID blac klist, Rubb er Duc ky , Bash Bunn y , OMG Cable patterns).
+Matc hes trigger immediate hardw are write-blo c k and op erator alert.
+[FR-1.4] Net w ork Device Monitoring  MED | P2
+The system SHALL monitor activ e net w ork in terfaces for new connections, un usual
+trac patterns, and rogue device insertion on monitored p orts. In tegrates with
+netstat , tcpdump , and Wireshark headless capture.
+4.3 FR-2: In v estigation Mo de Managemen t
+[FR-2.1] F ull Automation Mo de  HIGH | P1
+In F ull Automation mo de, after mandatory bac kup conrmation, the system SHALL
+autonomously: (1) create a forensic image, (2) v erify hash in tegrit y , (3) moun t read-
+only , (4) run complete le analysis, (5) execute malw are scans, (6) extract artifacts,
+(7) generate timeline, and (8) pro duce a nal rep ort  without further op erator input.
+10
+
+--- page 12 ---
+Cyb erHa wk  Oine AI F orensics Platform Pro duct Requiremen ts Do cumen t v1.0
+[FR-2.2] Hybrid Mo de  HIGH | P1
+In Hybrid mo de, the system SHALL presen t decision c hec kp oin ts at critical junctures
+via AI-generated questions. The LLM SHALL explain eac h decision and its foren-
+sic implications. Human conrmation is required b efore destructiv e or irrev ersible
+actions. PyAutoGUI SHALL surface nativ e OS dialogs for all conrmations.
+[FR-2.3] Man ual Mo de with AI Assistance  MED | P1
+In Man ual mo de, the in v estigator driv es the w orko w while the AI pro vides real-time
+suggestions, do cumen ts actions automatically , v alidates steps against b est practices,
+and ags pro cedural errors.
+[FR-2.4] Mo de Switc hing  MED | P2
+The system SHALL allo w switc hing b et w een mo des at an y p oin t during a non-
+destructiv e op eration. Mo de history SHALL b e logged in the c hain-of-custo dy record.
+4.4 FR-3: Evidence A cquisition
+[FR-3.1] Mandatory Bac kup Enforcemen t  HIGH | P1
+Before ANY in v estigation activit y , the system SHALL force the op erator to conrm
+a bac kup destination and SHALL execute a bit-for-bit bac kup via dd or dcfldd .
+The system SHALL refuse to pro ceed un til bac kup SHA-256 hash matc hes source.
+PyAutoGUI is used to driv e bac kup dialogs if nativ e to ols require UI in teraction.
+[FR-3.2] F orensic Image A cquisition  HIGH | P1
+The system SHALL supp ort: ra w DD images, E01 (Exp ert Witness F ormat) via
+lib ewf, AFF4 con tainer format, selectiv e le acquisition, and logical con tainer ac-
+quisition. Hash v erication (MD5 + SHA-256 + SHA-3) SHALL b e computed and
+logged.
+[FR-3.3] Memory A cquisition  HIGH | P1
+The system SHALL supp ort liv e memory acquisition via LiME (Lin ux Memory Extrac-
+tor) k ernel mo dule and winpmem for Windo ws. Memory images SHALL b e pro cessed
+b y V olatilit y 3 for pro cess analysis, net w ork connections, registry hiv es, and malw are
+detection.
+[FR-3.4] Net w ork T rac Capture  MED | P2
+The system SHALL supp ort oine PCAP analysis and liv e capture via
+tcpdump / tshark . LLM SHALL summarize trac patterns, iden tify suspicious o ws,
+and cross-reference with oine threat in telligence databases.
+CONFIDENTIAL  T eam MoMoSapiens 11 Cyb erHac k V4 2025
+
+--- page 13 ---
+Cyb erHa wk  Oine AI F orensics Platform Pro duct Requiremen ts Do cumen t v1.0
+4.5 FR-4: F orensic Analysis Capabilities
+[FR-4.1] File System Analysis  HIGH | P1
+Using pytsk3 /The Sleuth Kit, the system SHALL: en umerate all les (including delet-
+ed/hidden), reco v er deleted les, analyze NTFS/ext4/F A T32/APFS/HFS+ le sys-
+tems, extract le metadata, detect le signature mismatc hes (extension vs. magic
+b ytes), and iden tify encrypted con tainers.
+[FR-4.2] Timeline Analysis  HIGH | P1
+The system SHALL generate a unied forensic timeline using log2timeline / plaso ,
+correlating le system timestamps, ev en t logs, bro wser history , USB connection logs,
+and application artifacts in to a c hronological narrativ e.
+[FR-4.3] Malw are Detection  HIGH | P1
+The system SHALL p erform: Y ARA rule scanning (oine rules from public rep os-
+itories), hash-based malw are lo okup (oine VirusT otal dump), en trop y analysis for
+pac k ed/encrypted executables, PE header analysis, strings extraction and LLM-based
+analysis, and b eha vioral pattern matc hing.
+[FR-4.4] Log Analysis  HIGH | P1
+The system SHALL parse and analyze: Windo ws Ev en t Logs (EVTX), Lin ux sys-
+log/journald, Apac he/Nginx access logs, rew all logs (iptables/pfctl), application logs,
+and authen tication logs. LLM SHALL summarize anomalies, attac k patterns, and lat-
+eral mo v emen t indicators.
+[FR-4.5] Registry Analysis  HIGH | P1
+Using python-registry , the system SHALL analyze Windo ws Registry hiv es for:
+p ersistence mec hanisms (Run k eys, services), recen tly accessed les (MR U lists), USB
+connection history , installed soft w are, user activit y , and bro wser artifacts.
+[FR-4.6] P assw ord Hash Extraction  MED | P2
+The system SHALL extract passw ord hashes from SAM/NTDS.dit (Windo ws) and
+/etc/shado w (Lin ux) for authorized creden tial analysis. In tegration with oine hash
+crac king (Hashcat with lo cal w ordlists) is supp orted.
+4.6 FR-5: LLM Query & AI In v estigation Assistance
+[FR-5.1] Natural Language In v estigation In terface  HIGH | P1
+The system SHALL accept natural-language queries ab out ongoing in v estigations
+(e.g., What les w ere accessed in the hour b efore the breac h?, Is this IP address
+kno wn malicious?, Summarize the attac k timeline). Resp onses SHALL cite sp ecic
+forensic artifacts as evidence.
+CONFIDENTIAL  T eam MoMoSapiens 12 Cyb erHac k V4 2025
+
+--- page 14 ---
+Cyb erHa wk  Oine AI F orensics Platform Pro duct Requiremen ts Do cumen t v1.0
+[FR-5.2] Cyb er La w Reference  HIGH | P1
+The system SHALL include an oine RA G database of: Indian IT A ct 2000 (Amended
+2008), GDPR Articles, CF AA (Computer F raud and Abuse A ct), ISO 27037 (Digi-
+tal Evidence Guidelines), NIST SP 800-86 (F orensics Guide), and ma jor case la w
+preceden ts. LLM SHALL answ er legal pro cedural questions.
+[FR-5.3] Evidence Summarization  HIGH | P1
+The system SHALL automatically generate plain-language summaries of: disk im-
+ages, memory dumps, log les, and net w ork captures. Summaries SHALL highligh t
+suspicious ndings, quan tify scop e, and suggest next in v estigation steps.
+[FR-5.4] V oice In terface  MED | P2
+Using oine Op enAI Whisp er (base or small mo del), the system SHALL accept v oice
+commands for hands-free op eration in eld en vironmen ts. V oice output via oine
+TTS (pip er-tts or esp eak-ng) conrms actions.
+CONFIDENTIAL  T eam MoMoSapiens 13 Cyb erHac k V4 2025
+
+--- page 15 ---
+5. F orensic T o ols In tegration Sp ecication
+5.1 Complete T o ol In v en tory
+Cyb erHa wk in tegrates 25+ forensic to ols, all op erating 100% oine. Eac h to ol is wrapp ed
+in a standardised Python adapter with uniform input/output in terfaces consumed b y the
+LLM orc hestration la y er.
+Tool Capabilit y Category Priorit y
+autopsy F ull GUI forensic plat-
+formDisk F oren-
+sicsP1
+pytsk3 Programmatic TSK
+bindingsDisk F oren-
+sicsP1
+volatility3 Memory forensics frame-
+w orkMemory P1
+yara-python Malw are pattern matc h-
+ingMalw are P1
+wireshark/tshark Net w ork pac k et analysis Net w ork P1
+tcpdump Liv e trac capture Net w ork P1
+dcfldd F orensic disk imaging A cquisition P1
+ewftools/libewf E01 image format A cquisition P1
+log2timeline/plaso Timeline generation Timeline P1
+sleuthkit File system analysis Disk F oren-
+sicsP1
+regripper Windo ws Registry parser Registry P1
+python-registry Python Registry bind-
+ingsRegistry P1
+bulk_extractor Bulk data carving Data Carving P1
+foremost File carving (magic
+b ytes)Data Carving P1
+scalpel P attern-based le carv-
+ingData Carving P1
+exiftool Metadata extraction Metadata P1
+binwalk Firm w are analysis Malw are P2
+strings String extraction Malw are P1
+ssdeep F uzzy hash similarit y Malw are P2
+hashdeep Recursiv e hash audit In tegrit y P1
+LiME Lin ux memory capture
+mo duleMemory P1
+winpmem Windo ws memory cap-
+tureMemory P1
+14
+
+--- page 16 ---
+Cyb erHa wk  Oine AI F orensics Platform Pro duct Requiremen ts Do cumen t v1.0
+Tool Capabilit y Category Priorit y
+networkx Relationship graph anal-
+ysisAnalysis P2
+sqlite3 Bro wser/app DB analy-
+sisArtifacts P1
+pefile PE executable analysis Malw are P1
+capstone Disassem bler engine Malw are P2
+poppler/pdfminer PDF artifact analysis Artifacts P2
+5.2 T o ol A dapter In terface Sp ecication
+Eac h to ol is wrapp ed b y a standardised adapter follo wing this in terface con tract:
+1 c l a s s F o r e n s i c T o o l A d a p t e r ( A B C ) :
+2 " " " S t a n d a r d i n t e r f a c e f o r a l l f o r e n s i c t o o l w r a p p e r s " " "
+3
+4 @ p r o p e r t y
+5 @ a b s t r a c t m e t h o d
+6 d e f t o o l _ i d ( s e l f ) - > s t r :
+7 " " " U n i q u e t o o l i d e n t i f i e r ( e . g . , ' v o l a t i l i t y 3 . p s l i s t ' ) " " "
+8
+9 @ p r o p e r t y
+10 @ a b s t r a c t m e t h o d
+11 d e f s u p p o r t e d _ e v i d e n c e _ t y p e s ( s e l f ) - > L i s t [ s t r ] :
+12 " " " E v i d e n c e t y p e s : [ ' d i s k _ i m a g e ' , ' m e m o r y _ d u m p ' , ' p c a p ' ,
+' l o g f i l e ' ] " " "
+13
+14 @ a b s t r a c t m e t h o d
+15 d e f v a l i d a t e _ i n p u t ( s e l f , e v i d e n c e _ p a t h : P a t h ) - >
+V a l i d a t i o n R e s u l t :
+16 " " " P r e - f l i g h t i n p u t v a l i d a t i o n w i t h h a s h v e r i f i c a t i o n " " "
+17
+18 @ a b s t r a c t m e t h o d
+19 a s y n c d e f e x e c u t e (
+20 s e l f ,
+21 e v i d e n c e _ p a t h : P a t h ,
+22 p a r a m s : T o o l P a r a m s ,
+23 p r o g r e s s _ c a l l b a c k : C a l l a b l e [ [ f l o a t , s t r ] , N o n e ]
+24 ) - > T o o l R e s u l t :
+25 " " " E x e c u t e a n a l y s i s ; m u s t n o t m o d i f y s o u r c e e v i d e n c e " " "
+26
+27 @ a b s t r a c t m e t h o d
+28 d e f t o _ l l m _ c o n t e x t ( s e l f , r e s u l t : T o o l R e s u l t ) - > s t r :
+29 " " " S e r i a l i z e r e s u l t s f o r L L M c o n s u m p t i o n ( m a x 4 0 9 6 t o k e n s
+) " " "
+30
+31 @ p r o p e r t y
+32 d e f r e q u i r e s _ w r i t e _ b l o c k ( s e l f ) - > b o o l :
+33 r e t u r n T r u e # D e f a u l t : a l l t o o l s r e q u i r e w r i t e b l o c k i n g
+CONFIDENTIAL  T eam MoMoSapiens 15 Cyb erHac k V4 2025
+
+--- page 17 ---
+Cyb erHa wk  Oine AI F orensics Platform Pro duct Requiremen ts Do cumen t v1.0
+5.3 V olatilit y 3 Memory Analysis In tegration
+Memory F orensics Plugin Suite
+Cyb erHa wk exp oses a curated subset of V olatilit y 3 plugins through its AI in terface:
+ windows.pslist / linux.pslist  Running pro cess en umeration
+ windows.netscan  A ctiv e net w ork connections from memory
+ windows.malfind  Memory regions with suspicious PE injection
+ windows.dlllist  Loaded DLLs p er pro cess (detects DLL hijac king)
+ windows.cmdline  Command-line argumen ts (detects living-o-the-land attac ks)
+ windows.registry.hivelist  Registry hiv es loaded in memory
+ windows.hashdump  SAM hash extraction from memory
+ linux.bash  Bash command history from memory
+ linux.lsof  Op en le descriptors
+The LLM receiv es all plugin outputs as structured con text and generates a unied
+Memory Analysis Rep ort highligh ting malw are indicators, lateral mo v emen t evi-
+dence, and activ e attac k er presence.
+5.4 Y ARA Rule Engine
+Cyb erHa wk ships with an oine Y ARA rule corpus aggregated from:
+ Florian Roth's Signature-Base (15,000+ rules)  APT malw are families
+ CISA Kno wn Exploited V ulnerabilities  Oine CVE patterns
+ Malw areBazaar Oine Exp ort  Hash + Y ARA rules for recen t samples
+ Custom Cyb erHa wk Rules  USB-sp ecic, do cumen t macro, and living-o-the-land
+patterns
+ MITRE A TT&CK Y ARA Mappings  Rules mapp ed to A TT&CK T ec hnique IDs
+The LLM uses Y ARA matc h results to generate natural-language explanations:  The le
+ste aler.exe matches Y ARA rule APT28_XA gent, indic ating this is likely a R emote A c c ess
+T r ojan asso ciate d with the F ancy Be ar thr e at actor. R e c ommend ful l memory ac quisition
+imme diately. 
+CONFIDENTIAL  T eam MoMoSapiens 16 Cyb erHac k V4 2025
+
+--- page 18 ---
+6. LLM Arc hitecture & Mo del Selection
+6.1 Multi-Mo del Strategy
+Cyb erHa wk emplo ys a m ulti-mo del routing strategy , selecting the optimal lo cal LLM
+based on task t yp e, a v ailable VRAM, and required accuracy lev el. This ensures p eak
+p erformance on b oth high-end w orkstations and constrained eld devices.
+Mo del Size (Quan t.) Best F or VRAM Required
+Llama 3.1 8B
+Q44.7 GB General in v esti-
+gation queries6 GB
+Mistral 7B Q4 4.1 GB Log analysis,
+summarisation5 GB
+Phi-3 Mini Q4 2.3 GB Lo w-resource
+eld devices3 GB
+DeepSeek-R1
+14B8.9 GB Complex reason-
+ing, legal queries12 GB
+Qw en2.5 7B
+Q44.2 GB Co de/script
+analysis5 GB
+Gemma 2B Q8 2.1 GB Ultra-lo w p o w er
+(RPi 5 mo de)2 GB
+6.2 Con textRouter Logic
+1 c l a s s C o n t e x t R o u t e r :
+2 " " " R o u t e s f o r e n s i c q u e r i e s t o o p t i m a l l o c a l m o d e l " " "
+3
+4 T A S K _ M O D E L _ M A P = {
+5 T a s k T y p e . L O G _ A N A L Y S I S : " m i s t r a l : 7 b - q 4 " ,
+6 T a s k T y p e . M A L W A R E _ A N A L Y S I S : " q w e n 2 . 5 : 7 b - q 4 " ,
+7 T a s k T y p e . L E G A L _ R E F E R E N C E : " d e e p s e e k - r 1 : 1 4 b " ,
+8 T a s k T y p e . M E M O R Y _ F O R E N S I C S : " l l a m a 3 . 1 : 8 b - q 4 " ,
+9 T a s k T y p e . T I M E L I N E _ N A R R A T E : " l l a m a 3 . 1 : 8 b - q 4 " ,
+10 T a s k T y p e . E V I D E N C E _ S U M M A R Y : " m i s t r a l : 7 b - q 4 " ,
+11 T a s k T y p e . V O I C E _ C O M M A N D : " p h i 3 : m i n i - q 4 " ,
+12 T a s k T y p e . R E P O R T _ W R I T I N G : " l l a m a 3 . 1 : 8 b - q 4 " ,
+13 T a s k T y p e . Y A R A _ E X P L A I N : " q w e n 2 . 5 : 7 b - q 4 " ,
+14 }
+15
+16 d e f r o u t e ( s e l f , t a s k : F o r e n s i c T a s k ,
+17 a v a i l a b l e _ v r a m _ g b : f l o a t ) - > M o d e l C o n f i g :
+18 p r e f e r r e d = s e l f . T A S K _ M O D E L _ M A P [ t a s k . t y p e ]
+19 i f s e l f . _ f i t s _ v r a m ( p r e f e r r e d , a v a i l a b l e _ v r a m _ g b ) :
+17
+
+--- page 19 ---
+Cyb erHa wk  Oine AI F orensics Platform Pro duct Requiremen ts Do cumen t v1.0
+20 r e t u r n M o d e l C o n f i g ( m o d e l = p r e f e r r e d ,
+21 t e m p e r a t u r e = 0 . 1 , # L o w t e m p f o r
+a c c u r a c y
+22 s y s t e m _ p r o m p t = F O R E N S I C _ P R O M P T S [ t a s k .
+t y p e ] )
+23 # F a l l b a c k t o s m a l l e r m o d e l
+24 r e t u r n s e l f . _ s e l e c t _ f a l l b a c k ( t a s k , a v a i l a b l e _ v r a m _ g b )
+6.3 F orensic System Prompts
+The LLM is conditioned with domain-sp ecic system prompts that enforce:
+1. Evidence Citation  All claims m ust reference sp ecic le paths, line n um b ers, or
+hash v alues
+2. Uncertain t y A c kno wledgmen t  Mo del m ust express condence lev els (High/Medi-
+um/Lo w)
+3. Chain-of-Custo dy A w areness  Recommendations m ust not suggest evidence-con taminating
+actions
+4. Legal A dmissibilit y  Analysis m ust follo w A CPO/SW GDE/ISO 27037 guidelines
+5. Hallucination Prev en tion  Mo del is instructed to sa y insucien t evidence rather
+than sp eculate
+6.4 Oine RA G Arc hitecture
+Retriev al-Augmen ted Generation for Oine Kno wledge
+V ector Store: ChromaDB (em b edded, no serv er required)
+Em b edding Mo del: sen tence-transformers/all-MiniLM-L6-v2 (oine, 80 MB)
+Corpus Do cumen ts:
+ NIST SP 800-86 (Computer F orensics Guide)  121 pages
+ MITRE A TT&CK En terprise Matrix (oine JSON)  14 T actics, 197 T ec hniques
+ ISO/IEC 27037:2012 Digital Evidence Guidelines
+ Indian IT A ct 2000 + Amendmen t 2008 + Rules 2021
+ GDPR Articles and Recitals
+ CF AA F ull T ext + Case La w Summaries
+ INTERPOL Digital F orensics Guidelines
+ Common forensic pro cedures and b est practices
+Ch unk Size: 512 tok ens with 64-tok en o v erlap
+Retriev al: T op-5 c h unks, cosine similarit y threshold 0.75
+CONFIDENTIAL  T eam MoMoSapiens 18 Cyb erHac k V4 2025
+
+--- page 20 ---
+7. Non-F unctional Requiremen ts
+7.1 P erformance Requiremen ts
+[NFR-P1] LLM Resp onse Latency  HIGH
+F or queries with con text under 2,048 tok ens, the LLM SHALL return rst-tok en within
+2 seconds on a mac hine with NVIDIA R TX 3060 or equiv alen t (12 GB VRAM). On
+CPU-only systems, rst-tok en SHALL app ear within 8 seconds.
+[NFR-P2] USB T riage Completion Time  HIGH
+F or a 32 GB USB device, F ull Automation triage (image acquisition, hash v erica-
+tion, le en umeration, Y ARA scan, initial LLM summary) SHALL complete within 8
+min utes on a mid-range w orkstation.
+[NFR-P3] Device Detection Latency  HIGH
+Hot-plug detection (device connected to op erator notication) SHALL b e under 2
+seconds on all supp orted op erating systems.
+[NFR-P4] Memory F o otprin t  MED
+The Cyb erHa wk application (excluding LLM mo del les) SHALL consume less than
+500 MB RAM in idle state. The complete system (with smallest LLM mo del) SHALL
+b e functional on hardw are with 4 GB RAM + 4 GB sw ap.
+7.2 Securit y Requiremen ts
+[NFR-S1] Zero Net w ork Calls  HIGH
+The system SHALL mak e zero outb ound net w ork connections during normal op era-
+tion. All DNS resolution, time sync hronization, and up date c hec ks SHALL b e dis-
+abled. A net w ork monitor comp onen t SHALL alert if an y pro cess attempts a net w ork
+connection.
+[NFR-S2] Evidence Encryption  HIGH
+All evidence les stored on the in v estigation w orkstation SHALL b e encrypted using
+AES-256-GCM with k eys deriv ed from op erator-pro vided passphrase via PBKDF2
+(100,000 iterations, SHA-256). Keys SHALL nev er b e written to disk in plain text.
+19
+
+--- page 21 ---
+Cyb erHa wk  Oine AI F orensics Platform Pro duct Requiremen ts Do cumen t v1.0
+[NFR-S3] Audit Log In tegrit y  HIGH
+The in v estigation audit log SHALL b e an app end-only SQLite database. Eac h log
+en try SHALL include: timestamp (monotonic clo c k), op erator ID, action tak en, to ol
+in v ok ed, evidence hash b efore and after, and a HMA C-SHA256 signature o v er the
+en try .
+[NFR-S4] An ti-F orensics Detection  MED
+The system SHALL detect evidence of an ti-forensics activit y: timestamp manipula-
+tion, log clearing, steganograph y in image les, encrypted con tainers, o v erwrite pat-
+terns, and ro otkit indicators in memory .
+[NFR-S5] W rite-Blo c k Enforcemen t  HIGH
+Before moun ting an y evidence device, the system SHALL enforce hardw are or soft w are
+write-blo c king. Soft w are write-blo c king uses hdparm -r1 (Lin ux) or device p olicy
+registry en tries (Windo ws). An y attempt to write to evidence storage SHALL trigger
+an alarm and stop the in v estigation.
+7.3 Reliabilit y Requiremen ts
+[NFR-R1] Graceful Degradation  HIGH
+If a forensic to ol fails, the system SHALL log the error, presen t the op erator with
+alternativ es, and con tin ue the in v estigation without the failed comp onen t. No single
+to ol failure SHALL terminate the in v estigation w orko w.
+[NFR-R2] In v estigation Chec kp oin t Reco v ery  MED
+In v estigation state SHALL b e p ersisted to disk ev ery 60 seconds. After a crash or
+p o w er loss, the system SHALL oer to resume from the last c hec kp oin t with a complete
+audit of what w as completed.
+7.4 Usabilit y Requiremen ts
+[NFR-U1] First-Use Time  MED
+A user with no prior forensic training SHALL b e able to complete a guided USB triage
+in v estigation within 15 min utes of rst system launc h, follo wing AI-guided prompts.
+[NFR-U2] A ccessibilit y  LO W
+V oice in terface (Whisp er) SHALL supp ort all commands a v ailable via GUI. All alerts
+SHALL ha v e b oth visual and audio notication options. High-con trast UI theme
+SHALL b e a v ailable.
+CONFIDENTIAL  T eam MoMoSapiens 20 Cyb erHac k V4 2025
+
+--- page 22 ---
+8. User In terface Design Sp ecication
+8.1 UI Arc hitecture Ov erview
+Cyb erHa wk emplo ys a PyQt6-based desktop application with a cyb erpunk/dark profes-
+sional aesthetic, implemen ted using glassmorphism and neon accen t patterns inspired b y
+21st.dev comp onen t libraries.
+8.2 Application La y out
+The application consists of 7 primary views accessible via a p ersisten t left na vigation rail:
+1. Dash b oard  Real-time device monitor, activ e in v estigation summary , system health
+2. In v estigation W orkb enc h  Primary forensic analysis in terface
+3. Evidence V ault  Case le managemen t, evidence c hain view er
+4. AI Assistan t  Chat in terface with lo cal LLM (Chillax.AI in tegration)
+5. Pla yb o oks  Pre-built in v estigation w orko ws (USB T riage, Memory Analysis, Net-
+w ork IR)
+6. Case Manager  Multi-case managemen t, rep orting, exp ort
+7. Settings  LLM mo del selection, to ol paths, securit y preferences
+8.3 View 1: Dash b oard
+Dash b oard Comp onen ts
+ DeviceMonitorCard  Liv e list of connected devices with t yp e icons, threat
+status badges, Begin In v estigation CT As
+ A ctiv eIn v estigationCard  Progress bar, curren t step lab el, elapsed time, esti-
+mated completion
+ ThreatIn telF eedCard  Oine threat in tel tic k er (pre-loaded, date-stamp ed
+Y ARA/IOC up dates)
+ SystemHealthCard  CPU, RAM, disk usage; LLM mo del loaded indicator;
+write-blo c k status
+ Recen tCasesCard  Last 5 cases with status (Op en/Closed/P ending Review),
+quic k-op en
+21
+
+--- page 23 ---
+Cyb erHa wk  Oine AI F orensics Platform Pro duct Requiremen ts Do cumen t v1.0
+8.4 View 2: In v estigation W orkb enc h
+W orkb enc h Comp onen ts
+ T erminalView er  Real-time animated terminal sho wing to ol execution, coloured
+b y sev erit y
+ TimelineWidget  In teractiv e Gan tt-st yle forensic timeline (zo omable to second-
+lev el)
+ FileT reeExplorer  Hierarc hical evidence le bro wser with metadata to oltips,
+hex preview
+ FindingsP anel  AI-generated ndings list with sev erit y tags, MITRE A TT&CK
+mappings
+ HexView er  Built-in hex view er with le signature highligh ting and string ex-
+traction
+8.5 View 4: AI Assistan t Chat In terface
+The AI Assistan t view is mo delled on the Chillax.AI IDE c hat in terface, adapted for
+forensic in v estigation:
+AI Chat F eatures
+ P ersisten t con v ersation history p er case (stored in SQLite)
+ Mo del selector drop do wn (switc h b et w een Llama/Mistral/Phi-3 in-igh t)
+ Evidence attac hmen t buttons  attac h les, memory dumps, logs for LLM analysis
+ Resp onse includes: condence lev el badge, evidence citations with le path links,
+MITRE A TT&CK tags
+ V oice input button (Whisp er)  press and sp eak, transcription sho wn b efore sub-
+mission
+ Pre-built query templates: Summarise all ndings, Generate court rep ort,
+What happ ened rst?, Chec k legal pro cedure
+8.6 T oast Notication System
+Alert Categories
+ CRITICAL (Red)  BadUSB detected, write-blo c k failed, evidence hash mis-
+matc h
+ W ARNING (Y ello w)  New device connected, bac kup recommended, to ol exe-
+cution taking longer than exp ected
+ INF O (Blue)  In v estigation step completed, new nding iden tied
+ SUCCESS (Green)  Bac kup v eried, analysis complete, rep ort exp orted
+CONFIDENTIAL  T eam MoMoSapiens 22 Cyb erHac k V4 2025
+
+--- page 24 ---
+9. Data Arc hitecture & Mo dels
+9.1 Database Sc hema
+Cyb erHa wk uses a lo cal SQLite database ( cyberhawk.db ) for all p ersisten t data. The
+sc hema is designed for forensic in tegrit y , with app end-only audit tables and hash-c hained
+log en tries.
+9.1.1 Core En tit y Mo del
+1 - - C a s e s t a b l e : o n e r o w p e r i n v e s t i g a t i o n
+2 C R E A T E T A B L E c a s e s (
+3 c a s e _ i d T E X T P R I M A R Y K E Y ,
+4 c a s e _ n u m b e r T E X T U N I Q U E N O T N U L L ,
+5 s u b j e c t T E X T ,
+6 i n v e s t i g a t o r T E X T N O T N U L L ,
+7 m o d e T E X T C H E C K ( m o d e I N ( ' a u t o ' , ' h y b r i d ' , ' m a n u a l ' ) ) ,
+8 s t a t u s T E X T D E F A U L T ' a c t i v e ' ,
+9 c r e a t e d _ a t I N T E G E R N O T N U L L , - - U n i x t i m e s t a m p
+10 c l o s e d _ a t I N T E G E R ,
+11 n o t e s T E X T ,
+12 l a w _ r e f T E X T , - - A p p l i c a b l e l e g i s l a t i o n
+13 c o u r t _ r e f T E X T - - C o u r t c a s e r e f e r e n c e
+14 ) ;
+15
+16 - - E v i d e n c e i t e m s
+17 C R E A T E T A B L E e v i d e n c e (
+18 e v i d e n c e _ i d T E X T P R I M A R Y K E Y ,
+19 c a s e _ i d T E X T R E F E R E N C E S c a s e s ( c a s e _ i d ) ,
+20 d e v i c e _ p a t h T E X T N O T N U L L ,
+21 d e v i c e _ t y p e T E X T N O T N U L L ,
+22 v e n d o r _ i d T E X T ,
+23 p r o d u c t _ i d T E X T ,
+24 s e r i a l _ n u m T E X T ,
+25 c a p a c i t y _ b y t e s I N T E G E R ,
+26 s h a 2 5 6 _ p r e T E X T N O T N U L L , - - H a s h b e f o r e a c q u i s i t i o n
+27 s h a 2 5 6 _ p o s t T E X T N O T N U L L , - - H a s h a f t e r a c q u i s i t i o n
+28 s h a 3 _ 5 1 2 T E X T N O T N U L L ,
+29 a c q u i r e d _ a t I N T E G E R N O T N U L L ,
+30 i m a g e _ p a t h T E X T , - - P a t h t o f o r e n s i c i m a g e
+31 w r i t e _ b l o c k e d I N T E G E R D E F A U L T 1
+32 ) ;
+33
+34 - - I n v e s t i g a t i o n s t e p s ( a p p e n d - o n l y )
+35 C R E A T E T A B L E a u d i t _ l o g (
+36 l o g _ i d I N T E G E R P R I M A R Y K E Y A U T O I N C R E M E N T ,
+23
+
+--- page 25 ---
+Cyb erHa wk  Oine AI F orensics Platform Pro duct Requiremen ts Do cumen t v1.0
+37 c a s e _ i d T E X T R E F E R E N C E S c a s e s ( c a s e _ i d ) ,
+38 t i m e s t a m p I N T E G E R N O T N U L L ,
+39 o p e r a t o r T E X T N O T N U L L ,
+40 a c t i o n T E X T N O T N U L L ,
+41 t o o l T E X T ,
+42 p a r a m s _ j s o n T E X T ,
+43 r e s u l t _ j s o n T E X T ,
+44 e v i d e n c e _ h a s h T E X T ,
+45 h m a c _ s i g T E X T N O T N U L L - - H M A C - S H A 2 5 6 o f t h i s r o w
+46 ) ;
+47
+48 - - L L M c o n v e r s a t i o n h i s t o r y
+49 C R E A T E T A B L E c o n v e r s a t i o n s (
+50 m s g _ i d T E X T P R I M A R Y K E Y ,
+51 c a s e _ i d T E X T R E F E R E N C E S c a s e s ( c a s e _ i d ) ,
+52 r o l e T E X T C H E C K ( r o l e I N ( ' u s e r ' , ' a s s i s t a n t ' , ' s y s t e m '
+) ) ,
+53 c o n t e n t T E X T N O T N U L L ,
+54 m o d e l _ u s e d T E X T ,
+55 c o n f i d e n c e R E A L ,
+56 t i m e s t a m p I N T E G E R N O T N U L L ,
+57 c i t a t i o n s _ j s o n T E X T - - E v i d e n c e a r t i f a c t s c i t e d
+58 ) ;
+59
+60 - - F i n d i n g s ( A I + t o o l g e n e r a t e d )
+61 C R E A T E T A B L E f i n d i n g s (
+62 f i n d i n g _ i d T E X T P R I M A R Y K E Y ,
+63 c a s e _ i d T E X T R E F E R E N C E S c a s e s ( c a s e _ i d ) ,
+64 s e v e r i t y T E X T C H E C K ( s e v e r i t y I N ( ' c r i t i c a l ' , ' h i g h ' , '
+m e d i u m ' , ' l o w ' , ' i n f o ' ) ) ,
+65 t i t l e T E X T N O T N U L L ,
+66 d e s c r i p t i o n T E X T N O T N U L L ,
+67 e v i d e n c e _ r e f s T E X T N O T N U L L , - - J S O N a r r a y o f e v i d e n c e
+I D s
+68 m i t r e _ t a c t i c T E X T ,
+69 m i t r e _ t e c h T E X T ,
+70 c o n f i d e n c e T E X T ,
+71 c r e a t e d _ a t I N T E G E R N O T N U L L ,
+72 v a l i d a t e d I N T E G E R D E F A U L T 0 - - 1 = h u m a n v a l i d a t e d
+73 ) ;
+9.2 Evidence Con tainer F ormat (DFXML)
+Cyb erHa wk generates DFXML (Digital F orensics XML) les for all acquired evidence,
+ensuring compatibilit y with external forensic platforms and court submission systems.
+CONFIDENTIAL  T eam MoMoSapiens 24 Cyb erHac k V4 2025
+
+--- page 26 ---
+Cyb erHa wk  Oine AI F orensics Platform Pro duct Requiremen ts Do cumen t v1.0
+9.3 Rep ort Data Mo del
+Supp orted Rep ort F ormats
+ PDF (via Rep ortLab)  Executiv e summary for court submission
+ DOCX (via p ython-do cx)  Detailed tec hnical rep ort for p eer review
+ JSON  Mac hine-readable ndings for SIEM/SO AR in tegration
+ STIX 2.1  Threat in telligence sharing format
+ HTML  In teractiv e w eb rep ort with collapsible sections
+ DFXML  Digital forensics XML for to ol in terop erabilit y
+CONFIDENTIAL  T eam MoMoSapiens 25 Cyb erHac k V4 2025
+
+--- page 27 ---
+10. API & In tegration Sp ecication
+10.1 In ternal REST API (F astAPI)
+Cyb erHa wk exp oses an in ternal F astAPI serv er on localhost:8747 for comm unication
+b et w een the T auri fron tend, Python forensic engine, and Ollama LLM bac k end. All
+endp oin ts are b ound to lo opbac k only  no external net w ork exp osure.
+10.1.1 Device Managemen t Endp oin ts
+Endpoint Metho d Description
+/api/v1/devices GET List all connected devices with
+metadata
+/api/v1/devices/{id} GET Detailed device prole + threat
+matc h
+/api/v1/devices/{id}/block POST Enforce write-blo c k on device
+/api/v1/devices/{id}/image POST Initiate forensic image acquisition
+10.1.2 In v estigation Endp oin ts
+Endpoint Metho d Description
+/api/v1/cases GET, POST List/create in v estigation cases
+/api/v1/cases/{id} GET, PUT Case details + up date status
+/api/v1/cases/{id}/start POST Start in v estigation w orko w
+/api/v1/cases/{id}/pause POST P ause with c hec kp oin t sa v e
+/api/v1/cases/{id}/resume POST Resume from c hec kp oin t
+/api/v1/cases/{id}/findings GET All AI + to ol ndings
+/api/v1/cases/{id}/report POST Generate nal rep ort
+/api/v1/cases/{id}/stream WS Real-time W ebSo c k et progress
+10.1.3 LLM Endp oin ts
+Endpoint Metho d Description
+/api/v1/llm/query POST Single LLM query with forensic
+con text
+/api/v1/llm/stream WS Streaming LLM resp onse W eb-
+So c k et
+26
+
+--- page 28 ---
+Cyb erHa wk  Oine AI F orensics Platform Pro duct Requiremen ts Do cumen t v1.0
+Endpoint Metho d Description
+/api/v1/llm/models GET A v ailable lo cal mo dels + VRAM
+status
+/api/v1/llm/switch POST Switc h activ e mo del
+/api/v1/rag/search POST Seman tic searc h o v er oine cor-
+pus
+10.2 T o ol Execution API
+1 # P O S T / a p i / v 1 / t o o l s / e x e c u t e
+2 {
+3 " t o o l _ i d " : " v o l a t i l i t y 3 . w i n d o w s . p s l i s t " ,
+4 " e v i d e n c e _ i d " : " e v _ 2 0 2 4 _ 0 0 1 _ u s b " ,
+5 " p a r a m s " : {
+6 " p i d _ f i l t e r " : n u l l ,
+7 " i n c l u d e _ t h r e a d s " : t r u e
+8 } ,
+9 " c a s e _ i d " : " C A S E - 2 0 2 4 - 0 0 4 7 " ,
+10 " a s y n c " : t r u e
+11 }
+12
+13 # R e s p o n s e ( 2 0 2 A c c e p t e d )
+14 {
+15 " t a s k _ i d " : " t a s k _ a b c 1 2 3 " ,
+16 " s t a t u s " : " q u e u e d " ,
+17 " e s t i m a t e d _ s e c o n d s " : 4 5 ,
+18 " s t r e a m _ u r l " : " / a p i / v 1 / t a s k s / t a s k _ a b c 1 2 3 / s t r e a m "
+19 }
+CONFIDENTIAL  T eam MoMoSapiens 27 Cyb erHac k V4 2025
+
+--- page 29 ---
+11. Securit y Arc hitecture
+11.1 Securit y Design Principles
+Cyb erHa wk is designed around a Securit y-First, Evidence-Last principle: no action on
+evidence is p ermitted un til all securit y preconditions are satised.
+Sev en Securit y Pillars
+1. Zero Net w ork Exp osure  No external connections, all so c k ets b ound to lo op-
+bac k
+2. Evidence Imm utabilit y  W rite-blo c king at b oth hardw are and k ernel lev els
+b efore an y access
+3. Cryptographic In tegrit y  Ev ery evidence op eration pro duces v eriable hash
+c hains
+4. Op erator Authen tication  Lo cal passw ord + optional Y ubiKey hardw are to-
+k en for case access
+5. Principle of Least Privilege  Eac h forensic to ol runs in a restricted subpro cess
+sandb o x
+6. Audit Non-Repudiation  HMA C-signed app end-only logs prev en t tamp ering
+7. Secure Wip e  In v estigation temp les securely wip ed (DoD 5220.22-M) on case
+close
+11.2 Evidence Chain of Custo dy
+Device
+Connected
+Hash: H 0W rite Blo c k
+Applied
+Hash: H 1 =H 0Image
+A cquired
+Hash: H 2 =H 1Analysis
+Begins
+Hash: H 3 =H 2Rep ort
+Generated
+Hash: H 4 =H 3
+All hash v alues are stored in the audit log, signed b y HMA C-SHA256. If an y hash
+mismatc h is detected (H n̸= H n-1 ), the in v estigation is halted and the discrepancy is
+agged in the rep ort, whic h w ould indicate p oten tial evidence tamp ering.
+11.3 Threat Mo del
+Threat A ttac k V ector Cyb erHa wk Mitigation
+Rogue USB rm w are USB insertion BadUSB signature DB +
+immediate blo c k
+Evidence tamp ering File mo dication SHA-256 hash c hain + write
+blo c king
+28
+
+--- page 30 ---
+Cyb erHa wk  Oine AI F orensics Platform Pro duct Requiremen ts Do cumen t v1.0
+Threat A ttac k V ector Cyb erHa wk Mitigation
+LLM data exltration Mo del trained on evi-
+denceAll mo dels are oine; zero
+net w ork
+Malw are on evidence
+deviceAuto-run / USB HID Sandb o xed analysis en vi-
+ronmen t
+Session hijac king Lo cal API access Lo opbac k-only binding +
+API tok ens
+Op erator imp erson-
+ationLo cal access Bcrypt passw ord + optional
+hardw are k ey
+An ti-forensics (times-
+tamps)Evidence alteration Pre-analysis hash +
+DFXML metadata
+Memory injection via
+evidenceMalicious image pars-
+ingT o ol sandb o xing + AppAr-
+mor proles
+CONFIDENTIAL  T eam MoMoSapiens 29 Cyb erHac k V4 2025
+
+--- page 31 ---
+12. Deplo ymen t Arc hitecture
+12.1 Deplo ymen t Congurations
+Cyb erHa wk supp orts four deplo ymen t congurations to accommo date dieren t op era-
+tional en vironmen ts.
+Cong A: F ull W orkstation (Recommended)
+Hardw are: 32 GB RAM, NVIDIA R TX 3060 12 GB, 2 TB NVMe SSD
+OS: Ubun tu 22.04 L TS (hardened) or Windo ws 10/11 Pro
+LLM Mo dels: All 6 mo dels loaded; auto-routing enabled
+F orensic T o ols: F ull suite (25+ to ols)
+Use Case: Lab-based in v estigations, complex cases, memory forensics
+Cong B: Field Laptop
+Hardw are: 16 GB RAM, iGPU or en try dGPU, 512 GB SSD
+OS: Ubun tu 22.04 L TS Liv e USB (p ersisten t) or Windo ws 10
+LLM Mo dels: Llama 3.1 8B Q4 + Phi-3 Mini (fallbac k)
+F orensic T o ols: Core suite (15 to ols)
+Use Case: Field IR resp onse, rst-resp onder triage
+Cong C: Ultra-P ortable (Raspb erry Pi 5)
+Hardw are: RPi 5 8 GB, USB 3.0 h ub, 256 GB microSD
+OS: Raspb erry Pi OS 64-bit (headless or with HDMI)
+LLM Mo dels: Gemma 2B Q8 or Phi-3 Mini (CPU-only , llama.cpp)
+F orensic T o ols: Ligh t w eigh t suite (10 to ols)
+Use Case: Co v ert deplo ymen t, remote oce triage, resource-constrained en viron-
+men ts
+Cong D: Bo otable F orensic USB
+Medium: 256 GB USB 3.2 Gen 2 (e.g., Samsung T7)
+OS: Custom Ubun tu Liv e en vironmen t with p ersistence
+LLM Mo dels: Mistral 7B Q4 (bundled on USB)
+Use Case: Zero-install deplo ymen t on susp ect's hardw are (read-only in v estigation)
+30
+
+--- page 32 ---
+Cyb erHa wk  Oine AI F orensics Platform Pro duct Requiremen ts Do cumen t v1.0
+12.2 Installation & Setup
+1 # C l o n e C y b e r H a w k r e p o s i t o r y
+2 g i t c l o n e h t t p s : / / g i t h u b . c o m / S a n s y u h 0 6 / s e r v o s C y b e r H a w k
+3 c d C y b e r H a w k
+4
+5 # R u n a u t o m a t e d i n s t a l l e r ( n o i n t e r n e t r e q u i r e d i f b u n d l e s
+p r e s e n t )
+6 s u d o b a s h i n s t a l l / c y b e r h a w k _ s e t u p . s h - - o f f l i n e
+7
+8 # I n s t a l l O l l a m a ( o f f l i n e , u s i n g b u n d l e d . d e b )
+9 s u d o d p k g - i i n s t a l l / o l l a m a _ 0 . 3 . 0 _ a m d 6 4 . d e b
+10
+11 # L o a d L L M m o d e l s ( f r o m b u n d l e d G G U F f i l e s )
+12 o l l a m a c r e a t e l l a m a 3 . 1 - f o r e n s i c s - f m o d e l s / l l a m a 3 1 _ f o r e n s i c s .
+M o d e l f i l e
+13 o l l a m a c r e a t e m i s t r a l - l o g - f m o d e l s / m i s t r a l _ l o g . M o d e l f i l e
+14
+15 # I n s t a l l f o r e n s i c t o o l s ( o f f l i n e . d e b p a c k a g e s )
+16 s u d o a p t - g e t i n s t a l l - y - - n o - i n s t a l l - r e c o m m e n d s \
+17 . / p a c k a g e s / a u t o p s y _ 4 . 2 1 . 0 _ a m d 6 4 . d e b \
+18 . / p a c k a g e s / s l e u t h k i t _ 4 . 1 2 . 1 _ a m d 6 4 . d e b \
+19 . / p a c k a g e s / v o l a t i l i t y 3 _ 2 . 7 . 0 _ a l l . d e b
+20
+21 # S t a r t C y b e r H a w k
+22 p y t h o n - m c y b e r h a w k . m a i n - - m o d e g u i
+12.3 Oine Bundle Con ten ts
+The Cyb erHa wk oine deplo ymen t bundle is a 3545 GB pac k age con taining:
+ Python 3.11 em b edded distribution + all pip pac k ages (oine wheel cac he)
+ Ollama binary + 3 pre-quan tized LLM mo dels (GGUF format)
+ All 25 forensic to ols as pre-compiled .deb / .exe pac k ages
+ Oine Y ARA rule corpus (15,000+ rules, 12 MB compressed)
+ ChromaDB v ector store pre-p opulated with legal/NIST/A TT&CK corpus
+ Oine VirusT otal hash database snapshot (mon thly exp ort, 2 GB compressed)
+ Malw areBazaar oine feed (w eekly snapshots, SHA256 + Y ARA)
+CONFIDENTIAL  T eam MoMoSapiens 31 Cyb erHac k V4 2025
+
+--- page 33 ---
+13. In v estigation Pla yb o oks
+13.1 Pla yb o ok System Ov erview
+Cyb erHa wk ships with pre-built in v estigation pla yb o oks  structured w orko ws for com-
+mon forensic scenarios. Eac h pla yb o ok is a Y AML-dened sequence of AI decisions, to ol
+executions, and op erator prompts.
+13.2 Pla yb o ok 1: USB / Remo v able Media T riage
+PB-001: USB T riage  Estimated Time: 815 min utes
+T rigger: USB mass storage device connected
+Steps:
+Step 1. AI detects device, displa ys: USB storage connected: [Device Name, 32 GB,
+F A T32]. This device app ears unrecognised. Begin triage?
+Step 2. Op erator selects in v estigation mo de (Auto/Hybrid/Man ual)
+Step 3. MAND A TOR Y : System enforces bac kup to sp ecied destination; v eries
+hash matc h b efore pro ceeding
+Step 4. W rite-blo c k applied; device moun ted read-only
+Step 5. F orensic image acquired (dcdd + SHA-256 v erication)
+Step 6. File en umeration (p ytsk3): total les, deleted les, hidden les, le t yp es
+Step 7. Y ARA scan of all executables and do cumen ts
+Step 8. Metadata extraction (exifto ol) for images, do cumen ts, PDF s
+Step 9. LLM generates: This USB con tains 1,247 les. 3 suspicious executa-
+bles found matc hing Y ARA rules for k eylogger b eha viour. 47 deleted les
+reco v ered. Timeline indicates last write: 14 Jan 2025 03:22 UTC.
+Step 10. Rep ort generated with full c hain-of-custo dy
+13.3 Pla yb o ok 2: Memory Analysis (Liv e System)
+PB-002: Liv e Memory F orensics  Estimated Time: 2030 min utes
+T rigger: In v estigator selects Memory Analysis or AI detects malw are indicators
+Steps:
+Step 1. System w arns: Memory acquisition will require loading a k ernel mo dule.
+This is minimally in trusiv e. Conrm?
+Step 2. LiME (Lin ux) or winpmem (Windo ws) loaded to acquire full RAM dump
+Step 3. Memory dump hash v eried (SHA-256)
+Step 4. V olatilit y 3 analysis suite executed: pslist, netscan, malnd, cmdline, dlllist,
+hashdump
+32
+
+--- page 34 ---
+Cyb erHa wk  Oine AI F orensics Platform Pro duct Requiremen ts Do cumen t v1.0
+Step 5. LLM analyses V olatilit y output:  CRITICAL : Pro cess sv c host.exe (PID
+4721) has injected DLL not presen t on disk. Net w ork connection to
+192.168.1.105:4444 (Metasploit Meterpreter signature). System is A C-
+TIVEL Y COMPR OMISED.
+Step 6. In v estigator guided to isolate system and preserv e additional evidence
+13.4 Pla yb o ok 3: Net w ork Inciden t Resp onse
+PB-003: Net w ork IR  Estimated Time: 1545 min utes
+T rigger: In v estigator uploads PCAP le or initiates liv e capture
+Steps:
+Step 1. tshark parses PCAP: proto cols, endp oin ts, top talk ers, DNS queries
+Step 2. Oine GeoIP database resolv es IP addresses to coun tries/ASNs
+Step 3. Suspicious o w detection: p ort scans, data exltration patterns (large out-
+b ound transfers), C2 b eaconing (p erio dic connections)
+Step 4. LLM summarises: PCAP con tains 72 hours of trac. Data exltration
+detected : 2.3 GB transferred to 185.220.x.x (T or exit no de) b et w een 02:00
+04:00 on Jan 15. DNS tunnelling detected to domain randomdomain.xyz.
+Step 5. Y ARA scan of extracted HTTP/SMTP/FTP pa yloads
+Step 6. F ull rep ort with MITRE A TT&CK mapping (T1048: Exltration Ov er Alt
+Proto col)
+13.5 Pla yb o ok 4: Log Analysis & In trusion In v estigation
+PB-004: Log Analysis  Estimated Time: 1025 min utes
+T rigger: Log les uploaded (EVTX, syslog, Apac he, auth.log)
+Key AI Capabilities:
+ Automatic log format detection and parser selection
+ F ailed authen tication brute-force detection with attac k er IP aggregation
+ Privilege escalation ev en t c hains (sudo/UA C b ypasses)
+ Lateral mo v emen t detection (SMB, RDP , WMI ev en ts)
+ Timeline reconstruction: First attac k er access at 23:47, admin escalation at 23:52,
+ransom w are deplo y ed at 00:14  27-min ute dw ell time
+ MITRE A TT&CK tec hnique mapping for all anomalous ev en ts
+CONFIDENTIAL  T eam MoMoSapiens 33 Cyb erHac k V4 2025
+
+--- page 35 ---
+14. T esting Strategy
+14.1 T esting Philosoph y
+All testing is conducted in isolated, oine en vironmen ts using syn thetic evidence created
+sp ecically for testing. No real susp ect data is ev er used in dev elopmen t testing.
+14.2 T est Categories
+14.2.1 Unit T ests
+Eac h forensic to ol adapter, LLM prompt, and API endp oin t has a corresp onding unit
+test:
+ Hash In tegrit y T ests  V erify SHA-256/SHA-3 correctness on kno wn test v ectors
+ W rite-Blo c k T ests  V erify that all analysis op erations pro duce no writes to source
+ Device Detection T ests  Mo c k USB insertion ev en ts against all supp orted device
+t yp es
+ P arser T ests  EVTX, syslog, PCAP , registry parsing with kno wn-go o d samples
+14.2.2 In tegration T ests
+ F ull T riage Pip eline T est  Syn thetic 4 GB USB image with plan ted evidence
+(deleted les, malw are, stego images)
+ Memory Analysis T est  Kno wn-infected V olatilit y sample images from test corpus
+ LLM A ccuracy T est  50-question forensic Q&A b enc hmark with h uman-v alidated
+answ ers
+ Chain-of-Custo dy T est  V erify HMA C log in tegrit y surviv es p o w er cycle and crash
+reco v ery
+14.2.3 LLM Ev aluation Metrics
+Metric T arget Measuremen t Metho d A cceptable Threshold
+F actual A ccuracy ≥ 92% Human exp ert review (50 Qs) ≥ 85%
+Hallucination Rate ≤ 5% Claim v eriabilit y audit ≤ 10%
+Legal A ccuracy ≥ 95% La w exp ert review ≥ 90%
+Evidence Citation Rate 100% Automated citation c hec k ≥ 95%
+Resp onse Latency ≤ 3s P95 latency measuremen t ≤ 8s
+14.3 Securit y T esting
+ Net w ork Egress T est  Monitor all net w ork in terfaces for 1 hour during full in v esti-
+gation w orko w; zero connections exp ected
+34
+
+--- page 36 ---
+Cyb erHa wk  Oine AI F orensics Platform Pro duct Requiremen ts Do cumen t v1.0
+ Evidence In tegrit y F uzz T est  Random bit-ip in evidence images; v erify system
+detects hash mismatc h
+ BadUSB Sim ulation T est  Insert rubb er duc ky with kno wn VID/PID; v erify im-
+mediate blo c k and alert
+ Privilege Escalation T est  V erify forensic to ols cannot write outside designated
+sandb o x
+CONFIDENTIAL  T eam MoMoSapiens 35 Cyb erHac k V4 2025
+
+--- page 37 ---
+15. Implemen tation Roadmap
+15.1 Dev elopmen t Phases
+Phase 1: Hac k athon MVP (48 Hours)
+Deliv erables:
+ USB hot-plug detection with threat matc hing
+ Mandatory bac kup enforcemen t via PyAutoGUI
+ Basic forensic pip eline (image, hash, le en umeration, Y ARA)
+ Ollama LLM in tegration (Llama 3.1 8B) with forensic system prompts
+ PyQt6 dash b oard with device cards and in v estigation w orkb enc h
+ Chain-of-custo dy audit log
+ PDF rep ort generation
+ Demo pla yb o ok: USB T riage (F ull Auto mo de)
+Goal: Liv e demo of USB insert → automatic triage → AI summary → rep ort in
+under 15 min utes
+Phase 2: F ull Platform (24 W eeks)
+ V olatilit y 3 memory analysis in tegration
+ Net w ork PCAP analysis (tshark + LLM)
+ F ull log analysis suite (EVTX, syslog, auth.log)
+ Hybrid mo de with full h uman-in-the-lo op w orko w
+ V oice in terface (Whisp er + pip er-tts)
+ Oine RA G with NIST/A TT&CK/legal corpus
+ Multi-mo del router with automatic fallbac k
+ Evidence V ault with AES-256 encryption
+ Case Manager with m ulti-case supp ort
+ All 4 pla yb o oks implemen ted
+Phase 3: En terprise F eatures (13 Mon ths)
+ Bo otable USB forensic en vironmen t (Cong D)
+ Raspb erry Pi 5 optimised build (Cong C)
+ Mobile companion app (React Nativ e, lo cal WiFi only)
+ STIX 2.1 threat in telligence exp ort
+ In tegration with ExifT o ol, bin w alk, capstone disassem bler
+ Oine passw ord crac king (Hashcat lo cal w ordlists)
+ A dv anced timeline correlation (log2timeline/plaso)
+ Custom Y ARA rule creation wizard
+36
+
+--- page 38 ---
+Cyb erHa wk  Oine AI F orensics Platform Pro duct Requiremen ts Do cumen t v1.0
+ T raining mo de with syn thetic evidence datasets
+15.2 Hac k athon Sprin t Plan (48-Hour Breakdo wn)
+Hour Comp onen t Owner Status
+0004 En vironmen t setup, Ollama + mo del loading F ull T eam P1
+0408 USB detection daemon + device proler Bac k end P1
+0812 Bac kup enforcemen t + write-blo c k + imaging Bac k end P1
+1216 Y ARA in tegration + le en umeration + hashing Bac k end P1
+1620 LLM forensic prompts + Con textRouter AI P1
+2024 PyQt6 Dash b oard + In v estigation W orkb enc h UI F ron tend P1
+2428 Audit log + c hain-of-custo dy + SQLite Bac k end P1
+2832 PDF rep ort generation + AI summary AI P1
+3236 End-to-end in tegration + bug xes F ull T eam P1
+3640 V oice UI (Whisp er) + Hybrid mo de AI P2
+4044 Demo rehearsal + edge case handling F ull T eam P1
+4448 Presen tation p olish + submission F ull T eam P1
+CONFIDENTIAL  T eam MoMoSapiens 37 Cyb erHac k V4 2025
+
+--- page 39 ---
+16. Risk Managemen t
+16.1 Risk Register
+Risk Probabilit y Impact Mitigation
+LLM mo del to o
+large for demo
+hardw areHigh High Pre-do wnload Phi-3 Mini (2
+GB) as guaran teed fallbac k
+USB detection fails
+on demo OSMedium High Pre-record bac kup demo video;
+test on m ultiple OS
+F orensic to ol not
+installedMedium Medium Do c k er con tainer with all to ols
+pre-installed
+LLM hallucination
+during liv e demoMedium High Only query on pre-pro cessed
+evidence; v alidate with Y ARA
+Demo USB not de-
+tected as storageLo w High Use w ell-tested USB; test
+VID/PID b eforehand
+PyAutoGUI fails in
+demo en vironmen tMedium Medium F allbac k to CLI mo de; PyAu-
+toGUI tested on demo mac hine
+Hash mismatc h
+false p ositiv eLo w Lo w Use dd blo c k size matc hing
+ph ysical sector size
+Audience WiFi
+triggering net w ork
+alertLo w Medium Disable net w ork monitoring in
+demo mo de ag
+16.2 Con tingency Proto cols
+ Pre-recorded demo video (2 min utes) stored lo cally for an y liv e demo failure
+ Static screenshots of all ma jor w orko w steps in presen tation slides
+ CLI fallbac k  ev ery GUI action can b e triggered via Python CLI commands
+ Smok e test script run 30 min utes b efore presen tation on demo hardw are
+38
+
+--- page 40 ---
+17. Legal & Compliance F ramew ork
+17.1 Evidence A dmissibilit y Standards
+Cyb erHa wk is designed to pro duce evidence that meets the admissibilit y standards of
+ma jor jurisdictions:
+Supp orted Standards & Guidelines
+ ISO/IEC 27037:2012  Guidelines for iden tication, collection, acquisition and
+preserv ation of digital evidence
+ A CPO Go o d Practice Guide  UK Asso ciation of Chief P olice Ocers digital
+evidence guidelines
+ SW GDE Standards  Scien tic W orking Group for Digital Evidence (USA)
+ NIST SP 800-86  Guide to In tegrating F orensic T ec hniques in to Inciden t Re-
+sp onse
+ Indian IT A ct 2000, Section 65B  Electronic evidence admissibilit y certicate
+requiremen ts
+ INTERPOL Digital F orensics Guidelines  In ternational in v estigations
+17.2 Priv acy & Data Protection Compliance
+ Zero T elemetry  No usage data, no crash rep orts, no analytics of an y kind
+ Lo cal Pro cessing Only  All AI pro cessing on-device; no data lea v es the mac hine
+ Op erator A ccoun tabilit y  All actions logged with op erator ID for audit
+ Data Minimisation  Only evidence directly relev an t to the case is collected
+ Righ t to Explanation  All AI decisions ha v e h uman-readable justication
+17.3 Disclaimer & Authorized Use
+Cyb erHa wk is designed exclusiv ely for la wful digital forensics b y authorized p ersonnel.
+All in v estigation activities m ust comply with applicable national la ws. The to ol pro vides
+capabilit y; legal authorit y to in v estigate m ust b e obtained separately b y the user.
+39
+
+--- page 41 ---
+18. T ec hnical Glossary
+T erm Denition
+Air-gapp ed A net w ork securit y measure ensuring a computer is
+ph ysically isolated from unsecured net w orks
+DFIR Digital F orensics and Inciden t Resp onse  the discipline
+of in v estigating cyb er securit y inciden ts
+W rite-blo c king Hardw are or soft w are mec hanism prev en ting an y writes
+to evidence storage
+Chain of custo dy Do cumen tation tracing the handling, transfer, and anal-
+ysis of evidence
+Y ARA P attern-matc hing language for iden tifying malw are sam-
+ples based on rules
+V olatilit y Memory forensics framew ork for analysing RAM dumps
+F orensic image Bit-for-bit cop y of storage media including deleted and
+unallo cated areas
+PCAP P ac k et Capture  le format for recording net w ork trac
+DFXML Digital F orensics XML  standardised metadata format
+for forensic data
+MITRE
+A TT&CKKno wledge base of adv ersary tactics and tec hniques
+based on real-w orld observ ations
+Ollama T o ol for running quan tized LLMs lo cally on CPU/GPU
+GGUF Quan tized mo del format for ecien t lo cal LLM inference
+RA G Retriev al-Augmen ted Generation  augmen ting LLM re-
+sp onses with retriev ed do cumen ts
+IOC Indicator of Compromise  observ able evidence that sug-
+gests a securit y inciden t has o ccurred
+LiME Lin ux Memory Extractor  loadable k ernel mo dule for
+memory acquisition
+TSK The Sleuth Kit  library for analysing disk images and
+le systems
+Plaso Sup er timeline all the things  Python-based timeline
+analysis to ol
+STIX Structured Threat Information eXpression  standard-
+ised format for threat in telligence
+BadUSB A ttac k where USB rm w are is reprogrammed to mas-
+querade as a dieren t device t yp e
+40
+
+--- page 42 ---
+19. App endices
+19.1 App endix A: Existing Co debase Analysis (Serv os Rep o)
+The Cyb erHa wk platform is built as an enhancemen t of the existing Serv os framew ork.
+Key comp onen ts from the existing co debase that are b eing extended:
+Serv os F ramew ork Comp onen ts Reused
+ servos/detection/usb_monitor.py  Enhanced with BadUSB signature matc h-
+ing and write-blo c k enforcemen t
+ servos/orchestration/workflow.py  Extended with Orca agen tic planner and
+forensic pla yb o ok supp ort
+ servos/api/server.py  Enhanced F astAPI bac k end with W ebSo c k et streaming
+and forensic to ol endp oin ts
+ servos/database/db.py  Sc hema extended with audit log, ndings, and DFXML
+supp ort
+ src/components/  PyQt6 widgets adapted with 21st.dev-inspired cyb erpunk aes-
+thetics
+ Chillax.AI LLM core  Extended with m ulti-mo del routing and forensic system
+prompts
+ Orca agen t logic  Applied to forensic decision trees and automated triage w orko ws
+ Orc hestrata pip elines  Con v erted to forensic in v estigation pla yb o oks
+19.2 App endix B: System Prompts Design
+Dra wing on b est practices from AI system prompt engineering, Cyb erHa wk implemen ts
+a structured prompt hierarc h y:
+1 C Y B E R H A W K F O R E N S I C S Y S T E M P R O M P T v 1 . 2
+2 = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+3 Y o u a r e C y b e r H a w k , a n e x p e r t D i g i t a l F o r e n s i c s a n d I n c i d e n t
+4 R e s p o n s e ( D F I R ) A I a s s i s t a n t o p e r a t i n g i n a 1 0 0 % o f f l i n e ,
+5 a i r - g a p p e d e n v i r o n m e n t .
+6
+7 C O R E D I R E C T I V E S :
+8 1 . E V I D E N C E I N T E G R I T Y : N e v e r s u g g e s t a n y a c t i o n t h a t c o u l d
+9 m o d i f y e v i d e n c e . A l w a y s r e c o m m e n d w r i t e - b l o c k i n g f i r s t .
+10 2 . C I T A T I O N R E Q U I R E D : E v e r y f a c t u a l c l a i m m u s t c i t e a s p e c i f i c
+11 f i l e p a t h , h a s h v a l u e , l i n e n u m b e r , o r t o o l o u t p u t .
+12 3 . C O N F I D E N C E L E V E L S : S t a t e [ H I G H / M E D I U M / L O W ] c o n f i d e n c e
+13 f o r e a c h f i n d i n g .
+14 4 . U N C E R T A I N T Y : S a y " i n s u f f i c i e n t e v i d e n c e " r a t h e r t h a n
+15 s p e c u l a t e . H a l l u c i n a t i o n i s w o r s e t h a n n o a n s w e r .
+41
+
+--- page 43 ---
+Cyb erHa wk  Oine AI F orensics Platform Pro duct Requiremen ts Do cumen t v1.0
+16 5 . L E G A L A W A R E N E S S : F l a g w h e n f i n d i n g s h a v e l e g a l
+17 i m p l i c a t i o n s a n d c i t e a p p l i c a b l e l a w .
+18 6 . C H A I N O F C U S T O D Y : R e m i n d o p e r a t o r t o l o g e v e r y a c t i o n .
+19 7 . H U M A N O V E R R I D E : I n h y b r i d m o d e , a l w a y s d e f e r t o
+20 o p e r a t o r j u d g m e n t o n i r r e v e r s i b l e a c t i o n s .
+21
+22 C U R R E N T I N V E S T I G A T I O N C O N T E X T : { c a s e _ c o n t e x t }
+23 A C T I V E E V I D E N C E : { e v i d e n c e _ s u m m a r y }
+24 P R E V I O U S F I N D I N G S : { f i n d i n g s _ s o _ f a r }
+19.3 App endix C: Hardw are Requiremen ts Matrix
+Comp onen t Minim um Recommended Optimal RPi 5
+RAM 8 GB 16 GB 32 GB 8 GB
+CPU Cores 4 8 12+ 4 (ARM)
+GPU VRAM None (CPU) 8 GB 16 GB None
+SSD Storage 256 GB 1 TB 4 TB 256 GB
+USB P orts 2 4 6+ 4
+OS Ubun tu 22.04 Ubun tu 22.04 Ubun tu 22.04 RPi OS 64
+LLM Inference CPU (slo w) GPU-accelerated Multi-GPU CPU (quan tized)
+19.4 App endix D: Oine Resource In v en tory
+Resource Purp ose Size
+Llama 3.1 8B Q4_K_M.gguf Primary LLM 4.7 GB
+Mistral 7B Q4_K_M.gguf Log analysis LLM 4.1 GB
+Phi-3 Mini Q4.gguf Field fallbac k LLM 2.3 GB
+all-MiniLM-L6-v2 Em b edding mo del 80 MB
+ChromaDB corpus Legal/NIST/A TT&CK 2.1 GB
+Y ARA rules corpus Malw are signatures 45 MB
+VirusT otal hash dump Hash blac klist 2.2 GB
+Malw areBazaar feed Recen t samples 180 MB
+Oine GeoIP DB IP geolo cation 55 MB
+CVE oine JSON V ulnerabilit y DB 320 MB
+F orensic to ol pac k ages 25+ to ols 4.8 GB
+T otal Bundle Size ≈ 21 GB
+19.5 App endix E: Comp etitor Analysis  System Prompts & LLM
+Design Insigh ts
+Analysis of public AI to ol system prompt rep ositories rev eals k ey design patterns that
+inform Cyb erHa wk's LLM arc hitecture:
+ T o ol-Use Arc hitecture  Mo dern AI systems (Claude, GPT-4) use structured to ol-
+calling in terfaces. Cyb erHa wk adapts this for oine forensic to ols with a standardised
+JSON to ol in terface.
+CONFIDENTIAL  T eam MoMoSapiens 42 Cyb erHac k V4 2025
+
+--- page 44 ---
+Cyb erHa wk  Oine AI F orensics Platform Pro duct Requiremen ts Do cumen t v1.0
+ Con text Windo w Managemen t  Long forensic outputs (V olatilit y dumps, log les)
+are c h unk ed and summarised b efore LLM injection using our Con textRouter, prev en ting
+con text o v ero w.
+ Condence Calibration  High-stak es systems require explicit condence lev els.
+Cyb erHa wk's forensic prompts mandate condence tagging to prev en t o v erconden t
+misiden tication.
+ Role Sp ecialisation  Dieren t mo dels handle dieren t domains. Cyb erHa wk im-
+plemen ts the same principle: Mistral for logs, DeepSeek for legal, Qw en2.5 for co de
+analysis.
+19.6 App endix F: Hac k athon Ev aluation Scorecard
+Criterion Max Score Cyb erHa wk Evidence
+Oine Capabilit y 20 100% air-gapp ed; net w ork monitor con-
+rms zero egress
+A ccuracy of Resp onses 20 92%+ on forensic Q&A b enc hmark;
+citation-bac k ed answ ers
+Securit y & Priv acy 20 AES-256 evidence v ault; zero teleme-
+try; HMA C audit log
+P erformance Eciency 20 < 3s LLM resp onse; < 8 min USB triage
+on demo hardw are
+Practical In v estigation 20 25 to ols; 4 pla yb o oks; v oice UI; court-
+admissible rep orts
+T otal 100 T arget: 95+/100
+Final Statemen t
+Cyb erHa wk is not merely a hac k athon pro ject  it addresses a real, critical gap
+in the forensic in v estigation to olkit. By com bining the pro v en Serv os orc hestra-
+tion framew ork with a m ulti-mo del oine LLM arc hitecture, 25+ industry-standard
+forensic to ols, and a court-admissible evidence c hain, w e deliv er a platform that is si-
+m ultaneously accessible to rst-resp onders and p o w erful enough for certied
+examiners .
+The vision is clear: F orensics for the Rest of Us. Air-gappable, in telligen t,
+automated  Cyb erHa wk turns an y laptop in to a complete DFIR w orkstation. No
+cloud. No compromise. No con tamination.
+Cyb erHa wk  Oine AI F orensics Platform
+T eam MoMoSapiens | Cyb erHac k V4 2025 | Built on Serv os + Orca + Orc hestrata +
+Chillax.AI
+CONFIDENTIAL  T eam MoMoSapiens 43 Cyb erHac k V4 2025
+
+--- page 45 ---
+Cyb erHa wk  Oine AI F orensics Platform Pro duct Requiremen ts Do cumen t v1.0
+Do cumen t V ersion 1.0.0 | Marc h 2025 | CONFIDENTIAL
+CONFIDENTIAL  T eam MoMoSapiens 44 Cyb erHac k V4 2025

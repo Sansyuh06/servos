@@ -8,6 +8,26 @@ pyyaml>=6.0.0
 watchdog>=3.0.0
 sqlalchemy>=2.0.0
 reportlab>=4.0.0
-fastapi>=0.100.0
-uvicorn[standard]>=0.22.0
 python-multipart>=0.0.6
+
+# FastAPI backend (aligned with Servos PRD design)
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+
+# Desktop UI
+PyQt6>=6.7.0
+
+# Filesystem / magic helpers
+# python-magic is problematic on Windows; use binary wheel instead
+python-magic-bin>=0.4.14
+
+# Optional nice-to-have logging
+coloredlogs>=15.0.1
+
+# Network and memory forensics
+scapy>=2.4.5
+volatility3>=2.6.0
+python-registry>=0.16.1
+plaso>=20250116
+# YARA already included via malware components, ensure yara-python
+yara-python>=4.2.6

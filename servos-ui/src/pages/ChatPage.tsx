@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { sendChatMessage, getCases, type ChatResponse, type CaseSummary } from '@/api/client'
+import { sendChatMessage, type ChatResponse } from '@/api/client'
 import {
-    Send, Bot, User, Paperclip, FileText, Shield, Database,
-    Loader2, Search, FolderOpen, Upload, X, Sparkles,
-    BookOpen, FileSearch, AlertTriangle, Clock
+    Send, Bot, User, Paperclip, FileText,
+    Loader2, Search, X, Sparkles, MessageSquare,
+    Lightbulb, PenTool, Brain, BookOpen, Cpu, MessagesSquare
 } from 'lucide-react'
 
 interface Message {
@@ -26,17 +26,17 @@ function AILoader() {
                 <div className="absolute inset-0.5 rounded-full bg-gradient-to-br from-accent via-[#6c5ce7] to-[#a29bfe] animate-spin" style={{ animationDuration: '3s' }} />
                 <div className="absolute inset-1.5 rounded-full bg-[#1E1F24]" />
             </div>
-            <span className="text-[13px] text-cream-dim animate-pulse">Analyzing evidence...</span>
+            <span className="text-[13px] text-cream-dim animate-pulse">Thinking...</span>
         </div>
     )
 }
 
 /* ── Suggestion Chips ── */
 const SUGGESTIONS = [
-    { icon: FileSearch, label: 'Analyze Document', prompt: 'Analyze the uploaded document for forensic indicators' },
-    { icon: AlertTriangle, label: 'Find Threats', prompt: 'What malware or suspicious activity was found in recent investigations?' },
-    { icon: BookOpen, label: 'Summarize Evidence', prompt: 'Provide an executive summary of all investigation findings' },
-    { icon: Clock, label: 'Timeline Analysis', prompt: 'Show me the timeline of events from the latest investigation' },
+    { icon: Lightbulb, label: 'Explain a Concept', prompt: 'Explain how machine learning works in simple terms' },
+    { icon: PenTool, label: 'Write Something', prompt: 'Help me write a professional email' },
+    { icon: Brain, label: 'Brainstorm Ideas', prompt: 'Help me brainstorm creative project ideas' },
+    { icon: BookOpen, label: 'Summarize a Topic', prompt: 'Give me a concise overview of quantum computing' },
 ]
 
 export default function ChatPage() {
@@ -44,17 +44,11 @@ export default function ChatPage() {
     const [messages, setMessages] = useState<Message[]>([])
     const [input, setInput] = useState('')
     const [isLoading, setIsLoading] = useState(false)
-    const [cases, setCases] = useState<CaseSummary[]>([])
-    const [selectedCase, setSelectedCase] = useState<string | undefined>()
     const [sidebarSources, setSidebarSources] = useState<ChatResponse['sources']>([])
     const [attachedFile, setAttachedFile] = useState<string | null>(null)
     const chatEndRef = useRef<HTMLDivElement>(null)
     const inputRef = useRef<HTMLTextAreaElement>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
-
-    useEffect(() => {
-        getCases().then(r => setCases(r.cases)).catch(() => { })
-    }, [])
 
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -66,7 +60,7 @@ export default function ChatPage() {
 
         let content = text
         if(attachedFile) {
-            content = `[Document: ${attachedFile}]\n${text}`
+            content = `[Attached: ${attachedFile}]\n${text}`
         }
 
         const userMsg: Message = {
@@ -76,13 +70,20 @@ export default function ChatPage() {
             attachment: attachedFile || undefined,
             timestamp: new Date(),
         }
-        setMessages(prev => [...prev, userMsg])
+        const newMessages = [...messages, userMsg]
+        setMessages(newMessages)
         setInput('')
         setAttachedFile(null)
         setIsLoading(true)
 
         try {
-            const res = await sendChatMessage(content, selectedCase)
+            // Build conversation history for multi-turn context
+            const history = newMessages.map(m => ({
+                role: m.role,
+                content: m.content,
+            }))
+
+            const res = await sendChatMessage(content, history)
             const aiMsg: Message = {
                 id: `a-${Date.now()}`,
                 role: 'assistant',
@@ -91,7 +92,7 @@ export default function ChatPage() {
                 timestamp: new Date(),
             }
             setMessages(prev => [...prev, aiMsg])
-            if(res.sources.length > 0) {
+            if(res.sources && res.sources.length > 0) {
                 setSidebarSources(prev => [...res.sources, ...prev].slice(0, 20))
             }
         } catch(err: any) {
@@ -133,7 +134,7 @@ export default function ChatPage() {
                 <div className="absolute inset-0 pointer-events-none border border-accent/5 rounded-none" />
 
                 {!hasMessages ? (
-                    /* ── Empty State: Centered greeting (1904 style) ── */
+                    /* ── Empty State: Centered greeting ── */
                     <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6">
                         <motion.h1
                             initial={{ opacity: 0, y: 10 }}
@@ -149,7 +150,7 @@ export default function ChatPage() {
                             transition={{ delay: 0.2, duration: 0.5 }}
                             className="text-[13px] text-cream-dim/40 text-center mb-10"
                         >
-                            Upload a document or ask a forensic question
+                            Start a conversation on any topic
                         </motion.p>
 
                         {/* Input Card */}
@@ -180,25 +181,6 @@ export default function ChatPage() {
                                 </button>
                             ))}
                         </motion.div>
-
-                        {/* Case selector */}
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.7 }}
-                            className="mt-6"
-                        >
-                            <select
-                                value={selectedCase || ''}
-                                onChange={(e) => setSelectedCase(e.target.value || undefined)}
-                                className="bg-transparent border border-white/[0.08] rounded-lg px-3 py-1.5 text-[11px] text-cream-dim focus:border-accent/40 focus:outline-none"
-                            >
-                                <option value="">All Investigations</option>
-                                {cases.map(c => (
-                                    <option key={c.id} value={c.id}>{c.id}</option>
-                                ))}
-                            </select>
-                        </motion.div>
                     </div>
                 ) : (
                     /* ── Chat Messages ── */
@@ -210,18 +192,12 @@ export default function ChatPage() {
                             </div>
                             <div>
                                 <h1 className="text-sm font-semibold text-cream-bright">SERVOS AI</h1>
-                                <p className="text-[10px] text-cream-dim">Offline Forensic Assistant</p>
+                                <p className="text-[10px] text-cream-dim">AI Assistant</p>
                             </div>
-                            <select
-                                value={selectedCase || ''}
-                                onChange={(e) => setSelectedCase(e.target.value || undefined)}
-                                className="ml-auto bg-servos-surface border border-servos-border rounded-md px-2 py-1 text-[11px] text-cream focus:border-accent focus:outline-none"
-                            >
-                                <option value="">All Cases</option>
-                                {cases.map(c => (
-                                    <option key={c.id} value={c.id}>{c.id.slice(0, 20)}</option>
-                                ))}
-                            </select>
+                            <div className="ml-auto flex items-center gap-2 text-[11px] text-cream-dim/50">
+                                <MessagesSquare size={12} />
+                                <span>{messages.length} messages</span>
+                            </div>
                         </div>
 
                         {/* Messages */}
@@ -251,19 +227,6 @@ export default function ChatPage() {
                                                 </div>
                                             )}
                                             <p className="text-[13px] leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                                            {msg.sources && msg.sources.length > 0 && (
-                                                <div className="mt-2 pt-2 border-t border-white/10">
-                                                    <p className="text-[9px] text-cream-dim uppercase tracking-wider mb-1">Retrieved Sources</p>
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {msg.sources.map((s, i) => (
-                                                            <span key={i} className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-accent/15 text-accent rounded text-[9px] font-medium">
-                                                                <Database size={8} />
-                                                                {s.label}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
                                         </div>
                                         {msg.role === 'user' && (
                                             <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0 mt-0.5">
@@ -300,29 +263,41 @@ export default function ChatPage() {
                 )}
             </div>
 
-            {/* ── Right Sidebar: Retrieved Sources ── */}
+            {/* ── Right Sidebar: Conversation Info ── */}
             <div className="w-60 bg-servos-surface border-l border-servos-border overflow-y-auto shrink-0">
                 <div className="px-4 py-3 border-b border-servos-border-dim">
                     <div className="flex items-center gap-2">
-                        <FileSearch size={13} className="text-accent" />
-                        <p className="text-[10px] font-semibold text-cream-dim uppercase tracking-wider">Retrieved Context</p>
+                        <MessageSquare size={13} className="text-accent" />
+                        <p className="text-[10px] font-semibold text-cream-dim uppercase tracking-wider">Conversation Info</p>
+                    </div>
+                </div>
+
+                {/* Session stats */}
+                <div className="p-4 border-b border-servos-border-dim">
+                    <div className="space-y-2">
+                        <div className="flex justify-between text-[11px]">
+                            <span className="text-cream-dim/60">Messages</span>
+                            <span className="text-cream font-mono">{messages.length}</span>
+                        </div>
+                        <div className="flex justify-between text-[11px]">
+                            <span className="text-cream-dim/60">Session</span>
+                            <span className="text-cream font-mono">Active</span>
+                        </div>
                     </div>
                 </div>
 
                 {sidebarSources.length === 0 ? (
                     <div className="p-4 text-center">
                         <Search size={18} className="text-cream-dim/20 mx-auto mb-2" />
-                        <p className="text-[11px] text-cream-dim/40 leading-relaxed">Ask a question to see retrieved evidence sources here</p>
+                        <p className="text-[11px] text-cream-dim/40 leading-relaxed">Start a conversation to see context info here</p>
                     </div>
                 ) : (
                     <div className="p-3 space-y-2">
                         {sidebarSources.map((source, i) => (
                             <div key={i} className="bg-servos-bg border border-servos-border-dim rounded-lg p-2.5">
                                 <div className="flex items-center gap-1.5 mb-1">
-                                    {source.type === 'findings' && <FolderOpen size={10} className="text-accent" />}
-                                    {source.type === 'interpretation' && <Shield size={10} className="text-warning" />}
-                                    {source.type === 'case_summary' && <Database size={10} className="text-success" />}
-                                    {source.type === 'device_info' && <Database size={10} className="text-cream-dim" />}
+                                    {source.type === 'conversation' && <MessagesSquare size={10} className="text-accent" />}
+                                    {source.type === 'model_info' && <Cpu size={10} className="text-success" />}
                                     <span className="text-[10px] font-semibold text-cream truncate">{source.label}</span>
                                 </div>
                                 <div className="text-[9px] text-cream-dim space-y-0.5">
@@ -346,7 +321,7 @@ export default function ChatPage() {
                 ref={fileInputRef}
                 type="file"
                 className="hidden"
-                accept=".txt,.log,.csv,.json,.pdf,.doc,.docx,.xml,.html,.eml,.evt,.evtx"
+                accept=".txt,.log,.csv,.json,.pdf,.doc,.docx,.xml,.html,.md,.py,.js,.ts,.jsx,.tsx,.png,.jpg,.jpeg"
                 onChange={handleFileSelect}
             />
         </div>
@@ -374,7 +349,7 @@ export default function ChatPage() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Ask SERVOS about your investigation..."
+                    placeholder="Type your message..."
                     rows={2}
                     className="w-full bg-transparent text-[13px] text-cream placeholder:text-cream-dim/30 resize-none focus:outline-none px-4 pt-3 pb-1"
                 />
@@ -385,16 +360,9 @@ export default function ChatPage() {
                         <button
                             onClick={() => fileInputRef.current?.click()}
                             className="p-1.5 rounded-md text-cream-dim/40 hover:text-cream-dim hover:bg-white/[0.05] transition-colors"
-                            title="Attach document"
+                            title="Attach file"
                         >
                             <Paperclip size={15} />
-                        </button>
-                        <button
-                            onClick={() => fileInputRef.current?.click()}
-                            className="p-1.5 rounded-md text-cream-dim/40 hover:text-cream-dim hover:bg-white/[0.05] transition-colors"
-                            title="Upload evidence file"
-                        >
-                            <Upload size={15} />
                         </button>
                     </div>
                     <button

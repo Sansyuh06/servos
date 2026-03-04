@@ -52,6 +52,73 @@ class LLMInvestigator:
             return f"[LLM Error: {e}]"
 
     # ------------------------------------------------------------------
+    # General-Purpose Conversational Chat
+    # ------------------------------------------------------------------
+
+    CHAT_SYSTEM_CONTEXT = (
+        "You are Servos AI, a helpful, knowledgeable, and friendly AI assistant. "
+        "You engage in natural, thoughtful conversations on any topic. "
+        "You understand context from the ongoing conversation and respond appropriately. "
+        "Be concise yet thorough. Use a warm, professional tone. "
+        "If you don't know something, say so honestly. "
+        "Format responses with markdown when it improves readability."
+    )
+
+    def chat(self, message: str, history: list = None) -> str:
+        """General-purpose multi-turn conversational chat."""
+        # Build conversation context from history
+        history_block = ""
+        if history:
+            for msg in history[-10:]:  # Last 10 messages for context window
+                role = msg.get("role", "user").capitalize()
+                content = msg.get("content", "")
+                history_block += f"{role}: {content}\n"
+
+        if self.is_available():
+            prompt = f"""{self.CHAT_SYSTEM_CONTEXT}
+
+{"--- CONVERSATION HISTORY ---" + chr(10) + history_block + "--- END HISTORY ---" + chr(10) if history_block else ""}
+User: {message}
+
+Respond naturally and helpfully:"""
+            response = self._generate(prompt)
+            if response and not response.startswith("[LLM Error"):
+                return response.strip()
+
+        # Fallback: rule-based conversational responses
+        return self._fallback_chat(message)
+
+    @staticmethod
+    def _fallback_chat(message: str) -> str:
+        """Provide helpful responses when LLM is unavailable."""
+        msg_lower = message.lower()
+
+        if any(w in msg_lower for w in ["hello", "hi", "hey", "greetings"]):
+            return "Hello! I'm Servos AI. I'm currently running in offline mode without a language model, but I'm still here to help however I can. How can I assist you today?"
+
+        if any(w in msg_lower for w in ["help", "what can you do", "capabilities"]):
+            return ("I'm Servos AI, a general-purpose conversational assistant. When connected to a language model (like Ollama), I can:\n\n"
+                    "• Answer questions on a wide range of topics\n"
+                    "• Help with writing, brainstorming, and creative tasks\n"
+                    "• Explain complex concepts in simple terms\n"
+                    "• Assist with analysis and problem-solving\n\n"
+                    "Currently I'm running in offline fallback mode. To unlock full capabilities, ensure Ollama is running with a model loaded.")
+
+        if any(w in msg_lower for w in ["thank", "thanks"]):
+            return "You're welcome! Let me know if there's anything else I can help with."
+
+        if any(w in msg_lower for w in ["how are you", "how's it going"]):
+            return "I'm running well, thank you for asking! I'm here and ready to help with whatever you need. What's on your mind?"
+
+        return ("I received your message, but I'm currently running without a language model backend (Ollama). "
+                "I can only provide basic responses in this mode.\n\n"
+                "**To enable full conversational AI:**\n"
+                "1. Install Ollama (https://ollama.ai)\n"
+                "2. Run: `ollama pull llama3.1:8b`\n"
+                "3. Start Ollama and try again\n\n"
+                "Once connected, I can discuss any topic with full contextual understanding.")
+
+    # ------------------------------------------------------------------
     # Investigation Guidance
     # ------------------------------------------------------------------
 

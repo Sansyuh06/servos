@@ -2,13 +2,18 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import {
     LayoutDashboard, Search, FolderOpen, FileText,
-    Settings, LogOut, Shield, Wifi, WifiOff, Sparkles
+    Settings, LogOut, Shield, Wifi, WifiOff, Sparkles, Cpu
 } from 'lucide-react'
 
 const NAV_ITEMS = [
     { id: '/', label: 'AI Chat', icon: Sparkles },
     { id: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: '/investigate', label: 'Investigate', icon: Search },
+    { id: '/network', label: 'Network Scan', icon: Wifi },
+    { id: '/memory', label: 'Memory', icon: Cpu },
+    { id: '/logs', label: 'Logs', icon: FileText },
+    { id: '/registry', label: 'Registry', icon: FolderOpen },
+    { id: '/deep', label: 'Malware Deep', icon: Shield },
     { id: '/settings', label: 'Settings', icon: Settings },
 ]
 
@@ -32,7 +37,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                         <Shield size={20} className="text-accent" />
                         <span className="text-base font-bold tracking-wide text-cream-bright font-heading">SERVOS</span>
                     </div>
-                    <p className="text-[11px] text-cream-dim mt-1 tracking-wide">Offline Forensic Platform</p>
+                    <p className="text-[11px] text-cream-dim mt-1 tracking-wide">AI Assistant Platform</p>
                 </div>
 
                 {/* Nav links */}

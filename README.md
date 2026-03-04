@@ -24,7 +24,7 @@ python -m servos.main settings   # Configure Servos
 
 ## 🔍 Features
 
-- **USB Device Detection** – Real-time monitoring for new storage devices
+- **USB Device Detection & Auto‑Investigation** – Real-time monitoring for new storage devices with optional automatic full investigations when devices are connected
 - **Mandatory Backup** – Forces forensic backup with MD5/SHA-256 integrity hashing
 - **Three Investigation Modes:**
   - **Full Automation** – End-to-end pipeline with auto-generated reports
