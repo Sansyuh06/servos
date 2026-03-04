@@ -20,6 +20,8 @@ from servos.models.schema import (
     DeviceInfo, Case, ForensicFindings, LLMInterpretation,
     init_db, get_session, CaseRecord,
 )
+
+from servos.gui.auth import _verify_user, _create_user, _user_exists
 from servos.detection.usb_monitor import USBDetectionService
 from servos.preservation.backup import EvidenceBackup
 from servos.forensics.file_analyzer import FileAnalyzer
@@ -55,6 +57,11 @@ class ScanRequest(BaseModel):
 class SettingsUpdate(BaseModel):
     settings: dict
 
+class AuthRequest(BaseModel):
+    username: str
+    password: str
+    role: str = "investigator"
+
 # ── Lifecycle ────────────────────────────────────────────────
 
 @app.on_event("startup")
@@ -69,6 +76,28 @@ async def list_devices():
     svc = USBDetectionService()
     devices = svc.detect_devices()
     return {"devices": [d.to_dict() for d in devices]}
+
+# ── API: Auth ────────────────────────────────────────────────
+
+@app.post("/api/auth/login")
+async def login(req: AuthRequest):
+    if _verify_user(req.username, req.password):
+        return {"status": "success", "username": req.username, "role": req.role}
+    raise HTTPException(401, "Invalid username or password")
+
+@app.post("/api/auth/register")
+async def register(req: AuthRequest):
+    if _create_user(req.username, req.password):
+        return {"status": "success", "username": req.username, "role": req.role}
+    raise HTTPException(400, "Username already taken")
+
+@app.post("/api/auth/google")
+async def google_login():
+    """Mock Google OAuth callback. In production this would exchange an auth code for a token and fetch user info."""
+    username = "Google User"
+    if not _user_exists() or not _verify_user(username, "google_oauth_mock"):
+        _create_user(username, "google_oauth_mock")
+    return {"status": "success", "username": username, "role": "investigator"}
 
 # ── API: Quick Scan ──────────────────────────────────────────
 
@@ -290,13 +319,124 @@ async def llm_status():
     available = llm.is_available()
     return {"available": available, "model": llm.model, "base_url": llm.base_url}
 
-# ── Serve static frontend ───────────────────────────────────
+# ── API: RAG Chat ────────────────────────────────────────────
+
+class ChatRequest(BaseModel):
+    message: str
+    case_id: Optional[str] = None
+
+@app.post("/api/chat")
+async def rag_chat(req: ChatRequest):
+    """RAG-powered forensic chat: retrieves context from investigations, then prompts LLM."""
+    llm = LLMInvestigator()
+    retrieved_sources: List[dict] = []
+
+    # ── Step 1: Retrieve context from investigations ──
+    context_parts = []
+
+    # Get case data if a specific case is referenced
+    if req.case_id:
+        session = get_session()
+        record = session.query(CaseRecord).filter_by(id=req.case_id).first()
+        session.close()
+        if record:
+            findings = json.loads(record.findings_json) if record.findings_json else {}
+            interp = json.loads(record.interpretation_json) if record.interpretation_json else {}
+            device = json.loads(record.device_info_json) if record.device_info_json else {}
+
+            if device:
+                context_parts.append(f"CASE {record.id} — Device: {device.get('name', 'Unknown')}, "
+                                     f"Mount: {device.get('mount_point', '?')}")
+                retrieved_sources.append({"type": "device_info", "label": f"Device: {device.get('name', 'Unknown')}", "data": device})
+            if findings:
+                context_parts.append(f"Findings: {json.dumps(findings, indent=0)[:2000]}")
+                retrieved_sources.append({"type": "findings", "label": f"Case {record.id[:12]} Findings", "data": findings})
+            if interp:
+                context_parts.append(f"AI Interpretation: {json.dumps(interp, indent=0)[:1000]}")
+                retrieved_sources.append({"type": "interpretation", "label": "AI Risk Assessment", "data": interp})
+    else:
+        # Pull context from ALL recent cases
+        session = get_session()
+        records = session.query(CaseRecord).order_by(CaseRecord.created_at.desc()).limit(5).all()
+        session.close()
+        for r in records:
+            findings = json.loads(r.findings_json) if r.findings_json else {}
+            interp = json.loads(r.interpretation_json) if r.interpretation_json else {}
+            if findings or interp:
+                summary = f"CASE {r.id}: status={r.status}, mode={r.mode}"
+                if interp.get("risk"):
+                    summary += f", risk={interp['risk']}"
+                if interp.get("summary"):
+                    summary += f". Summary: {interp['summary'][:300]}"
+                context_parts.append(summary)
+                retrieved_sources.append({"type": "case_summary", "label": f"Case {r.id[:12]}", "data": {"status": r.status, "risk": interp.get("risk", "?"), "summary": interp.get("summary", "")[:200]}})
+
+    # ── Step 2: Build RAG prompt ──
+    context_block = "\n".join(context_parts) if context_parts else "No investigation data available yet."
+
+    rag_prompt = f"""You are SERVOS AI, an offline forensic investigation assistant.
+You have access to the following investigation context retrieved from the evidence database:
+
+--- RETRIEVED CONTEXT ---
+{context_block}
+--- END CONTEXT ---
+
+The investigator asks: {req.message}
+
+Provide a clear, professional, forensic-grade response. Reference specific evidence when possible.
+If the data is insufficient, say so and suggest what additional analysis could help.
+Keep responses concise but thorough."""
+
+    # ── Step 3: Generate response ──
+    if llm.is_available():
+        response_text = llm._generate(rag_prompt)
+    else:
+        # Rule-based fallback
+        msg_lower = req.message.lower()
+        if any(w in msg_lower for w in ["malware", "threat", "virus", "suspicious"]):
+            response_text = _fallback_malware_response(context_parts)
+        elif any(w in msg_lower for w in ["timeline", "when", "time", "history"]):
+            response_text = "Based on the investigation timeline, review the Logs tab in the workspace for chronological file activity. Key events are typically: file creation, modification, and last access times."
+        elif any(w in msg_lower for w in ["recommend", "next", "should", "suggest"]):
+            response_text = "Recommended next steps:\n1. Cross-reference file hashes against threat intelligence databases\n2. Review the timeline for unusual activity patterns\n3. Check extracted artifacts for browser history and recent file access\n4. Export and preserve the forensic report for chain-of-custody"
+        elif any(w in msg_lower for w in ["risk", "score", "assessment"]):
+            risk_info = [s for s in context_parts if "risk" in s.lower()]
+            response_text = f"Risk assessment based on retrieved cases:\n{chr(10).join(risk_info) if risk_info else 'No risk assessments found. Run an investigation first.'}"
+        else:
+            response_text = f"I analyzed your query against {len(retrieved_sources)} retrieved sources. " \
+                           f"{'Here is what I found: ' + context_parts[0][:300] if context_parts else 'No investigation data available yet. Please run an investigation first, then I can answer questions about the findings.'}"
+
+    return {
+        "response": response_text,
+        "sources": retrieved_sources,
+        "model": llm.model if llm.is_available() else "rule-based-fallback",
+    }
+
+def _fallback_malware_response(context_parts):
+    malware_info = [c for c in context_parts if any(w in c.lower() for w in ["malware", "risk", "indicator"])]
+    if malware_info:
+        return f"Based on the investigation data:\n{chr(10).join(malware_info[:3])}\n\nReview the Malware tab in the workspace for detailed indicator breakdown."
+    return "No malware indicators found in recent investigations. Run a scan on a target device to detect threats."
+
+
+# ── Serve static frontend (React SPA) ────────────────────────
+
+# Serve Vite-built assets
+if os.path.isdir(os.path.join(STATIC_DIR, "assets")):
+    app.mount("/assets", StaticFiles(directory=os.path.join(STATIC_DIR, "assets")), name="assets")
 
 @app.get("/")
 async def index():
     return FileResponse(os.path.join(STATIC_DIR, "index.html"))
 
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+# Catch-all for React client-side routing (login, investigate, workspace, etc.)
+@app.get("/{path:path}")
+async def spa_fallback(path: str):
+    # Don't override API routes or actual static files
+    file_path = os.path.join(STATIC_DIR, path)
+    if os.path.isfile(file_path):
+        return FileResponse(file_path)
+    return FileResponse(os.path.join(STATIC_DIR, "index.html"))
 
 # ── Helpers ──────────────────────────────────────────────────
 
