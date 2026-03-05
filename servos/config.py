@@ -37,6 +37,12 @@ DEFAULT_CONFIG = {
     "entropy_threshold": 7.0,    # flag files above this
     "scan_hidden_files": True,
 
+    # Monitoring toggles
+    "enable_network_monitor": False,
+    "enable_process_monitor": False,
+    "enable_file_watcher": False,
+    "watch_paths": [],
+
     # Report
     "default_report_format": "pdf",
     "include_timeline_in_report": True,

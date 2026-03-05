@@ -23,6 +23,10 @@ from servos.models.schema import (
 
 from servos.gui.auth import _verify_user, _create_user, _user_exists
 from servos.detection.usb_monitor import USBDetectionService
+from servos.detection.network_monitor import NetworkMonitor
+from servos.detection.process_monitor import ProcessMonitor
+from servos.detection.file_watcher import FileWatcher
+from servos.detection.alert_engine import AlertEngine
 from servos.preservation.backup import EvidenceBackup
 from servos.forensics.file_analyzer import FileAnalyzer
 from servos.forensics.hasher import FileHasher
@@ -41,6 +45,9 @@ STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 
 # In-memory investigation progress store
 _investigations: dict = {}
+
+# In-memory alerts store (recent events)
+_alerts: list = []
 
 # ── Pydantic request models ─────────────────────────────────
 
@@ -72,6 +79,18 @@ async def startup():
     ensure_dirs()
     init_db()
 
+    # prepare alert engine and stores
+    def _record_alert(alert: dict):
+        # attach timestamp
+        alert['timestamp'] = datetime.utcnow().isoformat()
+        _alerts.insert(0, alert)
+        # cap history
+        if len(_alerts) > 200:
+            _alerts.pop()
+
+    alert_engine = AlertEngine(callback=_record_alert)
+    app.state.alert_engine = alert_engine
+
     # start USB monitor for automatic investigations if enabled
     cfg = get_config()
     poll = cfg.get("usb_poll_interval", 2.0)
@@ -79,6 +98,11 @@ async def startup():
 
     def _usb_callback(dev):
         # executed in USBDetectionService thread
+        # create an alert for the new device
+        alert_engine.process_event({
+            "event_type": "USB_CONNECTED",
+            "device": dev.to_dict() if hasattr(dev, 'to_dict') else {}
+        })
         cfg2 = get_config()
         if not cfg2.get("auto_investigate", False):
             return
@@ -93,6 +117,32 @@ async def startup():
     svc = USBDetectionService(callback=_usb_callback, poll_interval=poll)
     svc.start_monitoring()
     app.state.usb_service = svc
+
+    # start additional monitors depending on config
+    def _start_monitors(conf):
+        # remove any existing monitors first
+        for attr in ('network_monitor','process_monitor','file_watcher'):
+            mon = getattr(app.state, attr, None)
+            if mon:
+                try: mon.stop()
+                except Exception: pass
+                setattr(app.state, attr, None)
+
+        if conf.get("enable_network_monitor"):
+            net_mon = NetworkMonitor(callback=lambda ev: alert_engine.process_event({"event_type": "NETWORK_ANOMALY", "details": ev}))
+            net_mon.start()
+            app.state.network_monitor = net_mon
+        if conf.get("enable_process_monitor"):
+            proc_mon = ProcessMonitor(callback=lambda ev: alert_engine.process_event({"event_type": "PROCESS_NEW", "details": ev}))
+            proc_mon.start()
+            app.state.process_monitor = proc_mon
+        if conf.get("enable_file_watcher"):
+            paths = conf.get("watch_paths", ["/"])
+            file_mon = FileWatcher(paths=paths, callback=lambda ev: alert_engine.process_event({"event_type": "FILE_MODIFIED", **ev}))
+            file_mon.start()
+            app.state.file_watcher = file_mon
+
+    _start_monitors(cfg)
 
 # ── API: Devices ─────────────────────────────────────────────
 
@@ -428,7 +478,7 @@ async def get_settings():
 @app.put("/api/settings")
 async def update_settings(req: SettingsUpdate):
     save_config(req.settings)
-    # if usb poll interval changed, restart monitor
+    # if usb poll interval changed, restart usb monitoring
     if "usb_poll_interval" in req.settings or "auto_investigate" in req.settings:
         svc: USBDetectionService = getattr(app.state, "usb_service", None)
         if svc:
@@ -436,12 +486,110 @@ async def update_settings(req: SettingsUpdate):
             cfg = get_config()
             svc.poll_interval = cfg.get("usb_poll_interval", svc.poll_interval)
             svc.start_monitoring()
+    # if any monitoring toggle changed, restart monitors
+    monitor_keys = ["enable_network_monitor", "enable_process_monitor", "enable_file_watcher", "watch_paths"]
+    if any(k in req.settings for k in monitor_keys):
+        cfg = get_config()
+        # call same helper defined in startup
+        try:
+            _start_monitors(cfg)
+        except NameError:
+            pass
     return {"settings": get_config()}
 
-@app.put("/api/settings")
-async def update_settings(req: SettingsUpdate):
-    save_config(req.settings)
-    return {"settings": get_config()}
+
+# ── API: Alerts / Monitoring ─────────────────────────────────
+
+@app.get("/api/alerts")
+async def list_alerts(limit: int = 50):
+    # return most recent alerts, optionally limited
+    return {"alerts": _alerts[:limit]}
+
+# ── MultiScan Jobs ──────────────────────────────────────────
+
+_scan_jobs: Dict[str, Dict] = {}
+
+async def _run_multiscan_job(job_id: str, tools: list, target: str):
+    job = _scan_jobs.get(job_id)
+    if not job:
+        return
+    job['status'] = 'running'
+    job['progress'] = 0
+    job['results'] = []
+    job['start_time'] = datetime.utcnow().isoformat()
+
+    def cb(r):
+        job['results'].append(r)
+        job['progress'] += 1
+
+    funcs = []
+    from servos.forensics.network_scanner import NetworkScanner
+    from servos.forensics.memory_scanner import MemoryScanner
+    from servos.forensics.log_analyzer import LogAnalyzer
+    from servos.forensics.registry_analyzer import RegistryAnalyzer
+    from servos.forensics.deep_malware_scanner import DeepMalwareScanner
+    from servos.forensics.file_analyzer import FileAnalyzer
+
+    if "fs-scan" in tools:
+        funcs.append(lambda: {"tool": "fs-scan", "result": FileAnalyzer().analyze(target).total_files})
+    if "network-scan" in tools:
+        funcs.append(lambda: {"tool": "network-scan", "result": NetworkScanner().active_connections()})
+    if "memory-scan" in tools:
+        funcs.append(lambda: {"tool": "memory-scan", "result": MemoryScanner().capture_ram("/tmp/dump.bin")})
+    if "log-analysis" in tools:
+        funcs.append(lambda: {"tool": "log-analysis", "result": LogAnalyzer().analyze_file(target)})
+    if "registry-analysis" in tools:
+        funcs.append(lambda: {"tool": "registry-analysis", "result": RegistryAnalyzer().list_keys(RegistryAnalyzer().load_hive(target))})
+    if "deep-malware" in tools:
+        funcs.append(lambda: {"tool": "deep-malware", "result": DeepMalwareScanner().scan_path(target, None)})
+
+    coord = MultiScanCoordinator(funcs, callback=cb)
+    # allow cancellation by checking job['cancel'] before starting each
+    for func in coord.scan_funcs:
+        if job.get('cancel'):
+            job['status'] = 'cancelled'
+            break
+        try:
+            res = func()
+            cb(res)
+        except Exception as e:
+            cb({'tool': getattr(func, '__name__', 'unknown'), 'error': str(e)})
+    if job['status'] != 'cancelled':
+        job['status'] = 'completed'
+    job['end_time'] = datetime.utcnow().isoformat()
+
+@app.post("/api/multiscan")
+async def start_multiscan(req: dict, bg: BackgroundTasks):
+    tools = req.get("tools", [])
+    target = req.get("target", "/")
+    job_id = __import__("uuid").uuid4().hex
+    _scan_jobs[job_id] = {
+        'id': job_id,
+        'tools': tools,
+        'target': target,
+        'status': 'queued',
+        'progress': 0,
+        'results': [],
+        'cancel': False,
+    }
+    bg.add_task(_run_multiscan_job, job_id, tools, target)
+    return {"job_id": job_id, "status": "queued"}
+
+@app.get("/api/multiscan/{job_id}/status")
+async def scan_status(job_id: str):
+    job = _scan_jobs.get(job_id)
+    if not job:
+        raise HTTPException(404, "Scan job not found")
+    return {k: job[k] for k in ['id', 'status', 'progress', 'tools', 'target', 'results', 'start_time', 'end_time']}
+
+@app.post("/api/multiscan/{job_id}/cancel")
+async def cancel_scan(job_id: str):
+    job = _scan_jobs.get(job_id)
+    if not job:
+        raise HTTPException(404, "Scan job not found")
+    job['cancel'] = True
+    return {"status": "cancelling"}
+
 
 # ── API: Playbooks ───────────────────────────────────────────
 

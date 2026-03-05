@@ -108,6 +108,54 @@ export default function SettingsPage() {
                         </div>
                     </div>
 
+                    {/* Monitoring */}
+                    <div className="bg-servos-surface border border-servos-border rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Shield size={14} className="text-accent" />
+                            <h3 className="text-sm font-semibold text-cream">Monitoring</h3>
+                        </div>
+                        <div className="space-y-2 text-xs">
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={!!settings.enable_network_monitor}
+                                    onChange={e => setSettings({...settings, enable_network_monitor: e.target.checked})}
+                                    className="accent-accent"
+                                />
+                                Enable network interface monitoring
+                            </label>
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={!!settings.enable_process_monitor}
+                                    onChange={e => setSettings({...settings, enable_process_monitor: e.target.checked})}
+                                    className="accent-accent"
+                                />
+                                Enable process creation monitoring
+                            </label>
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={!!settings.enable_file_watcher}
+                                    onChange={e => setSettings({...settings, enable_file_watcher: e.target.checked})}
+                                    className="accent-accent"
+                                />
+                                Enable file system watcher
+                            </label>
+                            <div>
+                                <label className="block text-[10px] font-semibold text-cream-dim uppercase tracking-wider mb-1">
+                                    Watch paths (comma-separated)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={(settings.watch_paths || []).join(',')}
+                                    onChange={e => setSettings({...settings, watch_paths: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})}
+                                    className="w-full bg-servos-bg border border-servos-border rounded-lg py-2 px-3 text-xs text-cream font-mono focus:border-accent focus:outline-none"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Security */}
                     <div className="bg-servos-surface border border-servos-border rounded-lg p-4">
                         <div className="flex items-center gap-2 mb-3">

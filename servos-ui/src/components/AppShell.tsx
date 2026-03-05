@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import {
     LayoutDashboard, Search, FolderOpen, FileText,
-    Settings, LogOut, Shield, Wifi, WifiOff, Sparkles, Cpu
+    Settings, LogOut, Shield, Wifi, WifiOff, Sparkles, Cpu, Bell, Wrench
 } from 'lucide-react'
 
 const NAV_ITEMS = [
@@ -14,6 +14,8 @@ const NAV_ITEMS = [
     { id: '/logs', label: 'Logs', icon: FileText },
     { id: '/registry', label: 'Registry', icon: FolderOpen },
     { id: '/deep', label: 'Malware Deep', icon: Shield },
+    { id: '/orchestrator', label: 'Multi Scan', icon: Wrench },
+    { id: '/alerts', label: 'Alerts', icon: Bell },
     { id: '/settings', label: 'Settings', icon: Settings },
 ]
 

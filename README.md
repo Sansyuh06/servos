@@ -37,6 +37,8 @@ python -m servos.main settings   # Configure Servos
   - Malware indicator detection (YARA-like rules, entropy analysis)
   - Timeline reconstruction
 - **AI-Powered Guidance** – Offline LLM (Ollama) for investigation recommendations
+- **Real-time Monitoring & Alerts** – Network interface, process creation, and file system watchers with contextual alerts
+- **Multi-Scan Orchestrator** – Launch multiple forensic scans concurrently and view results in the GUI
 - **Report Generation** – PDF, JSON, CSV, and TXT formats
 - **Case Management** – SQLite-based case tracking
 - **Playbook System** – YAML-based reusable investigation workflows

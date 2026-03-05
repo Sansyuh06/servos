@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { Device, CaseSummary, getDevices, getCases } from '@/api/client'
+import { Device, CaseSummary, getDevices, getCases, getAlerts, AlertItem } from '@/api/client'
 
 interface AppState {
     /* Devices */
@@ -11,6 +11,11 @@ interface AppState {
     cases: CaseSummary[]
     casesLoading: boolean
     fetchCases: () => Promise<void>
+
+    /* Alerts */
+    alerts: AlertItem[]
+    alertsLoading: boolean
+    fetchAlerts: () => Promise<void>
 
     /* Active investigation */
     activeCaseId: string | null
@@ -43,6 +48,17 @@ export const useAppStore = create<AppState>((set) => ({
             set({ cases: res.cases, casesLoading: false })
         } catch {
             set({ casesLoading: false })
+        }
+    },
+    alerts: [],
+    alertsLoading: false,
+    fetchAlerts: async () => {
+        set({ alertsLoading: true })
+        try {
+            const res = await getAlerts()
+            set({ alerts: res.alerts, alertsLoading: false })
+        } catch {
+            set({ alertsLoading: false })
         }
     },
 

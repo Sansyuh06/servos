@@ -148,6 +148,49 @@ export async function getLLMStatus() {
     return request<{ available: boolean; model: string; base_url: string }>('/llm/status')
 }
 
+/* ── Alerts / Monitoring ── */
+export interface AlertItem {
+    event_type: string
+    risk: string
+    message: string
+    timestamp: string
+    [key: string]: any
+}
+
+export async function getAlerts(limit: number = 50) {
+    return request<{ alerts: AlertItem[] }>(`/alerts?limit=${limit}`)
+}
+
+/* ── Multi-scan Orchestrator ── */
+export interface ScanJob {
+    job_id: string
+    status: string
+}
+
+export interface ScanStatus extends ScanJob {
+    tools: string[]
+    target: string
+    progress: number
+    results: any[]
+    start_time?: string
+    end_time?: string
+}
+
+export async function startScanJob(body: { tools: string[]; target: string }): Promise<ScanJob> {
+    return request<ScanJob>('/multiscan', {
+        method: 'POST',
+        body: JSON.stringify(body),
+    })
+}
+
+export async function getScanStatus(jobId: string): Promise<ScanStatus> {
+    return request<ScanStatus>(`/multiscan/${jobId}/status`)
+}
+
+export async function cancelScan(jobId: string): Promise<{ status: string }> {
+    return request<{ status: string }>(`/multiscan/${jobId}/cancel`, { method: 'POST' })
+}
+
 /* ── Playbooks ── */
 export async function getPlaybooks() {
     return request<{ playbooks: { name: string; description: string; version: string; steps: number }[] }>('/playbooks')
