@@ -15,16 +15,18 @@ import {
 export default function DashboardPage() {
     const navigate = useNavigate()
     const { username, role } = useAuthStore()
-    const { devices, cases, fetchDevices, fetchCases, devicesLoading, casesLoading } = useAppStore()
+    const { devices, cases, alerts, fetchDevices, fetchCases, fetchAlerts, devicesLoading, casesLoading, alertsLoading } = useAppStore()
     const [prevCount, setPrevCount] = useState(0)
     const [newCaseId, setNewCaseId] = useState<string | null>(null)
 
     useEffect(() => {
         fetchDevices()
         fetchCases()
+        fetchAlerts()
         const interval = setInterval(async () => {
             const before = cases.length
             await fetchCases()
+            await fetchAlerts()
             if(cases.length > before) {
                 // set latest added case id
                 setNewCaseId(cases[0]?.id || null)
@@ -78,7 +80,7 @@ export default function DashboardPage() {
                             { label: 'Connected Devices', value: devices.length, icon: Shield, color: 'text-accent' },
                             { label: 'Active Cases', value: cases.filter(c => c.status === 'running').length, icon: FolderOpen, color: 'text-warning' },
                             { label: 'Completed', value: cases.filter(c => c.status === 'completed').length, icon: FileText, color: 'text-success' },
-                            { label: 'Alerts', value: cases.filter(c => c.status === 'error').length, icon: AlertTriangle, color: 'text-danger' },
+                            { label: 'Alerts', value: alerts.length, icon: AlertTriangle, color: 'text-danger' },
                         ].map(({ label, value, icon: Icon, color }) => (
                             <div key={label} className="bg-servos-surface border border-servos-border rounded-lg p-4">
                                 <div className="flex items-center gap-2 mb-2">

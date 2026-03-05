@@ -13,6 +13,8 @@ import WorkspacePage from '@/pages/WorkspacePage'
 import ReportPage from '@/pages/ReportPage'
 import SettingsPage from '@/pages/SettingsPage'
 import ChatPage from '@/pages/ChatPage'
+import AlertsPage from '@/pages/AlertsPage'
+import OrchestratorPage from '@/pages/OrchestratorPage'
 import AppShell from '@/components/AppShell'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -43,6 +45,8 @@ export default function App() {
                                     <Route path="logs" element={<LogPage />} />
                                     <Route path="registry" element={<RegistryPage />} />
                                     <Route path="deep" element={<MalwareDeepPage />} />
+                                    <Route path="orchestrator" element={<OrchestratorPage />} />
+                                    <Route path="alerts" element={<AlertsPage />} />
                                     <Route path="workspace/:caseId" element={<WorkspacePage />} />
                                     <Route path="report/:caseId" element={<ReportPage />} />
                                     <Route path="settings" element={<SettingsPage />} />

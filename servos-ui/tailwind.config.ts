@@ -5,12 +5,13 @@ export default {
         extend: {
             colors: {
                 servos: {
-                    bg: '#1E1F24',
-                    surface: '#2A2C33',
-                    elevated: '#33353D',
-                    hover: '#3A3D46',
-                    border: '#3E4149',
-                    'border-dim': '#2F3138',
+                    bg: '#535353',            // BG_PRIMARY
+                    surface: '#4a4a4a',       // BG_SURFACE
+                    elevated: '#615d66',      // BG_ELEVATED
+                    card: '#5b595e',          // BG_CARD
+                    hover: '#66676e',
+                    border: '#4f4f4f',
+                    'border-dim': '#3f3f3f',
                 },
                 accent: {
                     DEFAULT: '#8F7DBA',

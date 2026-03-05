@@ -5,7 +5,7 @@ import { sendChatMessage, type ChatResponse } from '@/api/client'
 import {
     Send, Bot, User, Paperclip, FileText,
     Loader2, Search, X, Sparkles, MessageSquare,
-    Lightbulb, PenTool, Brain, BookOpen, Cpu, MessagesSquare
+    Lightbulb, PenTool, Brain, BookOpen, Cpu, MessagesSquare, Plus
 } from 'lucide-react'
 
 interface Message {
@@ -46,6 +46,8 @@ export default function ChatPage() {
     const [isLoading, setIsLoading] = useState(false)
     const [sidebarSources, setSidebarSources] = useState<ChatResponse['sources']>([])
     const [attachedFile, setAttachedFile] = useState<string | null>(null)
+    const [showCasePicker, setShowCasePicker] = useState(false)
+    const [caseList, setCaseList] = useState<Array<{id:string, investigator?:string}>>([])
     const chatEndRef = useRef<HTMLDivElement>(null)
     const inputRef = useRef<HTMLTextAreaElement>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
@@ -117,6 +119,16 @@ export default function ChatPage() {
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if(file) setAttachedFile(file.name)
+    }
+
+    const loadCases = async () => {
+        try {
+            const resp = await fetch('/api/cases')
+            const d = await resp.json()
+            setCaseList(d.cases || [])
+        } catch {
+            // ignore
+        }
     }
 
     const hasMessages = messages.length > 0
@@ -342,27 +354,40 @@ export default function ChatPage() {
                         </span>
                     </div>
                 )}
-
-                {/* Text area */}
-                <textarea
-                    ref={inputRef}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Type your message..."
-                    rows={2}
-                    className="w-full bg-transparent text-[13px] text-cream placeholder:text-cream-dim/30 resize-none focus:outline-none px-4 pt-3 pb-1"
-                />
+                {showCasePicker && (
+                    <div className="absolute bottom-14 left-4 right-4 max-h-48 overflow-auto bg-servos-bg border border-servos-border rounded-lg p-2 z-20">
+                        {caseList.length === 0 ? (
+                            <p className="text-xs text-cream-dim">No cases found</p>
+                        ) : (
+                            caseList.map(c => (
+                                <button key={c.id}
+                                    onClick={() => {
+                                        setInput(prev => prev + `[Case:${c.id}] `);
+                                        setShowCasePicker(false);
+                                    }}
+                                    className="w-full text-left text-xs text-cream py-1 hover:bg-servos-hover rounded"
+                                >{c.id.slice(0,8)} {c.investigator && `– ${c.investigator}`}</button>
+                            ))
+                        )}
+                    </div>
+                )}
 
                 {/* Toolbar */}
                 <div className="flex items-center justify-between px-4 py-2">
                     <div className="flex items-center gap-2">
                         <button
-                            onClick={() => fileInputRef.current?.click()}
+                            onClick={() => { fileInputRef.current?.click() }}
                             className="p-1.5 rounded-md text-cream-dim/40 hover:text-cream-dim hover:bg-white/[0.05] transition-colors"
                             title="Attach file"
                         >
                             <Paperclip size={15} />
+                        </button>
+                        <button
+                            onClick={() => { setShowCasePicker(!showCasePicker); if(!showCasePicker) loadCases() }}
+                            className="p-1.5 rounded-md text-cream-dim/40 hover:text-cream-dim hover:bg-white/[0.05] transition-colors"
+                            title="Insert case reference"
+                        >
+                            <Plus className="" size={15} />
                         </button>
                     </div>
                     <button

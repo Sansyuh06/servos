@@ -65,8 +65,8 @@ body,
 #root {
     height: 100%;
     width: 100%;
-    background: #1E1F24;
-    color: #EDEBE3;
+    background: #535353; /* BG_PRIMARY */
+    color: #fff6e7;     /* TEXT */
     font-family: 'TT Firs Neue', 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

@@ -50,6 +50,10 @@ For a hackathon submission the first option (checking in `node_modules`)
 usually suffices; just make sure the `package-lock.json` is up to date when
 changing dependencies.
 
+## Offline features
+
+The core application, including the new real-time monitoring modules (network interface changes, process creation alerts, file system watcher) and the multi-scan orchestrator, operate fully offline. No component requires internet access beyond the initial dependency download described earlier. All alerts and scans are performed locally.
+
 ## LLM models
 
 The offline assistant relies on an Ollama/llama_cpp server running locally.
