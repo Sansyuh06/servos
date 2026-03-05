@@ -26,7 +26,7 @@ class ProcessCorrelator:
     """Analyze relationships between process snapshots and file listings."""
 
     SYSTEM_PROCESS_NAMES = {"svchost", "explorer", "lsass", "services"}
-    SUSPICIOUS_DIRS = ["\temp\", "\appdata\", "/temp/", "/appdata/", "downloads"]
+    SUSPICIOUS_DIRS = ["\\temp\\", "\\appdata\\", "/temp/", "/appdata/", "downloads"]
 
     def correlate(self, processes: List[Dict[str, Any]],
                   files: List[FileMetadata]) -> List[Correlation]:

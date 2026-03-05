@@ -46,7 +46,7 @@ class DuplicateDetector:
         for h, fps in dupes.items():
             has_exe = any(fp.lower().endswith(('.exe', '.dll', '.sys', '.com', '.bat', '.cmd')) for fp in fps)
             user_paths = [fp for fp in fps if any(part.lower() in fp.lower() for part in ('users', 'documents', 'downloads', 'desktop'))]
-            system_paths = [fp for fp in fps if any(part.lower() in fp.lower() for part in ('\windows\', '\system32\', '\syswow64\'))]
+            system_paths = [fp for fp in fps if any(part.lower() in fp.lower() for part in ('\\windows\\', '\\system32\\', '\\syswow64\\'))]
 
             # check masquerade
             exts = set(os.path.splitext(fp)[1].lower() for fp in fps)
@@ -70,7 +70,8 @@ class DuplicateDetector:
                 continue
 
             # executables in strange places
-            if has_exe and any(fp.lower().startswith(os.getenv('TEMP','').lower()) or '/temp/' in fp.lower() or '/startup' in fp.lower() for fp in fps):
+            temp_dir = os.getenv('TEMP', '').lower()
+            if has_exe and any((temp_dir and fp.lower().startswith(temp_dir)) or '/temp/' in fp.lower() or '\\temp\\' in fp.lower() or '/startup' in fp.lower() for fp in fps):
                 alerts.append(DuplicateAlert(
                     sha256=h,
                     files=fps,

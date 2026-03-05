@@ -46,7 +46,8 @@ class AlertEngine:
         self.rule_set = RuleSet()
         self._setup_default_rules()
         self._llm_cache: Dict[str, str] = {}
-        self.history: List[Dict[str, Any]] = []  # store last 100 alerts
+        from collections import deque
+        self.history: deque = deque(maxlen=100)  # store last 100 alerts
 
     def _setup_default_rules(self) -> None:
         # USB_CONNECTED + large capacity (>64GB) → HIGH
@@ -94,8 +95,6 @@ class AlertEngine:
 
         # store history (max 100)
         self.history.append({"timestamp": time.time(), **payload})
-        if len(self.history) > 100:
-            self.history.pop(0)
 
         try:
             self.callback(payload)

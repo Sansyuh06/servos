@@ -114,7 +114,10 @@ class ArtifactExtractor:
                 # extract domain
                 domain = ""
                 try:
-                    domain = url.split("//")[-1].split("/")[0].lower()
+                    from urllib.parse import urlparse
+                    domain = urlparse(url).netloc.lower()
+                    if not domain:
+                        domain = url.split("//")[-1].split("/")[0].lower()
                 except Exception:
                     domain = ""
                 root = "".join(domain.split('.')[-2:]) if domain else ""
@@ -179,7 +182,10 @@ class ArtifactExtractor:
                 desc = f"{title or 'No Title'} – {url}"
                 domain = ""
                 try:
-                    domain = url.split("//")[-1].split("/")[0].lower()
+                    from urllib.parse import urlparse
+                    domain = urlparse(url).netloc.lower()
+                    if not domain:
+                        domain = url.split("//")[-1].split("/")[0].lower()
                 except Exception:
                     domain = ""
                 root = "".join(domain.split('.')[-2:]) if domain else ""

@@ -833,8 +833,9 @@ class ServosApp(QMainWindow):
                 rec.notes = text
                 sess.commit()
             sess.close()
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.error(f"Failed to save case notes: {e}")
 
     # ──────────────────────────────────────────────────────────
     # Quick Scan
