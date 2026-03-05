@@ -20,6 +20,12 @@ from servos.forensics.hasher import FileHasher
 from servos.forensics.artifact_extractor import ArtifactExtractor
 from servos.forensics.malware_detector import MalwareDetector
 from servos.forensics.timeline import TimelineBuilder
+from servos.forensics.log_analyzer import LogAnalyzer
+from servos.forensics.duplicate_detector import DuplicateDetector
+from servos.forensics.recycle_bin_parser import RecycleBinParser
+from servos.forensics.threat_scorer import ThreatScorer, ThreatVerdict
+from servos.forensics.hash_database import HashDatabase
+from servos.reference import it_act
 from servos.llm.investigator import LLMInvestigator
 from servos.reports.generator import ReportGenerator
 
@@ -69,12 +75,72 @@ class InvestigationWorker(QThread):
             self.progress.emit(50,
                 f"✓ Hashed {len(findings.integrity_hashes)} files")
 
+            # Threat scoring on first 200 files
+            self.progress.emit(52, "Scoring files for threat level…")
+            scorer = ThreatScorer()
+            hashdb = HashDatabase()
+            verdicts: List[ThreatVerdict] = []
+            files_to_score = findings.file_system.files[:200]
+            total = len(files_to_score)
+            for idx, fmeta in enumerate(files_to_score, start=1):
+                sha = findings.integrity_hashes.get(fmeta.full_path, "")
+                verdict = scorer.create_verdict(fmeta.full_path, sha256=sha)
+                # hash signal
+                lookup = hashdb.lookup(sha, filename=fmeta.full_path)
+                verdict = scorer.add_hash_signal(verdict, lookup)
+                # entropy signal
+                if fmeta.entropy and fmeta.entropy > 7.0:
+                    verdict = scorer.add_file_signal(verdict, "high_entropy",
+                        f"Entropy {fmeta.entropy:.2f}")
+                # extension mismatch (reuse malware_detector logic)
+                ext = os.path.splitext(fmeta.full_path)[1].lower()
+                try:
+                    with open(fmeta.full_path, "rb") as _f:
+                        header = _f.read(32)
+                    from servos.forensics.malware_detector import MAGIC_BYTES
+                    for magic, info in MAGIC_BYTES.items():
+                        if header.startswith(magic):
+                            valid_exts = info.get("extensions", set())
+                            if ext and ext not in valid_exts and valid_exts != {""}:
+                                verdict = scorer.add_file_signal(verdict,
+                                    "extension_mismatch", f"{info['type']} masquerading as {ext}", severity="high")
+                            break
+                except Exception:
+                    pass
+                # suspicious name
+                if any(ch in fmeta.filename.lower() for ch in [".exe", ".scr", ".bat"]):
+                    verdict = scorer.add_file_signal(verdict, "suspicious_name", f"Filename {fmeta.filename} looks suspicious")
+
+                verdict = scorer.finalize(verdict)
+                verdicts.append(verdict)
+                pct = 52 + int(20 * idx / total)
+                self.progress.emit(pct, f"Scoring files ({idx}/{total})...")
+            findings.threat_verdicts = verdicts
+            findings.threat_summary = scorer.create_summary(verdicts)
+            self.progress.emit(72, "✓ Threat scoring complete")
+
             # 4. Artifacts
             self.progress.emit(53, "Extracting forensic artifacts…")
             findings.artifacts = ArtifactExtractor().extract_all(
                 self.device.mount_point)
             self.progress.emit(62,
                 f"✓ {findings.artifacts.total_artifacts} artifacts extracted")
+
+            # log pattern analysis
+            self.progress.emit(63, "Analyzing logs for threat patterns…")
+            log_an = LogAnalyzer()
+            log_threats: List[LogThreat] = []
+            # scan any artifact items of type log and also raw files under mount
+            for path, events in findings.artifacts.all_artifacts():
+                pass  # placeholder, but artifact items not stored this way
+            # simpler: walk mount point for .log/.evtx
+            for dirpath, _, filenames in os.walk(self.device.mount_point):
+                for fn in filenames:
+                    if fn.lower().endswith(('.log', '.evtx')):
+                        threats = log_an.analyze_patterns(os.path.join(dirpath, fn))
+                        log_threats.extend(threats)
+            findings.log_threats = log_threats
+            self.progress.emit(65, f"✓ {len(log_threats)} log threats found")
 
             # 5. Malware
             self.progress.emit(65, "Running malware detection…")
@@ -88,6 +154,22 @@ class InvestigationWorker(QThread):
                 findings.file_system, findings.artifacts)
             self.progress.emit(82,
                 f"✓ Timeline: {len(findings.timeline.events)} events")
+
+            # post-timeline additional analyses
+            self.progress.emit(83, "Identifying duplicate files…")
+            dup_detector = DuplicateDetector()
+            findings.duplicates = dup_detector.find_duplicates(findings.integrity_hashes)
+            findings.duplicate_alerts = dup_detector.find_suspicious_duplicates(findings.duplicates)
+            self.progress.emit(84, f"✓ {len(findings.duplicate_alerts)} suspicious duplicate groups")
+
+            self.progress.emit(84, "Parsing recycle bin records…")
+            rbp = RecycleBinParser()
+            findings.deleted_files = rbp.parse(self.device.mount_point)
+            self.progress.emit(84, f"✓ {len(findings.deleted_files)} deleted file records")
+
+            self.progress.emit(84, "Suggesting applicable IT Act sections…")
+            findings.it_act_suggestions = it_act.suggest_sections_for_findings(findings)
+            self.progress.emit(85, f"✓ {len(findings.it_act_suggestions)} legal sections suggested")
 
             case.findings = findings
 
@@ -160,6 +242,7 @@ class InvestigationWorker(QThread):
                 id=case.id, created_at=case.created_at,
                 investigator=case.investigator, mode=case.mode,
                 status=case.status, report_path=case.report_path or "",
+                notes=getattr(case, 'notes', ''),
                 device_info_json=json.dumps(
                     case.device_info.to_dict() if case.device_info else {}),
                 backup_json=json.dumps(

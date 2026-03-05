@@ -36,6 +36,7 @@ from servos.forensics.timeline import TimelineBuilder
 from servos.llm.investigator import LLMInvestigator
 from servos.reports.generator import ReportGenerator
 from servos.playbooks.engine import PlaybookEngine
+from servos.gui.widgets.risk_dashboard import RiskDashboard
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -819,6 +820,22 @@ class ServosApp(QMainWindow):
         self.start_btn.setText("🚀  Start Investigation")
         QMessageBox.critical(self, "Investigation Error", msg[:500])
 
+    def _save_case_notes(self):
+        """Write the current notes field back to the database."""
+        if not hasattr(self, 'current_case') or self.current_case is None:
+            return
+        text = self.notes_edit.toPlainText()
+        self.current_case.notes = text
+        try:
+            sess = get_session()
+            rec = sess.query(CaseRecord).get(self.current_case.id)
+            if rec:
+                rec.notes = text
+                sess.commit()
+            sess.close()
+        except Exception:
+            pass
+
     # ──────────────────────────────────────────────────────────
     # Quick Scan
     # ──────────────────────────────────────────────────────────
@@ -1046,6 +1063,26 @@ class ServosApp(QMainWindow):
         risk_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(risk_label)
 
+        # investigator notes editor with auto-save
+        notes_group = QGroupBox("Investigator Notes")
+        nlay = QVBoxLayout(notes_group)
+        self.notes_edit = QTextEdit()
+        self.notes_edit.setPlainText(case.notes or "")
+        self.notes_edit.setStyleSheet("background-color: #0d1117;")
+        nlay.addWidget(self.notes_edit)
+        layout.addWidget(notes_group)
+
+        self.notes_timer = QTimer(self)
+        self.notes_timer.setSingleShot(True)
+        self.notes_edit.textChanged.connect(lambda: self.notes_timer.start(2000))
+        self.notes_timer.timeout.connect(self._save_case_notes)
+
+        # risk dashboard widget
+        self.risk_dashboard = RiskDashboard()
+        # wire export button to open existing report
+        self.risk_dashboard.export_requested.connect(lambda: os.startfile(case.report_path) if case.report_path else None)
+        layout.addWidget(self.risk_dashboard)
+
         # Tabs
         tabs = QTabWidget()
 
@@ -1180,6 +1217,22 @@ SHA-256:         {case.backup.hash_sha256}
         btn_widget = QWidget()
         btn_widget.setLayout(btn_row)
         layout.addWidget(btn_widget)
+
+        # populate risk dashboard data (after tabs built)
+        try:
+            top = []
+            if case.findings and getattr(case.findings, 'threat_summary', None):
+                top = case.findings.threat_summary.top_threats
+            self.risk_dashboard.update(
+                case,
+                top_threats=top,
+                anomalies=(case.findings.timeline.anomalies if case.findings and case.findings.timeline else []),
+                itact=(case.findings.it_act_suggestions if hasattr(case.findings, 'it_act_suggestions') else []),
+                log_threats=(case.findings.log_threats if hasattr(case.findings, 'log_threats') else []),
+                deleted_exes=(case.findings.deleted_files if hasattr(case.findings, 'deleted_files') else [])
+            )
+        except Exception:
+            pass
 
         layout.addStretch()
 

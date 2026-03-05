@@ -158,6 +158,7 @@ class Timeline:
     date_range_start: str = ""
     date_range_end: str = ""
     suspicious_windows: List[Tuple[str, str]] = field(default_factory=list)
+    anomalies: List[Any] = field(default_factory=list)  # list of TimelineAnomaly-like dicts
 
 
 @dataclass
@@ -192,6 +193,7 @@ class Case:
     findings: Optional[ForensicFindings] = None
     interpretation: Optional[LLMInterpretation] = None
     report_path: str = ""
+    notes: str = ""  # investigator notes
 
     def __post_init__(self):
         if not self.id:
@@ -237,6 +239,7 @@ class CaseRecord(Base):
     findings_json = Column(Text, default="{}")
     interpretation_json = Column(Text, default="{}")
     report_path = Column(String, default="")
+    notes = Column(Text, default="")  # free-text investigator notes
 
     artifacts = relationship("ArtifactRecord", back_populates="case", cascade="all, delete-orphan")
 
@@ -283,7 +286,12 @@ def get_db_path() -> str:
 
 
 def init_db(db_path: Optional[str] = None):
-    """Initialize the database, creating tables if needed."""
+    """Initialize the database, creating tables if needed.
+
+    Migration note: existing installations must run the SQL
+        ALTER TABLE cases ADD COLUMN notes TEXT DEFAULT ''
+    to add the new notes field.
+    """
     global _engine, _Session
     if db_path is None:
         db_path = get_db_path()

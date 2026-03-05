@@ -7,8 +7,30 @@ import os
 import json
 import sqlite3
 import glob
+import re
 from datetime import datetime, timedelta
 from typing import List
+
+# offline known malicious domains (phishing, C2, paste sites, malware distribution)
+_MALICIOUS_DOMAINS = {
+    "pastebin.com", "hastebin.com", "0day.work", "malwaredomain.tld",
+    "badsite.example", "evilcorp.net", "c2.example", "phishingsite.com",
+    "malicious.com", "tracker.example", "torhiddenservice.onion",
+    "fakeupdate.com", "securelogin.example", "banking-verify.com",
+    "cdn.bad", "dropbox-cc.com", "drive-verify.net", "ftp.badsite.com",
+    "upload.malware", "cmdcontrol.example", "payload-server.net",
+    "data-exfil.example", "ransomware-download.com", "encrypt-site.org",
+    "cmdshell.example", "stealer.example", "keylogger.site", "spyware-download.com",
+    "botnet.example", "phoneless.example", "malwarebazaar.org",
+    "abuse.ch", "virusshare.com", "malshare.com", "any.run",
+    "suspicious-domain.net", "badcdn.com", "c2server.example", "dga-domain1.com",
+    "dga-domain2.com", "dga-domain3.com", "malvertise.example", "adware-download.com",
+    "drive-by.example", "scanner.example", "exploit-kit.example", "lootbox.example",
+    "nosqlinjection.example", "sqli.example", "xss.example", "csrf.example",
+}
+
+# regex for IP address
+_IP_RE = re.compile(r"^(?:\d{1,3}\.){3}\d{1,3}$")
 
 from servos.models.schema import ArtifactItem, ArtifactResult
 
@@ -89,13 +111,37 @@ class ArtifactExtractor:
 
                 suspicious = 0.0
                 desc = f"{title or 'No Title'} – {url}"
-                # Flag suspicious domains
-                suspicious_keywords = ["malware", "hack", "exploit", "darkweb",
-                                       "ransomware", "keylog", "phishing", "pastebin"]
-                for kw in suspicious_keywords:
-                    if kw in url.lower() or kw in (title or "").lower():
-                        suspicious = 0.8
-                        break
+                # extract domain
+                domain = ""
+                try:
+                    domain = url.split("//")[-1].split("/")[0].lower()
+                except Exception:
+                    domain = ""
+                root = "".join(domain.split('.')[-2:]) if domain else ""
+                # check against offline list
+                if root in _MALICIOUS_DOMAINS or domain in _MALICIOUS_DOMAINS:
+                    suspicious = 0.95
+                    desc += " (Known malicious domain)"
+                # flag IP-based URLs
+                if _IP_RE.match(domain):
+                    suspicious = max(suspicious, 0.5)
+                    desc += " (IP address used)"
+                # flag >3 subdomains (DGA indicator)
+                if domain.count('.') > 3:
+                    suspicious = max(suspicious, 0.5)
+                    desc += " (many subdomains)"
+                # flag encoded chars
+                if "%" in url:
+                    suspicious = max(suspicious, 0.5)
+                    desc += " (encoded characters present)"
+                # fallback keyword sniffing
+                if suspicious == 0.0:
+                    suspicious_keywords = ["malware", "hack", "exploit", "darkweb",
+                                           "ransomware", "keylog", "phishing"]
+                    for kw in suspicious_keywords:
+                        if kw in url.lower() or kw in (title or "").lower():
+                            suspicious = 0.8
+                            break
 
                 items.append(ArtifactItem(
                     artifact_type="browser_history",
@@ -128,11 +174,38 @@ class ArtifactExtractor:
                 except (ValueError, OverflowError):
                     timestamp = ""
 
+                # compute suspicious score similar to Chrome
+                suspicious = 0.0
+                desc = f"{title or 'No Title'} – {url}"
+                domain = ""
+                try:
+                    domain = url.split("//")[-1].split("/")[0].lower()
+                except Exception:
+                    domain = ""
+                root = "".join(domain.split('.')[-2:]) if domain else ""
+                if root in _MALICIOUS_DOMAINS or domain in _MALICIOUS_DOMAINS:
+                    suspicious = 0.95
+                    desc += " (Known malicious domain)"
+                if _IP_RE.match(domain):
+                    suspicious = max(suspicious, 0.5)
+                    desc += " (IP address used)"
+                if domain.count('.') > 3:
+                    suspicious = max(suspicious, 0.5)
+                    desc += " (many subdomains)"
+                if "%" in url:
+                    suspicious = max(suspicious, 0.5)
+                    desc += " (encoded characters present)"
+                if suspicious == 0.0:
+                    for kw in ("malware","hack","exploit","ransomware","phishing"):
+                        if kw in url.lower() or kw in (title or "").lower():
+                            suspicious = 0.8
+                            break
                 items.append(ArtifactItem(
                     artifact_type="browser_history",
                     timestamp=timestamp,
-                    description=f"{title or 'No Title'} – {url}",
+                    description=desc,
                     content={"url": url, "title": title, "visit_count": visit_count},
+                    suspicious_score=suspicious,
                     source_path=db_path,
                 ))
             conn.close()
