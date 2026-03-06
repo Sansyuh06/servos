@@ -35,9 +35,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <aside className="w-56 flex flex-col bg-servos-surface border-r border-servos-border shrink-0">
                 {/* Logo */}
                 <div className="px-5 pt-6 pb-4 border-b border-servos-border-dim">
-                    <div className="flex items-center gap-2.5">
-                        <Shield size={20} className="text-accent" />
-                        <span className="text-base font-bold tracking-wide text-cream-bright font-heading">SERVOS</span>
+                    <div className="flex items-center gap-3">
+                        <img src="/logo.png" alt="Servos Logo" className="h-[26px] w-auto drop-shadow-md" />
+                        <span className="text-lg font-bold tracking-widest text-cream-bright font-heading uppercase drop-shadow-sm">SERVOS</span>
                     </div>
                     <p className="text-[11px] text-cream-dim mt-1 tracking-wide">AI Assistant Platform</p>
                 </div>

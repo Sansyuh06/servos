@@ -37,6 +37,7 @@ from servos.llm.investigator import LLMInvestigator
 from servos.reports.generator import ReportGenerator
 from servos.playbooks.engine import PlaybookEngine
 from servos.gui.widgets.risk_dashboard import RiskDashboard
+from servos.gui.widgets.file_scanner_widget import FileScannerWidget
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -416,12 +417,14 @@ class ServosApp(QMainWindow):
         self.scan_page = self._build_scan()
         self.cases_page = self._build_cases()
         self.results_page = self._build_results()
+        self.file_scanner_page = self._build_file_scanner()
 
         self.pages.addWidget(self.dashboard_page)     # 0
         self.pages.addWidget(self.investigate_page)    # 1
         self.pages.addWidget(self.scan_page)           # 2
         self.pages.addWidget(self.cases_page)          # 3
         self.pages.addWidget(self.results_page)        # 4
+        self.pages.addWidget(self.file_scanner_page)   # 5
 
         self.pages.setCurrentIndex(0)
         self._refresh_dashboard()
@@ -464,6 +467,7 @@ class ServosApp(QMainWindow):
             ("🔍  New Investigation", 1),
             ("⚡  Quick Scan", 2),
             ("📁  Past Cases", 3),
+            ("🪲  File Scanner", 5),
         ]
         self.nav_buttons = []
         for label, idx in nav_items:
@@ -596,6 +600,26 @@ class ServosApp(QMainWindow):
         layout.addStretch()
         scroll.setWidget(page)
         return scroll
+
+    def _build_file_scanner(self):
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setContentsMargins(32, 28, 32, 28)
+        layout.setSpacing(20)
+
+        title = QLabel("Offline VirusTotal (File Scanner)")
+        title.setFont(QFont("Segoe UI", 24, QFont.Weight.Bold))
+        layout.addWidget(title)
+        
+        desc = QLabel("Drag and drop a suspicious file below. It will be scanned using all offline engines (YARA, Hash Match, PE Analysis, Entropy).")
+        desc.setStyleSheet(f"color: {TEXT_DIM}; font-size: 14px;")
+        desc.setWordWrap(True)
+        layout.addWidget(desc)
+
+        scanner = FileScannerWidget()
+        layout.addWidget(scanner, 1)
+
+        return page
 
     def _stat_card(self, icon, value, label):
         card = QGroupBox()

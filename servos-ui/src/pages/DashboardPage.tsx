@@ -8,9 +8,10 @@ import GooeyTextMorph from '@/components/GooeyTextMorph'
 import HalideTopoHero from '@/components/HalideTopoHero'
 import SpatialDeviceCard from '@/components/SpatialDeviceCard'
 import {
-    Shield, FolderOpen, Clock, AlertTriangle,
-    ChevronRight, FileText, Search
+    Shield, FolderOpen, AlertTriangle,
+    ChevronRight, FileText, Search, Activity, Lock
 } from 'lucide-react'
+import { BentoGrid, BentoCard } from '@/components/ui/bento-grid'
 
 export default function DashboardPage() {
     const navigate = useNavigate()
@@ -27,7 +28,7 @@ export default function DashboardPage() {
             const before = cases.length
             await fetchCases()
             await fetchAlerts()
-            if(cases.length > before) {
+            if (cases.length > before) {
                 // set latest added case id
                 setNewCaseId(cases[0]?.id || null)
             }
@@ -53,8 +54,8 @@ export default function DashboardPage() {
                 <div className="p-6 space-y-6">
                     {newCaseId && (
                         <div className="bg-success-muted border border-success rounded-lg p-3 text-success text-sm flex justify-between items-center">
-                            <span>New investigation started: {newCaseId.slice(0,8)}</span>
-                            <button onClick={()=>setNewCaseId(null)} className="text-success hover:text-success-dark">✖</button>
+                            <span>New investigation started: {newCaseId.slice(0, 8)}</span>
+                            <button onClick={() => setNewCaseId(null)} className="text-success hover:text-success-dark">✖</button>
                         </div>
                     )}
                     {/* ── Top Bar Info ── */}
@@ -75,22 +76,44 @@ export default function DashboardPage() {
                     </div>
 
                     {/* ── Quick Stats ── */}
-                    <div className="grid grid-cols-4 gap-3">
-                        {[
-                            { label: 'Connected Devices', value: devices.length, icon: Shield, color: 'text-accent' },
-                            { label: 'Active Cases', value: cases.filter(c => c.status === 'running').length, icon: FolderOpen, color: 'text-warning' },
-                            { label: 'Completed', value: cases.filter(c => c.status === 'completed').length, icon: FileText, color: 'text-success' },
-                            { label: 'Alerts', value: alerts.length, icon: AlertTriangle, color: 'text-danger' },
-                        ].map(({ label, value, icon: Icon, color }) => (
-                            <div key={label} className="bg-servos-surface border border-servos-border rounded-lg p-4">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <Icon size={14} className={color} />
-                                    <span className="text-[10px] font-semibold text-cream-dim uppercase tracking-wider">{label}</span>
-                                </div>
-                                <span className="text-2xl font-bold text-cream-bright">{value}</span>
-                            </div>
-                        ))}
-                    </div>
+                    <BentoGrid className="grid-cols-4 md:auto-rows-[16rem]">
+                        <BentoCard
+                            name="Connected Devices"
+                            className="col-span-4 md:col-span-2 lg:col-span-1"
+                            background={<div className="absolute -right-4 -top-4 w-32 h-32 bg-accent/10 rounded-full blur-2xl pointer-events-none" />}
+                            Icon={Shield}
+                            description="Active USB & Storage drives ready for scan."
+                            href="/investigate"
+                            cta="Scan Devices"
+                        />
+                        <BentoCard
+                            name="Active Cases"
+                            className="col-span-4 md:col-span-2 lg:col-span-1"
+                            background={<div className="absolute right-0 bottom-0 w-40 h-40 bg-warning/10 rounded-full blur-2xl pointer-events-none" />}
+                            Icon={FolderOpen}
+                            description="Investigations currently processing or awaiting review."
+                            href="/workspace"
+                            cta="View Cases"
+                        />
+                        <BentoCard
+                            name="Completed Scans"
+                            className="col-span-4 md:col-span-2 lg:col-span-1"
+                            background={<div className="absolute -left-10 -bottom-10 w-40 h-40 bg-success/10 rounded-full blur-3xl pointer-events-none" />}
+                            Icon={FileText}
+                            description="Analyzed disks with detailed forensic reports."
+                            href="/"
+                            cta="View Reports"
+                        />
+                        <BentoCard
+                            name="Security Alerts"
+                            className="col-span-4 md:col-span-2 lg:col-span-1"
+                            background={<div className="absolute right-20 top-20 w-32 h-32 bg-danger/10 rounded-full blur-3xl pointer-events-none" />}
+                            Icon={AlertTriangle}
+                            description="Critical IOCs and malware detections."
+                            href="/alerts"
+                            cta="View Alerts"
+                        />
+                    </BentoGrid>
 
                     {/* ── Connected Devices ── */}
                     <section>
@@ -167,10 +190,10 @@ export default function DashboardPage() {
                                                 <td className="px-4 py-3 text-xs text-cream-dim capitalize">{c.mode}</td>
                                                 <td className="px-4 py-3">
                                                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${c.status === 'completed'
-                                                            ? 'bg-success-muted text-success border border-success/20'
-                                                            : c.status === 'error'
-                                                                ? 'bg-danger-muted text-danger border border-danger/20'
-                                                                : 'bg-warning-muted text-warning border border-warning/20'
+                                                        ? 'bg-success-muted text-success border border-success/20'
+                                                        : c.status === 'error'
+                                                            ? 'bg-danger-muted text-danger border border-danger/20'
+                                                            : 'bg-warning-muted text-warning border border-warning/20'
                                                         }`}>
                                                         {c.status}
                                                     </span>
