@@ -25,10 +25,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
 def find_free_port():
-    """Find a free port to run the server on."""
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(('', 0))
-        return s.getsockname()[1]
+    """Return a fixed port to avoid multiple conflicting instances."""
+    return 8000
 
 
 def start_server(port: int):

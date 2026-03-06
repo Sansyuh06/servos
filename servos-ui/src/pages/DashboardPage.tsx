@@ -12,6 +12,9 @@ import {
     ChevronRight, FileText, Search, Activity, Lock
 } from 'lucide-react'
 import { BentoGrid, BentoCard } from '@/components/ui/bento-grid'
+import { RecentInvestigationsStacked } from '@/components/RecentInvestigationsStacked'
+import EarbudShowcase from '@/components/spatial-product-showcase'
+import { AnimatePresence, motion } from 'framer-motion'
 
 export default function DashboardPage() {
     const navigate = useNavigate()
@@ -19,6 +22,7 @@ export default function DashboardPage() {
     const { devices, cases, alerts, fetchDevices, fetchCases, fetchAlerts, devicesLoading, casesLoading, alertsLoading } = useAppStore()
     const [prevCount, setPrevCount] = useState(0)
     const [newCaseId, setNewCaseId] = useState<string | null>(null)
+    const [showcaseDevice, setShowcaseDevice] = useState<any>(null)
 
     useEffect(() => {
         fetchDevices()
@@ -135,7 +139,7 @@ export default function DashboardPage() {
                                     <SpatialDeviceCard
                                         key={i}
                                         device={device}
-                                        onAnalyze={() => navigate('/investigate')}
+                                        onAnalyze={() => setShowcaseDevice(device)}
                                         onBackup={() => { }}
                                     />
                                 ))}
@@ -160,53 +164,34 @@ export default function DashboardPage() {
                                 <p className="text-sm text-cream-dim">No investigations yet</p>
                             </div>
                         ) : (
-                            <div className="bg-servos-surface border border-servos-border rounded-lg overflow-hidden">
-                                <table className="w-full">
-                                    <thead>
-                                        <tr className="border-b border-servos-border-dim">
-                                            <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-cream-dim uppercase tracking-wider">Case ID</th>
-                                            <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-cream-dim uppercase tracking-wider">Investigator</th>
-                                            <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-cream-dim uppercase tracking-wider">Mode</th>
-                                            <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-cream-dim uppercase tracking-wider">Status</th>
-                                            <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-cream-dim uppercase tracking-wider">Created</th>
-                                            <th className="w-8"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {cases.slice(0, 8).map((c) => (
-                                            <tr
-                                                key={c.id}
-                                                className="border-b border-servos-border-dim/50 hover:bg-servos-hover/50 cursor-pointer transition-colors"
-                                                onClick={() => navigate(`/workspace/${c.id}`)}
-                                            >
-                                                <td className="px-4 py-3 text-xs font-mono text-cream">{c.id.slice(0, 8)}</td>
-                                                <td className="px-4 py-3 text-xs text-cream">{c.investigator}</td>
-                                                <td className="px-4 py-3 text-xs text-cream-dim capitalize">{c.mode}</td>
-                                                <td className="px-4 py-3">
-                                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${c.status === 'completed'
-                                                        ? 'bg-success-muted text-success border border-success/20'
-                                                        : c.status === 'error'
-                                                            ? 'bg-danger-muted text-danger border border-danger/20'
-                                                            : 'bg-warning-muted text-warning border border-warning/20'
-                                                        }`}>
-                                                        {c.status}
-                                                    </span>
-                                                </td>
-                                                <td className="px-4 py-3 text-xs text-cream-dim">
-                                                    {new Date(c.created_at).toLocaleDateString()}
-                                                </td>
-                                                <td className="px-2 py-3">
-                                                    <ChevronRight size={14} className="text-cream-dim" />
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                            <div className="bg-servos-surface border border-servos-border rounded-lg overflow-hidden flex justify-center py-8">
+                                <RecentInvestigationsStacked cases={cases} onCaseClick={(c: any) => navigate(`/workspace/${c.id}`)} />
                             </div>
                         )}
                     </section>
                 </div>
             </div>
+
+            <AnimatePresence>
+                {showcaseDevice && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
+                    >
+                        <button
+                            className="absolute top-6 right-6 z-50 text-white/50 hover:text-white"
+                            onClick={() => setShowcaseDevice(null)}
+                        >
+                            Close
+                        </button>
+                        <div className="w-[90vw] h-[90vh] overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
+                            <EarbudShowcase />
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </PageTransition>
     )
 }
