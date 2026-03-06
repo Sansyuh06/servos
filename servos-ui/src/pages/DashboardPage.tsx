@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/authStore'
 import PageTransition from '@/components/PageTransition'
 import TopoBackground from '@/components/TopoBackground'
 import GooeyTextMorph from '@/components/GooeyTextMorph'
-import HalideTopoHero from '@/components/HalideTopoHero'
+import TopoHero from '@/components/ui/topo-hero'
 import SpatialDeviceCard from '@/components/SpatialDeviceCard'
 import {
     Shield, FolderOpen, AlertTriangle,
@@ -39,16 +39,10 @@ export default function DashboardPage() {
     return (
         <PageTransition>
             <div className="h-full overflow-y-auto">
-                {/* ── Hero Section (HalideTopoHero) ── */}
-                <HalideTopoHero
-                    title="SERVOS"
-                    subtitle="Offline AI Forensic Platform"
-                    statusBadge={
-                        <span className={`px-2 py-1 text-xs rounded-md ${cases.filter(c => c.status === 'running').length > 0 ? 'bg-warning text-black' : 'bg-success text-white'}`}>
-                            {cases.filter(c => c.status === 'running').length > 0 ? 'Active Investigations' : 'No Active Investigations'}
-                        </span>
-                    }
-                />
+                {/* ── Hero Section (TopoHero) ── */}
+                <div className="mb-6 -mx-6 -mt-6">
+                    <TopoHero />
+                </div>
 
 
                 <div className="p-6 space-y-6">
@@ -79,8 +73,8 @@ export default function DashboardPage() {
                     <BentoGrid className="grid-cols-4 md:auto-rows-[16rem]">
                         <BentoCard
                             name="Connected Devices"
-                            className="col-span-4 md:col-span-2 lg:col-span-1"
-                            background={<div className="absolute -right-4 -top-4 w-32 h-32 bg-accent/10 rounded-full blur-2xl pointer-events-none" />}
+                            className="col-span-4 md:col-span-2 lg:col-span-2 shadow-2xl"
+                            background={<div className="absolute -right-4 -top-4 w-32 h-32 bg-accent/20 rounded-full blur-[40px] pointer-events-none" />}
                             Icon={Shield}
                             description="Active USB & Storage drives ready for scan."
                             href="/investigate"
@@ -88,8 +82,8 @@ export default function DashboardPage() {
                         />
                         <BentoCard
                             name="Active Cases"
-                            className="col-span-4 md:col-span-2 lg:col-span-1"
-                            background={<div className="absolute right-0 bottom-0 w-40 h-40 bg-warning/10 rounded-full blur-2xl pointer-events-none" />}
+                            className="col-span-4 md:col-span-2 lg:col-span-2 shadow-2xl"
+                            background={<div className="absolute right-0 bottom-0 w-40 h-40 bg-warning/20 rounded-full blur-[40px] pointer-events-none" />}
                             Icon={FolderOpen}
                             description="Investigations currently processing or awaiting review."
                             href="/workspace"
@@ -97,8 +91,8 @@ export default function DashboardPage() {
                         />
                         <BentoCard
                             name="Completed Scans"
-                            className="col-span-4 md:col-span-2 lg:col-span-1"
-                            background={<div className="absolute -left-10 -bottom-10 w-40 h-40 bg-success/10 rounded-full blur-3xl pointer-events-none" />}
+                            className="col-span-4 md:col-span-2 lg:col-span-1 shadow-2xl"
+                            background={<div className="absolute -left-10 -bottom-10 w-40 h-40 bg-success/20 rounded-full blur-[40px] pointer-events-none" />}
                             Icon={FileText}
                             description="Analyzed disks with detailed forensic reports."
                             href="/"
@@ -106,8 +100,8 @@ export default function DashboardPage() {
                         />
                         <BentoCard
                             name="Security Alerts"
-                            className="col-span-4 md:col-span-2 lg:col-span-1"
-                            background={<div className="absolute right-20 top-20 w-32 h-32 bg-danger/10 rounded-full blur-3xl pointer-events-none" />}
+                            className="col-span-4 md:col-span-2 lg:col-span-3 shadow-2xl"
+                            background={<div className="absolute right-20 top-20 w-32 h-32 bg-danger/20 rounded-full blur-[40px] pointer-events-none" />}
                             Icon={AlertTriangle}
                             description="Critical IOCs and malware detections."
                             href="/alerts"
