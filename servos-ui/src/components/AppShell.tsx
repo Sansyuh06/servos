@@ -53,7 +53,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                                 <img
                                     src={icon}
                                     alt={`${label} icon`}
-                                    className={`w-6 h-6 object-contain transition-all duration-200 ${isActive ? 'opacity-100 drop-shadow-md' : 'opacity-60 grayscale'}`}
+                                    className={`w-7 h-7 object-contain transition-all duration-200 ${isActive ? 'opacity-100 brightness-150 drop-shadow-[0_0_8px_rgba(255,255,255,0.6)] scale-105' : 'opacity-90 brightness-125 drop-shadow-[0_0_2px_rgba(255,255,255,0.2)] hover:opacity-100 hover:brightness-150'}`}
                                 />
                                 {label}
                             </button>
