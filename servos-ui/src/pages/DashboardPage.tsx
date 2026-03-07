@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { BentoGrid, BentoCard } from '@/components/ui/bento-grid'
 import { RecentInvestigationsStacked } from '@/components/RecentInvestigationsStacked'
-import EarbudShowcase from '@/components/spatial-product-showcase'
+import DeviceShowcase from '@/components/spatial-product-showcase'
 import { AnimatePresence, motion } from 'framer-motion'
 
 export default function DashboardPage() {
@@ -187,7 +187,7 @@ export default function DashboardPage() {
                             Close
                         </button>
                         <div className="w-[90vw] h-[90vh] overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
-                            <EarbudShowcase />
+                            <DeviceShowcase />
                         </div>
                     </motion.div>
                 )}

@@ -3,7 +3,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import {
-  Battery,
   Sliders,
   ChevronRight,
   Zap,
@@ -50,7 +49,7 @@ const PRODUCT_DATA: Record<ProductId, ProductData> = {
     label: 'USB Drive',
     title: 'SanDisk Cruzer',
     description: 'Attached USB storage device currently being analyzed for malicious artifacts and hidden partitions.',
-    image: 'https://ik.imagekit.io/kqmrslzuq/SOUND/right-earbud.png', // Fallback, could be a USB icon
+    image: '/doodles/usb-drive.png',
     colors: {
       gradient: 'from-accent to-servos-surface',
       glow: 'bg-accent',
@@ -67,7 +66,7 @@ const PRODUCT_DATA: Record<ProductId, ProductData> = {
     label: 'External HDD',
     title: 'Seagate Backup Plus',
     description: 'Primary external drive containing historical OS artifacts and potential malware staged payloads.',
-    image: 'https://ik.imagekit.io/kqmrslzuq/SOUND/left-earbud.png', // Fallback
+    image: '/doodles/hdd-drive.png',
     colors: {
       gradient: 'from-danger to-servos-surface',
       glow: 'bg-danger',
@@ -214,7 +213,7 @@ const ProductDetails = ({ data, isLeft }: { data: ProductData; isLeft: boolean }
       className={`flex flex-col ${alignClass}`}
     >
       <motion.h2 variants={ANIMATIONS.item} className="text-sm font-bold uppercase tracking-[0.2em] text-zinc-500 mb-2">
-        {data.label} Earbud
+        {data.label}
       </motion.h2>
       <motion.h1 variants={ANIMATIONS.item} className="text-4xl md:text-5xl font-bold tracking-tight mb-2 text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-500">
         {data.title}
@@ -252,11 +251,6 @@ const ProductDetails = ({ data, isLeft }: { data: ProductData; isLeft: boolean }
         </div>
       </motion.div>
 
-      {/* Battery */}
-      <motion.div variants={ANIMATIONS.item} className={`mt-6 flex items-center gap-3 text-zinc-500 ${flexDirClass}`}>
-        <Battery size={16} />
-        <span className="text-sm font-medium">{data.stats.batteryLevel}% Charge</span>
-      </motion.div>
     </motion.div>
   );
 };
@@ -308,7 +302,7 @@ const Switcher = ({
 // 4. MAIN COMPONENT
 // =========================================
 
-export default function EarbudShowcase() {
+export default function DeviceShowcase() {
   const [activeSide, setActiveSide] = useState<ProductId>('left');
 
   const currentData = PRODUCT_DATA[activeSide];
