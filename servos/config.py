@@ -30,6 +30,10 @@ DEFAULT_CONFIG = {
     "auto_detect_usb": True,
     # automatically launch a full investigation when a new drive appears
     "auto_investigate": True,
+    # Investigation mode: "full", "hybrid", or "manual"
+    "investigation_mode": "hybrid",
+    # Background monitoring toggle
+    "background_monitoring": True,
 
     # Analysis
     "max_file_size_mb": 500,     # skip files larger than this for hashing

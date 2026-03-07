@@ -1,0 +1,141 @@
+{
+    "sections": {
+        "65": {
+            "title": "Tampering with Computer Source Documents",
+            "summary": "Whoever knowingly or intentionally conceals, destroys, or alters any computer source code required by law shall be punishable with imprisonment up to three years, or fine up to two lakh rupees, or both.",
+            "punishment": "Imprisonment up to 3 years or fine up to ₹2,00,000 or both",
+            "relevance": "Applies when source code or electronic records are tampered with during investigation"
+        },
+        "65B": {
+            "title": "Admissibility of Electronic Records",
+            "summary": "Electronic records shall be admissible as evidence if: (1) produced by a computer in regular use, (2) information was regularly fed into the computer, (3) the computer was operating properly, (4) the duplicate is a reproduction of the original. A certificate identifying the electronic record must be signed by a senior person responsible for the computer.",
+            "punishment": "Not a criminal section — governs evidence admissibility procedures",
+            "relevance": "Critical for ensuring digital evidence is court-admissible. Every forensic examiner must follow 65B procedures.",
+            "certificate_requirements": [
+                "Identify the electronic record",
+                "Describe the manner of production",
+                "State the device was operating properly",
+                "Identify the person who signed (responsible officer)",
+                "Date and sign the certificate"
+            ]
+        },
+        "66": {
+            "title": "Computer Related Offences",
+            "summary": "If any person dishonestly or fraudulently performs any act referred to in Section 43 (unauthorized access, damage, virus introduction, etc.), they shall be punishable with imprisonment up to three years or fine up to five lakh rupees or both.",
+            "punishment": "Imprisonment up to 3 years or fine up to ₹5,00,000 or both",
+            "relevance": "Primary section for prosecuting hacking, unauthorized access, and data theft"
+        },
+        "66A": {
+            "title": "Punishment for Sending Offensive Messages (STRUCK DOWN)",
+            "summary": "This section was struck down by the Supreme Court in Shreya Singhal v. Union of India (2015) as unconstitutional for violating Article 19(1)(a) — freedom of speech.",
+            "punishment": "Section declared unconstitutional — no longer applicable",
+            "relevance": "Important legal precedent for understanding limits of cyber law"
+        },
+        "66B": {
+            "title": "Punishment for Dishonestly Receiving Stolen Computer Resource",
+            "summary": "Whoever dishonestly receives or retains any stolen computer resource or communication device shall be punished.",
+            "punishment": "Imprisonment up to 3 years or fine up to ₹1,00,000 or both",
+            "relevance": "Applies to possession of stolen devices or data"
+        },
+        "66C": {
+            "title": "Punishment for Identity Theft",
+            "summary": "Whoever fraudulently or dishonestly makes use of electronic signature, password, or any other unique identification feature of any other person shall be punished.",
+            "punishment": "Imprisonment up to 3 years and fine up to ₹1,00,000",
+            "relevance": "Applies to cases of identity theft, credential stuffing, and phishing"
+        },
+        "66D": {
+            "title": "Punishment for Cheating by Personation Using Computer Resource",
+            "summary": "Whoever by means of any communication device or computer resource cheats by personation shall be punished.",
+            "punishment": "Imprisonment up to 3 years and fine up to ₹1,00,000",
+            "relevance": "Covers social engineering, CEO fraud, and online impersonation"
+        },
+        "66E": {
+            "title": "Punishment for Violation of Privacy",
+            "summary": "Whoever intentionally or knowingly captures, publishes, or transmits the image of a private area of any person without their consent shall be punished.",
+            "punishment": "Imprisonment up to 3 years or fine up to ₹2,00,000 or both",
+            "relevance": "Privacy violation cases involving unauthorized surveillance"
+        },
+        "66F": {
+            "title": "Punishment for Cyber Terrorism",
+            "summary": "Whoever with intent to threaten unity, integrity, or sovereignty of India accesses a computer resource without authorization and causes significant harm shall be punished.",
+            "punishment": "Imprisonment which may extend to imprisonment for life",
+            "relevance": "Most severe cyber offence — applies to state-sponsored attacks and critical infrastructure targeting"
+        },
+        "67": {
+            "title": "Punishment for Publishing Obscene Material",
+            "summary": "Whoever publishes or transmits obscene material in electronic form shall be punished.",
+            "punishment": "First conviction: up to 3 years + ₹5,00,000. Subsequent: up to 5 years + ₹10,00,000",
+            "relevance": "Applies to CSAM investigations and obscene content distribution"
+        },
+        "70": {
+            "title": "Protected System",
+            "summary": "The appropriate Government may declare any computer resource essential to Critical Information Infrastructure (CII) as a Protected System. Unauthorized access to a Protected System is punishable.",
+            "punishment": "Imprisonment up to 10 years and fine",
+            "relevance": "Critical infrastructure protection — SCADA, power grids, financial systems"
+        },
+        "72": {
+            "title": "Breach of Confidentiality and Privacy",
+            "summary": "Any person who has secured access to any electronic record, book, register, correspondence, information, document or other material under this Act and discloses it to any other person without consent shall be punished.",
+            "punishment": "Imprisonment up to 2 years or fine up to ₹1,00,000 or both",
+            "relevance": "Investigator liability — forensic examiners must maintain confidentiality"
+        }
+    },
+    "chain_of_custody_checklist": [
+        "Document the date, time, and location of evidence collection",
+        "Record the name and designation of the collecting officer",
+        "Photograph the evidence in situ before touching or moving it",
+        "Use write-blockers before connecting any storage media for examination",
+        "Create a forensic image (bit-by-bit copy) of the original media",
+        "Generate and record hash values of evidence at collection time",
+        "Seal original evidence in tamper-evident bags with unique identifiers",
+        "Maintain a continuous log of every person who handles the evidence",
+        "Store evidence in a secure, access-controlled environment",
+        "Document every analysis step performed on the forensic copy"
+    ],
+    "evidence_handling_guidelines": [
+        "DO: Use write-blockers to prevent accidental modification of evidence",
+        "DO: Work only on forensic copies, never on original evidence",
+        "DO: Document every action performed during analysis",
+        "DO: Maintain separate chain-of-custody forms for each evidence item",
+        "DO: Use forensically sound tools certified for court proceedings",
+        "DON'T: Power on a suspect computer without proper documentation",
+        "DON'T: Connect storage devices without write-protection",
+        "DON'T: Share evidence data without proper authorization",
+        "DON'T: Delete, modify, or overwrite any files on original evidence",
+        "DON'T: Use the suspect's computer to browse its contents directly"
+    ],
+    "admissibility_tips": [
+        "Ensure all electronic evidence complies with Section 65B of the IT Act",
+        "Prepare a 65B certificate signed by a person in charge of the computer",
+        "Document the relevance and authenticity of each piece of digital evidence",
+        "Maintain an unbroken chain of custody from seizure to court presentation",
+        "Use internationally recognized forensic standards (ISO 27037, NIST 800-86)"
+    ],
+    "key_precedents": [
+        {
+            "case": "Shreya Singhal v. Union of India (2015)",
+            "summary": "Supreme Court struck down Section 66A as unconstitutional. Landmark ruling on free speech in cyberspace.",
+            "relevance": "Limits on criminalizing online speech"
+        },
+        {
+            "case": "Anvar P.V. v. P.K. Basheer (2014)",
+            "summary": "Supreme Court ruled that electronic evidence without Section 65B certificate is inadmissible. Overruled Navjot Sandhu case.",
+            "relevance": "65B certificate is mandatory for digital evidence admissibility"
+        },
+        {
+            "case": "Shafhi Mohammad v. State of Himachal Pradesh (2018)",
+            "summary": "Supreme Court softened the Anvar ruling — 65B certificate requirements may be relaxed when the original device owner cannot produce it.",
+            "relevance": "Practical flexibility for field investigators"
+        },
+        {
+            "case": "State of NCT of Delhi v. Navjot Sandhu (2005)",
+            "summary": "Allowed call records as electronic evidence. Later partially overruled by Anvar on 65B requirements.",
+            "relevance": "Historical context for electronic evidence jurisprudence"
+        },
+        {
+            "case": "Amitabh Bagchi v. Ena Bagchi (2005)",
+            "summary": "Email correspondence accepted as electronic evidence under Section 65B.",
+            "relevance": "Early precedent for email admissibility"
+        }
+    ]
+}

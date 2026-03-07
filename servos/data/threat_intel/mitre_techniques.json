@@ -1,0 +1,302 @@
+[
+    {
+        "id": "T1091",
+        "tactic": "Initial Access",
+        "name": "Replication Through Removable Media",
+        "description": "Adversaries may move onto systems by copying malware to removable media and taking advantage of Autorun features."
+    },
+    {
+        "id": "T1052",
+        "tactic": "Exfiltration",
+        "name": "Exfiltration Over Physical Medium",
+        "description": "Adversaries may attempt to exfiltrate data via a physical medium, such as a removable drive."
+    },
+    {
+        "id": "T1200",
+        "tactic": "Initial Access",
+        "name": "Hardware Additions",
+        "description": "Adversaries may introduce malicious hardware (e.g., BadUSB) to gain access to networks."
+    },
+    {
+        "id": "T1486",
+        "tactic": "Impact",
+        "name": "Data Encrypted for Impact",
+        "description": "Adversaries may encrypt data on target systems to interrupt availability (ransomware)."
+    },
+    {
+        "id": "T1490",
+        "tactic": "Impact",
+        "name": "Inhibit System Recovery",
+        "description": "Adversaries may delete or remove built-in OS recovery features (shadow copies, backups)."
+    },
+    {
+        "id": "T1547.001",
+        "tactic": "Persistence",
+        "name": "Registry Run Keys / Startup Folder",
+        "description": "Adding entries to Run keys or Startup folder for persistence."
+    },
+    {
+        "id": "T1053",
+        "tactic": "Persistence",
+        "name": "Scheduled Task/Job",
+        "description": "Abuse task scheduling to execute malicious code at system startup or on a schedule."
+    },
+    {
+        "id": "T1059.001",
+        "tactic": "Execution",
+        "name": "PowerShell",
+        "description": "Adversaries may abuse PowerShell commands and scripts for execution."
+    },
+    {
+        "id": "T1059.005",
+        "tactic": "Execution",
+        "name": "Visual Basic",
+        "description": "Adversaries may abuse VBScript for execution."
+    },
+    {
+        "id": "T1059.003",
+        "tactic": "Execution",
+        "name": "Windows Command Shell",
+        "description": "Abuse cmd.exe to execute commands and scripts."
+    },
+    {
+        "id": "T1566.001",
+        "tactic": "Initial Access",
+        "name": "Spearphishing Attachment",
+        "description": "Malicious attachments sent via email to gain initial access."
+    },
+    {
+        "id": "T1204.002",
+        "tactic": "Execution",
+        "name": "Malicious File",
+        "description": "User execution of a malicious file (double-click, open)."
+    },
+    {
+        "id": "T1027",
+        "tactic": "Defense Evasion",
+        "name": "Obfuscated Files or Information",
+        "description": "Encrypt, encode, or obfuscate payloads to evade detection."
+    },
+    {
+        "id": "T1140",
+        "tactic": "Defense Evasion",
+        "name": "Deobfuscate/Decode Files",
+        "description": "Use utilities to deobfuscate or decode files or information."
+    },
+    {
+        "id": "T1036",
+        "tactic": "Defense Evasion",
+        "name": "Masquerading",
+        "description": "Manipulate features to make malware appear legitimate (filename, icon)."
+    },
+    {
+        "id": "T1055",
+        "tactic": "Defense Evasion",
+        "name": "Process Injection",
+        "description": "Inject code into a running process to evade defenses and elevate privileges."
+    },
+    {
+        "id": "T1003",
+        "tactic": "Credential Access",
+        "name": "OS Credential Dumping",
+        "description": "Attempt to dump credentials from the OS (LSASS, SAM, etc.)."
+    },
+    {
+        "id": "T1552",
+        "tactic": "Credential Access",
+        "name": "Unsecured Credentials",
+        "description": "Search compromised systems for insecurely stored credentials."
+    },
+    {
+        "id": "T1021",
+        "tactic": "Lateral Movement",
+        "name": "Remote Services",
+        "description": "Use valid accounts to log into remote services (RDP, SSH, SMB)."
+    },
+    {
+        "id": "T1570",
+        "tactic": "Lateral Movement",
+        "name": "Lateral Tool Transfer",
+        "description": "Transfer tools between systems within a compromised environment."
+    },
+    {
+        "id": "T1071",
+        "tactic": "Command and Control",
+        "name": "Application Layer Protocol",
+        "description": "Communicate using application layer protocols (HTTP, HTTPS, DNS)."
+    },
+    {
+        "id": "T1105",
+        "tactic": "Command and Control",
+        "name": "Ingress Tool Transfer",
+        "description": "Transfer tools from an external system into the compromised environment."
+    },
+    {
+        "id": "T1041",
+        "tactic": "Exfiltration",
+        "name": "Exfiltration Over C2 Channel",
+        "description": "Steal data by exfiltrating it over the existing C2 channel."
+    },
+    {
+        "id": "T1078",
+        "tactic": "Initial Access",
+        "name": "Valid Accounts",
+        "description": "Use stolen or valid credentials to maintain access."
+    },
+    {
+        "id": "T1562",
+        "tactic": "Defense Evasion",
+        "name": "Impair Defenses",
+        "description": "Disable or tamper with security tools (antivirus, firewall, logging)."
+    },
+    {
+        "id": "T1112",
+        "tactic": "Defense Evasion",
+        "name": "Modify Registry",
+        "description": "Interact with the Windows Registry to hide configuration or aid persistence."
+    },
+    {
+        "id": "T1070",
+        "tactic": "Defense Evasion",
+        "name": "Indicator Removal",
+        "description": "Delete or modify artifacts to remove evidence of intrusion."
+    },
+    {
+        "id": "T1497",
+        "tactic": "Defense Evasion",
+        "name": "Virtualization/Sandbox Evasion",
+        "description": "Detect and avoid virtualization and sandbox environments."
+    },
+    {
+        "id": "T1569",
+        "tactic": "Execution",
+        "name": "System Services",
+        "description": "Abuse system services for execution (service creation/modification)."
+    },
+    {
+        "id": "T1218",
+        "tactic": "Defense Evasion",
+        "name": "System Binary Proxy Execution",
+        "description": "Use signed binaries to proxy execution (rundll32, mshta, etc.)."
+    },
+    {
+        "id": "T1543",
+        "tactic": "Persistence",
+        "name": "Create or Modify System Process",
+        "description": "Create or modify system-level processes for persistence."
+    },
+    {
+        "id": "T1098",
+        "tactic": "Persistence",
+        "name": "Account Manipulation",
+        "description": "Modify accounts to maintain access (add credentials, change permissions)."
+    },
+    {
+        "id": "T1560",
+        "tactic": "Collection",
+        "name": "Archive Collected Data",
+        "description": "Compress and/or encrypt collected data prior to exfiltration."
+    },
+    {
+        "id": "T1119",
+        "tactic": "Collection",
+        "name": "Automated Collection",
+        "description": "Use automated techniques to collect internal data."
+    },
+    {
+        "id": "T1113",
+        "tactic": "Collection",
+        "name": "Screen Capture",
+        "description": "Take screen captures of the victim's desktop."
+    },
+    {
+        "id": "T1056",
+        "tactic": "Collection",
+        "name": "Input Capture",
+        "description": "Capture user input (keylogging, credential interception)."
+    },
+    {
+        "id": "T1082",
+        "tactic": "Discovery",
+        "name": "System Information Discovery",
+        "description": "Attempt to get detailed information about the OS and hardware."
+    },
+    {
+        "id": "T1083",
+        "tactic": "Discovery",
+        "name": "File and Directory Discovery",
+        "description": "Enumerate files and directories on the target system."
+    },
+    {
+        "id": "T1057",
+        "tactic": "Discovery",
+        "name": "Process Discovery",
+        "description": "Get information about running processes on a system."
+    },
+    {
+        "id": "T1016",
+        "tactic": "Discovery",
+        "name": "System Network Configuration Discovery",
+        "description": "Look for details about network configuration (interfaces, IPs, routes)."
+    },
+    {
+        "id": "T1049",
+        "tactic": "Discovery",
+        "name": "System Network Connections Discovery",
+        "description": "Attempt to get a listing of network connections (netstat)."
+    },
+    {
+        "id": "T1518",
+        "tactic": "Discovery",
+        "name": "Software Discovery",
+        "description": "Attempt to get a listing of software and versions installed."
+    },
+    {
+        "id": "T1012",
+        "tactic": "Discovery",
+        "name": "Query Registry",
+        "description": "Interact with the Windows Registry to gather information."
+    },
+    {
+        "id": "T1007",
+        "tactic": "Discovery",
+        "name": "System Service Discovery",
+        "description": "Get information about registered services."
+    },
+    {
+        "id": "T1124",
+        "tactic": "Discovery",
+        "name": "System Time Discovery",
+        "description": "Gather system time and time zone information."
+    },
+    {
+        "id": "T1614",
+        "tactic": "Discovery",
+        "name": "System Location Discovery",
+        "description": "Gather information about the victim system's geographic location."
+    },
+    {
+        "id": "T1531",
+        "tactic": "Impact",
+        "name": "Account Access Removal",
+        "description": "Interrupt availability by removing access to accounts."
+    },
+    {
+        "id": "T1489",
+        "tactic": "Impact",
+        "name": "Service Stop",
+        "description": "Stop or disable services to render them unavailable."
+    },
+    {
+        "id": "T1529",
+        "tactic": "Impact",
+        "name": "System Shutdown/Reboot",
+        "description": "Shutdown or reboot the system to interrupt access or aid destruction."
+    },
+    {
+        "id": "T1485",
+        "tactic": "Impact",
+        "name": "Data Destruction",
+        "description": "Destroy data and files on specific systems or across a network."
+    }
+]

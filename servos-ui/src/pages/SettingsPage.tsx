@@ -7,11 +7,22 @@ export default function SettingsPage() {
     const [settings, setSettings] = useState<Record<string, any>>({})
     const [llm, setLlm] = useState<{ available: boolean; model: string; base_url: string } | null>(null)
     const [saving, setSaving] = useState(false)
+    const [mode, setMode] = useState('hybrid')
 
     useEffect(() => {
         getSettings().then((r) => setSettings(r.settings)).catch(() => { })
         getLLMStatus().then((r) => setLlm(r)).catch(() => { })
+        fetch('/api/settings/mode').then(r => r.json()).then(d => setMode(d.mode)).catch(() => { })
     }, [])
+
+    const changeMode = async (m: string) => {
+        setMode(m)
+        await fetch('/api/settings/mode', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mode: m }),
+        }).catch(() => { })
+    }
 
     const handleSave = async () => {
         setSaving(true)
@@ -55,6 +66,41 @@ export default function SettingsPage() {
                         )}
                     </div>
 
+                    {/* Investigation Mode */}
+                    <div className="bg-servos-surface border border-servos-border rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Shield size={14} className="text-accent" />
+                            <h3 className="text-sm font-semibold text-cream">Investigation Mode</h3>
+                        </div>
+                        <div className="space-y-2">
+                            {[
+                                { id: 'full', label: 'Full Automation', desc: 'USB detected → auto-backup → auto-scan → auto-report' },
+                                { id: 'hybrid', label: 'Hybrid', desc: 'Prompts for confirmation at each major step' },
+                                { id: 'manual', label: 'Manual', desc: 'Notification only — you control every step' },
+                            ].map(({ id, label, desc }) => (
+                                <label
+                                    key={id}
+                                    className={`flex items-start gap-3 p-2.5 rounded-lg cursor-pointer border transition-colors ${mode === id
+                                            ? 'bg-accent/10 border-accent/30'
+                                            : 'border-transparent hover:bg-white/[0.03]'
+                                        }`}
+                                >
+                                    <input
+                                        type="radio"
+                                        name="investigation_mode"
+                                        checked={mode === id}
+                                        onChange={() => changeMode(id)}
+                                        className="accent-accent mt-0.5"
+                                    />
+                                    <div>
+                                        <p className="text-xs font-medium text-cream">{label}</p>
+                                        <p className="text-[10px] text-cream-dim">{desc}</p>
+                                    </div>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+
                     {/* Data Directories */}
                     <div className="bg-servos-surface border border-servos-border rounded-lg p-4">
                         <div className="flex items-center gap-2 mb-3">
@@ -88,7 +134,7 @@ export default function SettingsPage() {
                                 <input
                                     type="checkbox"
                                     checked={!!settings.auto_investigate}
-                                    onChange={e => setSettings({...settings, auto_investigate: e.target.checked})}
+                                    onChange={e => setSettings({ ...settings, auto_investigate: e.target.checked })}
                                     className="accent-accent"
                                 />
                                 Automatically investigate new devices
@@ -101,7 +147,7 @@ export default function SettingsPage() {
                                     type="number"
                                     step="0.5"
                                     value={settings.usb_poll_interval || 2}
-                                    onChange={e => setSettings({...settings, usb_poll_interval: parseFloat(e.target.value)})}
+                                    onChange={e => setSettings({ ...settings, usb_poll_interval: parseFloat(e.target.value) })}
                                     className="w-24 bg-servos-bg border border-servos-border rounded-lg py-1 px-2 text-xs text-cream font-mono focus:border-accent focus:outline-none"
                                 />
                             </div>
@@ -119,7 +165,7 @@ export default function SettingsPage() {
                                 <input
                                     type="checkbox"
                                     checked={!!settings.enable_network_monitor}
-                                    onChange={e => setSettings({...settings, enable_network_monitor: e.target.checked})}
+                                    onChange={e => setSettings({ ...settings, enable_network_monitor: e.target.checked })}
                                     className="accent-accent"
                                 />
                                 Enable network interface monitoring
@@ -128,7 +174,7 @@ export default function SettingsPage() {
                                 <input
                                     type="checkbox"
                                     checked={!!settings.enable_process_monitor}
-                                    onChange={e => setSettings({...settings, enable_process_monitor: e.target.checked})}
+                                    onChange={e => setSettings({ ...settings, enable_process_monitor: e.target.checked })}
                                     className="accent-accent"
                                 />
                                 Enable process creation monitoring
@@ -137,7 +183,7 @@ export default function SettingsPage() {
                                 <input
                                     type="checkbox"
                                     checked={!!settings.enable_file_watcher}
-                                    onChange={e => setSettings({...settings, enable_file_watcher: e.target.checked})}
+                                    onChange={e => setSettings({ ...settings, enable_file_watcher: e.target.checked })}
                                     className="accent-accent"
                                 />
                                 Enable file system watcher
@@ -149,7 +195,7 @@ export default function SettingsPage() {
                                 <input
                                     type="text"
                                     value={(settings.watch_paths || []).join(',')}
-                                    onChange={e => setSettings({...settings, watch_paths: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})}
+                                    onChange={e => setSettings({ ...settings, watch_paths: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
                                     className="w-full bg-servos-bg border border-servos-border rounded-lg py-2 px-3 text-xs text-cream font-mono focus:border-accent focus:outline-none"
                                 />
                             </div>
@@ -164,7 +210,7 @@ export default function SettingsPage() {
                         </div>
                         <p className="text-[11px] text-cream-dim leading-relaxed">
                             All forensic data is stored locally. No network connections are established.
-                            Evidence integrity is preserved via SHA-256 hashing. Audit logs are immutable.
+                            Evidence integrity is preserved via YARA pattern matching and metadata analysis. Audit logs are immutable.
                         </p>
                     </div>
 

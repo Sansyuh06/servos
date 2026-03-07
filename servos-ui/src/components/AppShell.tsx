@@ -1,17 +1,17 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import {
-    LayoutDashboard, Search, FolderOpen, FileText,
-    Settings, LogOut, Shield, Wifi, WifiOff, Sparkles, Cpu, Bell, Wrench
+    Settings, LogOut
 } from 'lucide-react'
 
 const NAV_ITEMS = [
-    { id: '/', label: 'AI Chat', icon: Sparkles },
-    { id: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: '/network', label: 'Network Scan', icon: Wifi },
-    { id: '/deep', label: 'Threat Scan', icon: Shield },
-    { id: '/alerts', label: 'Alerts', icon: Bell },
-    { id: '/settings', label: 'Settings', icon: Settings },
+    { id: '/', label: 'AI Chat', icon: '/doodles/chat.png' },
+    { id: '/dashboard', label: 'Dashboard', icon: '/doodles/dashboard.png' },
+    { id: '/network', label: 'Network Scan', icon: '/doodles/network.png' },
+    { id: '/deep', label: 'Threat Scan', icon: '/doodles/threat.png' },
+    { id: '/legal', label: 'Legal & Procedure', icon: '/doodles/legal.png' },
+    { id: '/alerts', label: 'Alerts', icon: '/doodles/alerts.png' },
+    { id: '/settings', label: 'Settings', icon: '/doodles/settings.png' },
 ]
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -39,7 +39,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
                 {/* Nav links */}
                 <nav className="flex-1 px-3 py-4 space-y-1">
-                    {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
+                    {NAV_ITEMS.map(({ id, label, icon }) => {
                         const isActive = location.pathname === id || (id !== '/' && location.pathname.startsWith(id))
                         return (
                             <button
@@ -50,7 +50,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                                     : 'text-cream-dim hover:bg-servos-hover hover:text-cream'
                                     }`}
                             >
-                                <Icon size={16} />
+                                <img
+                                    src={icon}
+                                    alt={`${label} icon`}
+                                    className={`w-6 h-6 object-contain transition-all duration-200 ${isActive ? 'opacity-100 drop-shadow-md' : 'opacity-60 grayscale'}`}
+                                />
                                 {label}
                             </button>
                         )
