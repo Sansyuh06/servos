@@ -9,6 +9,8 @@ import ChatPage from '@/pages/ChatPage'
 import AlertsPage from '@/pages/AlertsPage'
 import AppShell from '@/components/AppShell'
 import LegalPage from '@/pages/LegalPage'
+import InvestigationsPage from '@/pages/InvestigationsPage'
+import WorkspacePage from '@/pages/WorkspacePage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
     const isAuth = useAuthStore((s) => s.isAuthenticated)
@@ -29,6 +31,9 @@ export default function App() {
                                 <Route index element={<ChatPage />} />
                                 <Route path="chat" element={<ChatPage />} />
                                 <Route path="dashboard" element={<DashboardPage />} />
+                                <Route path="investigate" element={<InvestigationsPage />} />
+                                <Route path="workspace" element={<InvestigationsPage />} />
+                                <Route path="workspace/:caseId" element={<WorkspacePage />} />
                                 <Route path="network" element={<NetworkScanPage />} />
                                 <Route path="deep" element={<MalwareDeepPage />} />
                                 <Route path="legal" element={<LegalPage />} />

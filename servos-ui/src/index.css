@@ -29,7 +29,7 @@
 
 @font-face {
     font-family: 'TT Firs Neue';
-    src: local('TT Firs Neue'), local('TTFirsNeue-Regular');
+    src: url('/fonts/TT Firs Neue Trial DemiBold.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
     font-display: swap;
@@ -37,7 +37,7 @@
 
 @font-face {
     font-family: 'TT Firs Neue';
-    src: local('TT Firs Neue Medium'), local('TTFirsNeue-Medium');
+    src: url('/fonts/TT Firs Neue Trial DemiBold.ttf') format('truetype');
     font-weight: 500;
     font-style: normal;
     font-display: swap;
@@ -45,7 +45,7 @@
 
 @font-face {
     font-family: 'TT Firs Neue';
-    src: local('TT Firs Neue Bold'), local('TTFirsNeue-Bold');
+    src: url('/fonts/TT Firs Neue Trial DemiBold.ttf') format('truetype');
     font-weight: 700;
     font-style: normal;
     font-display: swap;
