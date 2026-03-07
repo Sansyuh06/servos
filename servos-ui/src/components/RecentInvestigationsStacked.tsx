@@ -36,9 +36,10 @@ export function RecentInvestigationsStacked({ cases, onCaseClick }: { cases: any
                     key={item.id}
                     id={item.id}
                     author={item.investigator}
-                    testimonial={`Case ${item.id.slice(0, 8)} - ${item.mode.toUpperCase()}`}
+                    testimonial={`Case ${item.id.slice(0, 8)} - ${(item.mode || 'auto').toUpperCase()}`}
                     position={item.position}
                     handleShuffle={handleShuffle}
+                    onClick={() => onCaseClick(item)}
                 />
             ))}
             <div className="absolute bottom-4 text-xs text-cream-dim animate-pulse">

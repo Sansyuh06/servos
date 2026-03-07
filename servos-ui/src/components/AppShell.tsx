@@ -8,13 +8,8 @@ import {
 const NAV_ITEMS = [
     { id: '/', label: 'AI Chat', icon: Sparkles },
     { id: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: '/investigate', label: 'Investigate', icon: Search },
     { id: '/network', label: 'Network Scan', icon: Wifi },
-    { id: '/memory', label: 'Memory', icon: Cpu },
-    { id: '/logs', label: 'Logs', icon: FileText },
-    { id: '/registry', label: 'Registry', icon: FolderOpen },
-    { id: '/deep', label: 'Malware Deep', icon: Shield },
-    { id: '/orchestrator', label: 'Multi Scan', icon: Wrench },
+    { id: '/deep', label: 'Threat Scan', icon: Shield },
     { id: '/alerts', label: 'Alerts', icon: Bell },
     { id: '/settings', label: 'Settings', icon: Settings },
 ]

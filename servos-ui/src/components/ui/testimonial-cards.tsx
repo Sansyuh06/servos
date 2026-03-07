@@ -2,8 +2,9 @@
 
 import * as React from 'react';
 import { motion } from 'framer-motion';
+import { FolderOpen } from 'lucide-react';
 
-export function TestimonialCard({ handleShuffle, testimonial, position, id, author }: { handleShuffle: () => void, testimonial: string, position: 'front' | 'middle' | 'back', id: string, author: string }) {
+export function TestimonialCard({ handleShuffle, testimonial, position, id, author, onClick }: { handleShuffle: () => void, testimonial: string, position: 'front' | 'middle' | 'back', id: string, author: string, onClick?: () => void }) {
   const dragRef = React.useRef(0);
   const isFront = position === "front";
 
@@ -35,17 +36,24 @@ export function TestimonialCard({ handleShuffle, testimonial, position, id, auth
         }
         dragRef.current = 0;
       }}
+      onClick={() => {
+        if (isFront && onClick) {
+          // Trigger click only on front card to view case details
+          onClick();
+        } else if (!isFront) {
+          // Shuffle if clicking a background card
+          handleShuffle();
+        }
+      }}
       transition={{ duration: 0.35 }}
-      className={`absolute left-0 top-0 grid h-[450px] w-[350px] select-none place-content-center space-y-6 rounded-2xl border-2 border-slate-700 bg-slate-800/20 p-6 shadow-xl backdrop-blur-md ${isFront ? "cursor-grab active:cursor-grabbing" : ""
+      className={`absolute left-[calc(50%-175px)] top-[calc(50%-225px)] flex flex-col items-center justify-center space-y-6 h-[450px] w-[350px] select-none rounded-2xl border-2 border-servos-border bg-servos-surface/80 p-6 shadow-xl backdrop-blur-md ${isFront ? "cursor-grab active:cursor-grabbing" : ""
         }`}
     >
-      <img
-        src={`https://i.pravatar.cc/128?img=${id}`}
-        alt={`Avatar of ${author}`}
-        className="pointer-events-none mx-auto h-32 w-32 rounded-full border-2 border-slate-700 bg-slate-200 object-cover"
-      />
-      <span className="text-center text-lg italic text-slate-400">"{testimonial}"</span>
-      <span className="text-center text-sm font-medium text-indigo-400">{author}</span>
+      <div className="mx-auto flex h-32 w-32 items-center justify-center rounded-full border-4 border-accent bg-servos-elevated shadow-[0_0_20px_rgba(156,138,185,0.4)]">
+        <FolderOpen size={48} className="text-cream" />
+      </div>
+      <span className="text-center text-lg font-bold text-cream-bright font-mono">{testimonial}</span>
+      <span className="text-center text-sm font-medium text-accent">Investigator: {author}</span>
     </motion.div>
   );
 };

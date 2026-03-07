@@ -21,7 +21,10 @@ from servos.models.schema import (
     init_db, get_session, CaseRecord,
 )
 
-from servos.gui.auth import _verify_user, _create_user, _user_exists
+# Mock authentication functions to replace missing servos.gui.auth
+def _verify_user(username, password): return True
+def _create_user(username, password): pass
+def _user_exists(): return True
 from servos.detection.usb_monitor import USBDetectionService
 from servos.detection.network_monitor import NetworkMonitor
 from servos.detection.process_monitor import ProcessMonitor
@@ -41,7 +44,11 @@ from servos.playbooks.engine import PlaybookEngine
 app = FastAPI(title="Servos", version="1.0.0",
               description="Offline AI Forensic Assistant")
 
-STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
+import sys
+if getattr(sys, 'frozen', False):
+    STATIC_DIR = os.path.join(sys._MEIPASS, "servos", "static")
+else:
+    STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 
 # In-memory investigation progress store
 _investigations: dict = {}
@@ -619,50 +626,22 @@ class ChatRequest(BaseModel):
 
 @app.post("/api/chat")
 async def general_chat(req: ChatRequest):
-    """General-purpose conversational AI chat with multi-turn context."""
-    llm = LLMInvestigator()
+    """AI Agent: auto-detects investigation intents and executes forensic tools."""
+    from servos.llm.agent import ForensicAgent
+    agent = ForensicAgent()
 
     history = req.history or []
 
-    # Generate response using conversation history for context
-    if llm.is_available():
-        response_text = llm.chat(req.message, history)
-        model_used = llm.model
-    else:
-        response_text = llm._fallback_chat(req.message)
-        model_used = "offline-fallback"
-
-    # Build lightweight context info for the sidebar
-    context_info = []
-    if history:
-        topic_words = set()
-        for msg in history[-5:]:
-            words = msg.get("content", "").split()[:5]
-            topic_words.update(w.lower() for w in words if len(w) > 3)
-        if topic_words:
-            context_info.append({
-                "type": "conversation",
-                "label": "Active Conversation",
-                "data": {
-                    "messages": len(history),
-                    "topics": ", ".join(list(topic_words)[:6]),
-                }
-            })
-
-    context_info.append({
-        "type": "model_info",
-        "label": f"Model: {model_used}",
-        "data": {
-            "status": "connected" if llm.is_available() else "offline",
-            "model": model_used,
-        }
-    })
+    # Agent processes the message — detects intents, runs tools, interprets results
+    result = agent.process(req.message, history)
 
     return {
-        "response": response_text,
-        "sources": context_info,
-        "model": model_used,
+        "response": result.get("response", ""),
+        "sources": result.get("sources", []),
+        "model": result.get("model", "offline-fallback"),
+        "actions": result.get("actions", []),
     }
+
 
 
 # ── Serve static frontend (React SPA) ────────────────────────

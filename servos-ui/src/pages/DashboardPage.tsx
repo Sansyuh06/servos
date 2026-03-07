@@ -165,7 +165,7 @@ export default function DashboardPage() {
                             </div>
                         ) : (
                             <div className="bg-servos-surface border border-servos-border rounded-lg overflow-hidden flex justify-center py-8">
-                                <RecentInvestigationsStacked cases={cases} onCaseClick={(c: any) => navigate(`/workspace/${c.id}`)} />
+                                <RecentInvestigationsStacked cases={cases} onCaseClick={(c: any) => navigate(`/chat?case=${c.id}`)} />
                             </div>
                         )}
                     </section>
