@@ -4,19 +4,10 @@ const BASE = '/api'
 
 // ── Chat (RAG) ──
 
-export interface ChatAction {
-    tool_id: string
-    tool_name: string
-    icon: string
-    status: string
-    summary: string
-}
-
 export interface ChatResponse {
     response: string
     sources: { type: string; label: string; data: any }[]
     model: string
-    actions?: ChatAction[]
 }
 
 export async function sendChatMessage(
@@ -28,7 +19,7 @@ export async function sendChatMessage(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message, history: history || [] }),
     })
-    if (!res.ok) throw new Error(`Chat error: ${res.status}`)
+    if(!res.ok) throw new Error(`Chat error: ${res.status}`)
     return res.json()
 }
 
@@ -39,7 +30,7 @@ async function request<T>(path: string, opts?: RequestInit): Promise<T> {
         headers: { 'Content-Type': 'application/json' },
         ...opts,
     })
-    if (!res.ok) {
+    if(!res.ok) {
         const err = await res.text().catch(() => res.statusText)
         throw new Error(`API ${res.status}: ${err}`)
     }

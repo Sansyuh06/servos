@@ -20,16 +20,6 @@ from servos.models.schema import (
     DeviceInfo, Case, ForensicFindings, LLMInterpretation,
     init_db, get_session, CaseRecord,
 )
-from servos.legal.advisor import (
-    get_legal_checklist, get_section_summary, get_all_sections,
-    get_admissibility_tips, get_evidence_handling_guide,
-    get_key_precedents, get_full_legal_reference,
-)
-from servos.threat_intel.loader import (
-    load_suspicious_path_patterns, load_mitre_techniques,
-    load_all_parsed_rules, check_path_suspicious, scan_file_yara,
-)
-from servos.models.investigation_mode import InvestigationMode
 
 # Mock authentication functions to replace missing servos.gui.auth
 def _verify_user(username, password): return True
@@ -54,11 +44,7 @@ from servos.playbooks.engine import PlaybookEngine
 app = FastAPI(title="Servos", version="1.0.0",
               description="Offline AI Forensic Assistant")
 
-import sys
-if getattr(sys, 'frozen', False):
-    STATIC_DIR = os.path.join(sys._MEIPASS, "servos", "static")
-else:
-    STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
+STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 
 # In-memory investigation progress store
 _investigations: dict = {}
@@ -636,26 +622,70 @@ class ChatRequest(BaseModel):
 
 @app.post("/api/chat")
 async def general_chat(req: ChatRequest):
-    """AI Agent: auto-detects investigation intents and executes forensic tools."""
-    from servos.llm.agent import ForensicAgent
-    agent = ForensicAgent()
+    """General-purpose conversational AI chat with multi-turn context."""
+    llm = LLMInvestigator()
 
     history = req.history or []
 
-    # Agent processes the message — detects intents, runs tools, interprets results
-    result = agent.process(req.message, history)
+    # Generate response using conversation history for context
+    if llm.is_available():
+        response_text = llm.chat(req.message, history)
+        model_used = llm.model
+    else:
+        response_text = llm._fallback_chat(req.message)
+        model_used = "offline-fallback"
+
+    # Build lightweight context info for the sidebar
+    context_info = []
+    if history:
+        topic_words = set()
+        for msg in history[-5:]:
+            words = msg.get("content", "").split()[:5]
+            topic_words.update(w.lower() for w in words if len(w) > 3)
+        if topic_words:
+            context_info.append({
+                "type": "conversation",
+                "label": "Active Conversation",
+                "data": {
+                    "messages": len(history),
+                    "topics": ", ".join(list(topic_words)[:6]),
+                }
+            })
+
+    context_info.append({
+        "type": "model_info",
+        "label": f"Model: {model_used}",
+        "data": {
+            "status": "connected" if llm.is_available() else "offline",
+            "model": model_used,
+        }
+    })
 
     return {
-        "response": result.get("response", ""),
-        "sources": result.get("sources", []),
-        "model": result.get("model", "offline-fallback"),
-        "actions": result.get("actions", []),
+        "response": response_text,
+        "sources": context_info,
+        "model": model_used,
     }
 
 
+# ── Serve static frontend (React SPA) ────────────────────────
 
-# (SPA static serving moved to end of file to avoid intercepting API routes)
+# Serve Vite-built assets
+if os.path.isdir(os.path.join(STATIC_DIR, "assets")):
+    app.mount("/assets", StaticFiles(directory=os.path.join(STATIC_DIR, "assets")), name="assets")
 
+@app.get("/")
+async def index():
+    return FileResponse(os.path.join(STATIC_DIR, "index.html"))
+
+# Catch-all for React client-side routing (login, investigate, workspace, etc.)
+@app.get("/{path:path}")
+async def spa_fallback(path: str):
+    # Don't override API routes or actual static files
+    file_path = os.path.join(STATIC_DIR, path)
+    if os.path.isfile(file_path):
+        return FileResponse(file_path)
+    return FileResponse(os.path.join(STATIC_DIR, "index.html"))
 
 # ── Helpers ──────────────────────────────────────────────────
 
@@ -726,167 +756,3 @@ def _save_case_to_db(case: Case):
         session.close()
     except Exception:
         pass
-
-
-# ── API: Legal & Procedure ───────────────────────────────────
-
-@app.get("/api/legal/checklist")
-async def legal_checklist():
-    return {"checklist": get_legal_checklist()}
-
-@app.get("/api/legal/sections")
-async def legal_sections():
-    return {"sections": get_all_sections()}
-
-@app.get("/api/legal/section/{section_id}")
-async def legal_section(section_id: str):
-    return get_section_summary(section_id)
-
-@app.get("/api/legal/tips")
-async def legal_tips():
-    return {
-        "admissibility_tips": get_admissibility_tips(),
-        "evidence_handling": get_evidence_handling_guide(),
-    }
-
-@app.get("/api/legal/precedents")
-async def legal_precedents():
-    return {"precedents": get_key_precedents()}
-
-@app.get("/api/legal/full")
-async def legal_full():
-    return get_full_legal_reference()
-
-
-# ── API: Threat Intelligence ─────────────────────────────────
-
-@app.get("/api/threat-intel/patterns")
-async def threat_patterns():
-    return {"patterns": load_suspicious_path_patterns()}
-
-@app.get("/api/threat-intel/mitre")
-async def threat_mitre():
-    return {"techniques": load_mitre_techniques()}
-
-@app.get("/api/threat-intel/rules")
-async def threat_rules():
-    rules = load_all_parsed_rules()
-    # Don't send raw bytes over JSON
-    return {"rules": [
-        {"name": r["name"], "severity": r["severity"],
-         "source": r["source_file"], "description": r["meta"].get("description", ""),
-         "category": r["meta"].get("category", ""), "string_count": len(r["strings"])}
-        for r in rules
-    ]}
-
-@app.post("/api/threat-intel/scan-path")
-async def threat_scan_path(req: ScanRequest):
-    """Run threat intel path + YARA scan on a target directory."""
-    import os
-    target = req.target_path
-    if not os.path.exists(target):
-        raise HTTPException(404, f"Path not found: {target}")
-
-    rules = load_all_parsed_rules()
-    results = []
-    files_scanned = 0
-
-    for root, dirs, files in os.walk(target):
-        for fname in files[:500]:  # Limit for performance
-            fpath = os.path.join(root, fname)
-            files_scanned += 1
-            path_matches = check_path_suspicious(fpath)
-            yara_matches = scan_file_yara(fpath, rules)
-            if path_matches or yara_matches:
-                results.append({
-                    "file_path": fpath,
-                    "suspicious_path": bool(path_matches),
-                    "matched_patterns": path_matches,
-                    "yara_matches": [m["rule"] for m in yara_matches],
-                    "severity": yara_matches[0]["severity"] if yara_matches else "low",
-                })
-
-    risk = "LOW"
-    if any(r.get("severity") == "critical" for r in results):
-        risk = "CRITICAL"
-    elif any(r.get("severity") == "high" for r in results):
-        risk = "HIGH"
-    elif results:
-        risk = "MEDIUM"
-
-    return {
-        "files_scanned": files_scanned,
-        "findings": results,
-        "risk_level": risk,
-        "suspicious_count": len(results),
-    }
-
-
-# ── API: Investigation Mode ──────────────────────────────────
-
-@app.get("/api/settings/mode")
-async def get_mode():
-    cfg = get_config()
-    mode = cfg.get("investigation_mode", "hybrid")
-    m = InvestigationMode.from_str(mode)
-    return {"mode": m.value, "description": m.description}
-
-@app.put("/api/settings/mode")
-async def set_mode(body: dict):
-    mode_str = body.get("mode", "hybrid")
-    m = InvestigationMode.from_str(mode_str)
-    save_config({"investigation_mode": m.value})
-    return {"mode": m.value, "description": m.description}
-
-
-# ── API: LLM Investigation Summary ──────────────────────────
-
-@app.post("/api/investigate/summary")
-async def investigation_summary(body: dict = {}):
-    """Generate an AI summary of investigation findings."""
-    try:
-        from servos.llm.investigator import LLMInvestigator
-        inv = LLMInvestigator()
-        cfg = get_config()
-        mode = cfg.get("investigation_mode", "hybrid")
-
-        findings = body.get("findings", {})
-        prompt = f"""You are a senior cyber forensic investigator. Summarize these investigation findings:
-
-Investigation Mode: {mode.upper()}
-Findings: {json.dumps(findings, indent=2)[:2000]}
-
-Provide:
-1. A 3-5 bullet point summary of key findings
-2. Risk assessment (LOW/MEDIUM/HIGH/CRITICAL)
-3. 3 recommended next steps
-4. Any relevant Indian IT Act sections that apply
-
-Be concise and actionable."""
-
-        result = inv.query(prompt)
-        return {"summary": result, "mode": mode}
-    except Exception as e:
-        return {"summary": f"LLM unavailable: {e}", "mode": "unknown"}
-
-
-# ── Serve static frontend (React SPA) ────────────────────────
-# IMPORTANT: This MUST be the last route registered so it doesn't
-# intercept API endpoints.
-
-# Serve Vite-built assets
-if os.path.isdir(os.path.join(STATIC_DIR, "assets")):
-    app.mount("/assets", StaticFiles(directory=os.path.join(STATIC_DIR, "assets")), name="assets")
-
-@app.get("/")
-async def index():
-    return FileResponse(os.path.join(STATIC_DIR, "index.html"))
-
-# Catch-all for React client-side routing
-@app.get("/{path:path}")
-async def spa_fallback(path: str):
-    file_path = os.path.join(STATIC_DIR, path)
-    if os.path.isfile(file_path):
-        return FileResponse(file_path)
-    return FileResponse(os.path.join(STATIC_DIR, "index.html"))
-

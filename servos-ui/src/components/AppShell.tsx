@@ -1,17 +1,22 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import {
-    Settings, LogOut
+    LayoutDashboard, Search, FolderOpen, FileText,
+    Settings, LogOut, Shield, Wifi, WifiOff, Sparkles, Cpu, Bell, Wrench
 } from 'lucide-react'
 
 const NAV_ITEMS = [
-    { id: '/', label: 'AI Chat', icon: '/doodles/chat.png' },
-    { id: '/dashboard', label: 'Dashboard', icon: '/doodles/dashboard.png' },
-    { id: '/network', label: 'Network Scan', icon: '/doodles/network.png' },
-    { id: '/deep', label: 'Threat Scan', icon: '/doodles/threat.png' },
-    { id: '/legal', label: 'Legal & Procedure', icon: '/doodles/legal.png' },
-    { id: '/alerts', label: 'Alerts', icon: '/doodles/alerts.png' },
-    { id: '/settings', label: 'Settings', icon: '/doodles/settings.png' },
+    { id: '/', label: 'AI Chat', icon: Sparkles },
+    { id: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: '/investigate', label: 'Investigate', icon: Search },
+    { id: '/network', label: 'Network Scan', icon: Wifi },
+    { id: '/memory', label: 'Memory', icon: Cpu },
+    { id: '/logs', label: 'Logs', icon: FileText },
+    { id: '/registry', label: 'Registry', icon: FolderOpen },
+    { id: '/deep', label: 'Malware Deep', icon: Shield },
+    { id: '/orchestrator', label: 'Multi Scan', icon: Wrench },
+    { id: '/alerts', label: 'Alerts', icon: Bell },
+    { id: '/settings', label: 'Settings', icon: Settings },
 ]
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -39,7 +44,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
                 {/* Nav links */}
                 <nav className="flex-1 px-3 py-4 space-y-1">
-                    {NAV_ITEMS.map(({ id, label, icon }) => {
+                    {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
                         const isActive = location.pathname === id || (id !== '/' && location.pathname.startsWith(id))
                         return (
                             <button
@@ -50,11 +55,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                                     : 'text-cream-dim hover:bg-servos-hover hover:text-cream'
                                     }`}
                             >
-                                <img
-                                    src={icon}
-                                    alt={`${label} icon`}
-                                    className={`w-7 h-7 object-contain transition-all duration-200 ${isActive ? 'opacity-100 brightness-150 drop-shadow-[0_0_8px_rgba(255,255,255,0.6)] scale-105' : 'opacity-90 brightness-125 drop-shadow-[0_0_2px_rgba(255,255,255,0.2)] hover:opacity-100 hover:brightness-150'}`}
-                                />
+                                <Icon size={16} />
                                 {label}
                             </button>
                         )

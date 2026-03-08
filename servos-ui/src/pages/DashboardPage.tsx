@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { BentoGrid, BentoCard } from '@/components/ui/bento-grid'
 import { RecentInvestigationsStacked } from '@/components/RecentInvestigationsStacked'
-import DeviceShowcase from '@/components/spatial-product-showcase'
+import EarbudShowcase from '@/components/spatial-product-showcase'
 import { AnimatePresence, motion } from 'framer-motion'
 
 export default function DashboardPage() {
@@ -165,7 +165,7 @@ export default function DashboardPage() {
                             </div>
                         ) : (
                             <div className="bg-servos-surface border border-servos-border rounded-lg overflow-hidden flex justify-center py-8">
-                                <RecentInvestigationsStacked cases={cases} onCaseClick={(c: any) => navigate(`/chat?case=${c.id}`)} />
+                                <RecentInvestigationsStacked cases={cases} onCaseClick={(c: any) => navigate(`/workspace/${c.id}`)} />
                             </div>
                         )}
                     </section>
@@ -187,7 +187,7 @@ export default function DashboardPage() {
                             Close
                         </button>
                         <div className="w-[90vw] h-[90vh] overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
-                            <DeviceShowcase />
+                            <EarbudShowcase />
                         </div>
                     </motion.div>
                 )}

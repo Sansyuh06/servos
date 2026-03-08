@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { sendChatMessage, type ChatResponse, type ChatAction } from '@/api/client'
+import { sendChatMessage, type ChatResponse } from '@/api/client'
 import {
     Send, Bot, User, Paperclip, FileText,
     Loader2, Search, X, Sparkles, MessageSquare,
@@ -13,7 +13,6 @@ interface Message {
     role: 'user' | 'assistant'
     content: string
     sources?: ChatResponse['sources']
-    actions?: ChatAction[]
     timestamp: Date
     attachment?: string
 }
@@ -34,26 +33,21 @@ function AILoader() {
 
 /* ── Suggestion Chips ── */
 const SUGGESTIONS = [
-    { icon: Search, label: 'Scan for Malware', prompt: 'Scan my system for malware and suspicious files' },
-    { icon: Brain, label: 'Analyze Logs', prompt: 'Analyze system logs for suspicious activity' },
-    { icon: Cpu, label: 'System Info', prompt: 'Show me current system processes and resource usage' },
-    { icon: BookOpen, label: 'Cyber Law', prompt: 'What sections of the IT Act apply to unauthorized access?' },
+    { icon: Lightbulb, label: 'Explain a Concept', prompt: 'Explain how machine learning works in simple terms' },
+    { icon: PenTool, label: 'Write Something', prompt: 'Help me write a professional email' },
+    { icon: Brain, label: 'Brainstorm Ideas', prompt: 'Help me brainstorm creative project ideas' },
+    { icon: BookOpen, label: 'Summarize a Topic', prompt: 'Give me a concise overview of quantum computing' },
 ]
 
 export default function ChatPage() {
     const navigate = useNavigate()
-    const [searchParams, setSearchParams] = useSearchParams()
-
-    const initialCaseId = searchParams.get('case') || ''
-    const [selectedCaseId, setSelectedCaseId] = useState<string>(initialCaseId)
-
     const [messages, setMessages] = useState<Message[]>([])
     const [input, setInput] = useState('')
     const [isLoading, setIsLoading] = useState(false)
     const [sidebarSources, setSidebarSources] = useState<ChatResponse['sources']>([])
     const [attachedFile, setAttachedFile] = useState<string | null>(null)
     const [showCasePicker, setShowCasePicker] = useState(false)
-    const [caseList, setCaseList] = useState<Array<{ id: string, investigator?: string }>>([])
+    const [caseList, setCaseList] = useState<Array<{id:string, investigator?:string}>>([])
     const chatEndRef = useRef<HTMLDivElement>(null)
     const inputRef = useRef<HTMLTextAreaElement>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
@@ -62,31 +56,13 @@ export default function ChatPage() {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     }, [messages])
 
-    // Keep selectedCaseId synced with URL
-    useEffect(() => {
-        const caseParam = searchParams.get('case')
-        if (caseParam !== null && caseParam !== selectedCaseId) {
-            setSelectedCaseId(caseParam)
-        }
-    }, [searchParams])
-
-    // Load cases on mount so the dropdown population works even if navigated directly
-    useEffect(() => {
-        loadCases()
-    }, [])
-
     const handleSend = async (overrideInput?: string) => {
         const text = overrideInput || input.trim()
-        if (!text || isLoading) return
+        if(!text || isLoading) return
 
         let content = text
-        if (attachedFile) {
-            content = `[Attached: ${attachedFile}]\n${content}`
-        }
-
-        // Auto-inject case context if selected
-        if (selectedCaseId && !content.includes(`[Case:${selectedCaseId}]`) && !content.includes('[Case:')) {
-            content = `[Case:${selectedCaseId}] ${content}`
+        if(attachedFile) {
+            content = `[Attached: ${attachedFile}]\n${text}`
         }
 
         const userMsg: Message = {
@@ -115,14 +91,13 @@ export default function ChatPage() {
                 role: 'assistant',
                 content: res.response,
                 sources: res.sources,
-                actions: res.actions,
                 timestamp: new Date(),
             }
             setMessages(prev => [...prev, aiMsg])
-            if (res.sources && res.sources.length > 0) {
+            if(res.sources && res.sources.length > 0) {
                 setSidebarSources(prev => [...res.sources, ...prev].slice(0, 20))
             }
-        } catch (err: any) {
+        } catch(err: any) {
             setMessages(prev => [...prev, {
                 id: `e-${Date.now()}`,
                 role: 'assistant',
@@ -135,7 +110,7 @@ export default function ChatPage() {
     }
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if(e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault()
             handleSend()
         }
@@ -143,7 +118,7 @@ export default function ChatPage() {
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
-        if (file) setAttachedFile(file.name)
+        if(file) setAttachedFile(file.name)
     }
 
     const loadCases = async () => {
@@ -170,64 +145,9 @@ export default function ChatPage() {
                 {/* Edge glow */}
                 <div className="absolute inset-0 pointer-events-none border border-accent/5 rounded-none" />
 
-                {/* ── Always-visible Header with Case Context Dropdown ── */}
-                <div className="relative z-10 flex items-center justify-between px-6 py-3 border-b border-servos-border-dim shrink-0">
-                    <div className="flex items-center gap-3">
-                        <div className="w-7 h-7 rounded-lg bg-accent/15 border border-accent/20 flex items-center justify-center">
-                            <Sparkles size={14} className="text-accent" />
-                        </div>
-                        <div>
-                            <h1 className="text-sm font-semibold text-cream-bright">SERVOS AI</h1>
-                            <p className="text-[10px] text-cream-dim">AI Assistant</p>
-                        </div>
-                        {hasMessages && (
-                            <div className="ml-4 flex items-center gap-2 text-[11px] text-cream-dim/50 hidden md:flex">
-                                <MessagesSquare size={12} />
-                                <span>{messages.length} messages</span>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Case Context Dropdown */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs text-cream-dim">Case:</span>
-                        <select
-                            className="bg-servos-bg border border-servos-border text-cream-bright text-xs rounded-lg px-2 py-1.5 outline-none focus:border-accent/50 min-w-[180px]"
-                            value={selectedCaseId}
-                            onChange={(e) => {
-                                const newCase = e.target.value;
-                                setSelectedCaseId(newCase);
-                                if (newCase) {
-                                    searchParams.set('case', newCase);
-                                } else {
-                                    searchParams.delete('case');
-                                }
-                                setSearchParams(searchParams);
-                            }}
-                            onClick={() => { if (caseList.length === 0) loadCases() }}
-                        >
-                            <option value="">Global (No Case)</option>
-                            {caseList.map(c => (
-                                <option key={c.id} value={c.id}>
-                                    Case {c.id.slice(0, 8)} {c.investigator ? `- ${c.investigator}` : ''}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-
                 {!hasMessages ? (
                     /* ── Empty State: Centered greeting ── */
                     <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6">
-                        {selectedCaseId && (
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="mb-6 px-4 py-2 rounded-lg border border-accent/30 bg-accent/10 text-accent text-sm font-medium"
-                            >
-                                📂 Case Context: <span className="font-mono">{selectedCaseId.slice(0, 12)}</span>
-                            </motion.div>
-                        )}
                         <motion.h1
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -242,7 +162,7 @@ export default function ChatPage() {
                             transition={{ delay: 0.2, duration: 0.5 }}
                             className="text-[13px] text-cream-dim/40 text-center mb-10"
                         >
-                            {selectedCaseId ? 'Ask about this case or start a new topic' : 'Start a conversation on any topic'}
+                            Start a conversation on any topic
                         </motion.p>
 
                         {/* Input Card */}
@@ -277,6 +197,21 @@ export default function ChatPage() {
                 ) : (
                     /* ── Chat Messages ── */
                     <>
+                        {/* Header */}
+                        <div className="relative z-10 flex items-center gap-3 px-6 py-3 border-b border-servos-border-dim shrink-0">
+                            <div className="w-7 h-7 rounded-lg bg-accent/15 border border-accent/20 flex items-center justify-center">
+                                <Sparkles size={14} className="text-accent" />
+                            </div>
+                            <div>
+                                <h1 className="text-sm font-semibold text-cream-bright">SERVOS AI</h1>
+                                <p className="text-[10px] text-cream-dim">AI Assistant</p>
+                            </div>
+                            <div className="ml-auto flex items-center gap-2 text-[11px] text-cream-dim/50">
+                                <MessagesSquare size={12} />
+                                <span>{messages.length} messages</span>
+                            </div>
+                        </div>
+
                         {/* Messages */}
                         <div className="relative z-10 flex-1 overflow-y-auto px-6 py-4 space-y-4">
                             <AnimatePresence>
@@ -301,30 +236,6 @@ export default function ChatPage() {
                                                 <div className="flex items-center gap-1.5 mb-2 text-[10px] opacity-70">
                                                     <FileText size={10} />
                                                     <span>{msg.attachment}</span>
-                                                </div>
-                                            )}
-                                            {/* Action Cards — shown when agent auto-executed tools */}
-                                            {msg.actions && msg.actions.length > 0 && (
-                                                <div className="mb-3 space-y-1.5">
-                                                    <div className="text-[10px] uppercase tracking-wider text-accent font-semibold mb-1.5">🤖 Agent Actions</div>
-                                                    {msg.actions.map((action, i) => (
-                                                        <div key={i}
-                                                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-[12px] ${action.status === 'completed'
-                                                                ? 'border-accent/30 bg-accent/5 text-cream'
-                                                                : 'border-red-500/30 bg-red-500/5 text-red-300'
-                                                                }`}
-                                                        >
-                                                            <span className="text-base">{action.icon}</span>
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="font-medium">{action.tool_name}</div>
-                                                                <div className="text-[11px] opacity-70 truncate">{action.summary}</div>
-                                                            </div>
-                                                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${action.status === 'completed'
-                                                                ? 'bg-green-500/20 text-green-400'
-                                                                : 'bg-red-500/20 text-red-400'
-                                                                }`}>{action.status === 'completed' ? '✓' : '✗'}</span>
-                                                        </div>
-                                                    ))}
                                                 </div>
                                             )}
                                             <p className="text-[13px] leading-relaxed whitespace-pre-wrap">{msg.content}</p>
@@ -455,24 +366,11 @@ export default function ChatPage() {
                                         setShowCasePicker(false);
                                     }}
                                     className="w-full text-left text-xs text-cream py-1 hover:bg-servos-hover rounded"
-                                >{c.id.slice(0, 8)} {c.investigator && `– ${c.investigator}`}</button>
+                                >{c.id.slice(0,8)} {c.investigator && `– ${c.investigator}`}</button>
                             ))
                         )}
                     </div>
                 )}
-
-                {/* Text Input Area */}
-                <textarea
-                    ref={inputRef}
-                    value={input}
-                    onChange={e => setInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder={selectedCaseId ? `Ask about case ${selectedCaseId.slice(0, 8)}...` : "Type a message..."}
-                    rows={1}
-                    className="w-full px-4 py-3 bg-transparent text-cream text-[13px] placeholder:text-cream-dim/30 outline-none resize-none min-h-[44px] max-h-[120px]"
-                    style={{ overflow: 'auto' }}
-                    autoFocus
-                />
 
                 {/* Toolbar */}
                 <div className="flex items-center justify-between px-4 py-2">
@@ -485,7 +383,7 @@ export default function ChatPage() {
                             <Paperclip size={15} />
                         </button>
                         <button
-                            onClick={() => { setShowCasePicker(!showCasePicker); if (!showCasePicker) loadCases() }}
+                            onClick={() => { setShowCasePicker(!showCasePicker); if(!showCasePicker) loadCases() }}
                             className="p-1.5 rounded-md text-cream-dim/40 hover:text-cream-dim hover:bg-white/[0.05] transition-colors"
                             title="Insert case reference"
                         >
