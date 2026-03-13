@@ -187,7 +187,16 @@ export default function DashboardPage() {
                             Close
                         </button>
                         <div className="w-[90vw] h-[90vh] overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
-                            <EarbudShowcase />
+                            <EarbudShowcase
+                                caseNumber={showcaseDevice.serial_number || showcaseDevice.serial || showcaseDevice.path || 'DEVICE'}
+                                investigator={username}
+                                deviceInfo={showcaseDevice.mount_point || showcaseDevice.name || 'Unknown device'}
+                                criticalFindings={[
+                                    showcaseDevice.filesystem || 'Unknown filesystem',
+                                    showcaseDevice.is_removable ? 'Removable media detected' : 'Fixed storage media',
+                                    showcaseDevice.name || 'Unnamed device',
+                                ]}
+                            />
                         </div>
                     </motion.div>
                 )}

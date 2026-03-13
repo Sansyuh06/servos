@@ -258,6 +258,19 @@ KNOWN_APPS = {
     "webstorm": "webstorm64",
 }
 
+SAFE_TOOL_IDS = {
+    "scan_files",
+    "detect_malware",
+    "analyze_logs",
+    "network_scan",
+    "build_timeline",
+    "hash_files",
+    "extract_artifacts",
+    "cyber_law",
+    "system_info",
+    "full_investigation",
+}
+
 
 # ── Intent Detection ────────────────────────────────────────────
 
@@ -369,6 +382,10 @@ def _extract_two_paths(message: str) -> Tuple[str, str]:
     return "", ""
 
 
+def _has_explicit_path(message: str) -> bool:
+    return bool(re.search(r'[A-Z]:\\[^\s"\']+', message, re.IGNORECASE) or re.search(r'/[^\s"\']+', message))
+
+
 # ── Tool Executor ───────────────────────────────────────────────
 
 def execute_tool(tool_id: str, message: str) -> Dict[str, Any]:
@@ -435,7 +452,7 @@ def _run_file_scan(target: str) -> Dict:
     result = FileAnalyzer().analyze(target)
     return {
         "total_files": result.total_files, "total_dirs": result.total_dirs,
-        "total_size_mb": round(result.total_size / (1024 * 1024), 2),
+        "total_size_mb": round(result.total_size_bytes / (1024 * 1024), 2),
         "hidden_files": result.hidden_files,
         "suspicious_count": len(result.suspicious_files),
         "suspicious_files": [
@@ -461,30 +478,41 @@ def _run_malware_scan(target: str) -> Dict:
 def _run_log_analysis(target: str) -> Dict:
     from servos.forensics.log_analyzer import LogAnalyzer
     analyzer = LogAnalyzer()
+    targets = []
     if os.path.isdir(target):
-        results = analyzer.analyze_directory(target)
+        for root, _, files in os.walk(target):
+            for filename in files:
+                if filename.lower().endswith((".log", ".txt", ".evtx")):
+                    targets.append(os.path.join(root, filename))
+                if len(targets) >= 20:
+                    break
+            if len(targets) >= 20:
+                break
     elif os.path.isfile(target):
-        results = {target: analyzer.analyze_file(target)}
+        targets = [target]
     else:
         win_logs = os.path.expandvars(r"%SystemRoot%\System32\winevt\Logs")
         if os.path.isdir(win_logs):
-            results = analyzer.analyze_directory(win_logs)
-        else:
-            results = {"info": "No log files found at the specified path"}
+            return _run_log_analysis(win_logs)
+        return {"error": "No log files found at the specified path"}
+
+    threats = []
     total_entries = 0
-    total_suspicious = 0
-    patterns = []
-    for path, data in results.items():
-        if isinstance(data, dict):
-            total_entries += data.get("total_lines", 0)
-            for p in data.get("patterns", []):
-                total_suspicious += p.get("count", 0)
-                if p.get("count", 0) > 0:
-                    patterns.append({"pattern": p.get("pattern", ""), "count": p.get("count", 0)})
+    for path in targets:
+        total_entries += len(analyzer.analyze_file(path))
+        threats.extend(analyzer.analyze_patterns(path))
     return {
-        "files_analyzed": len(results), "total_entries": total_entries,
-        "suspicious_patterns": total_suspicious,
-        "patterns": sorted(patterns, key=lambda x: x["count"], reverse=True)[:10],
+        "files_analyzed": len(targets),
+        "total_entries": total_entries,
+        "suspicious_patterns": len(threats),
+        "patterns": [
+            {
+                "pattern": threat.pattern_name,
+                "severity": threat.severity,
+                "file": os.path.basename(threat.file_path),
+            }
+            for threat in threats[:10]
+        ],
     }
 
 def _run_network_scan() -> Dict:
@@ -499,8 +527,13 @@ def _run_network_scan() -> Dict:
     }
 
 def _run_timeline(target: str) -> Dict:
+    from servos.forensics.file_analyzer import FileAnalyzer
+    from servos.forensics.artifact_extractor import ArtifactExtractor
     from servos.forensics.timeline import TimelineBuilder
-    timeline = TimelineBuilder().build(target)
+    timeline = TimelineBuilder().build(
+        FileAnalyzer().analyze(target),
+        ArtifactExtractor().extract_all(target),
+    )
     return {
         "total_events": len(timeline.events), "anomalies": len(timeline.anomalies),
         "recent_events": [
@@ -524,21 +557,25 @@ def _run_hash(target: str) -> Dict:
         results = hasher.hash_directory(target)
         return {
             "total_hashed": len(results),
-            "files": [{"path": r["path"], "md5": r.get("md5", ""), "sha256": r.get("sha256", "")}
+            "files": [{"path": r.get("file", ""), "md5": r.get("md5", ""), "sha256": r.get("sha256", "")}
                        for r in results[:20]],
         }
     return {"error": f"Path not found: {target}"}
 
 def _run_artifact_extraction(target: str) -> Dict:
     from servos.forensics.artifact_extractor import ArtifactExtractor
-    arts = ArtifactExtractor().extract(target)
+    arts = ArtifactExtractor().extract_all(target)
     return {
         "browser_history": len(arts.browser_history), "recent_files": len(arts.recent_files),
-        "usb_traces": len(arts.usb_traces), "registry_items": len(arts.registry_items),
+        "registry_items": len(arts.registry_items),
         "log_entries": len(arts.log_entries),
-        "top_browser": [{"url": h.url, "title": h.title} for h in arts.browser_history[:10]],
-        "top_recent": [os.path.basename(f) for f in arts.recent_files[:10]],
-        "suspicious_domains": arts.suspicious_domains[:10] if hasattr(arts, "suspicious_domains") else [],
+        "top_browser": [{"url": h.content.get("url", ""), "title": h.content.get("title", "")} for h in arts.browser_history[:10]],
+        "top_recent": [item.content.get("filename", "") for item in arts.recent_files[:10]],
+        "suspicious_domains": [
+            item.content.get("url", "")
+            for item in arts.browser_history[:10]
+            if item.suspicious_score >= 0.5
+        ],
     }
 
 def _run_duplicate_check(target: str) -> Dict:
@@ -911,19 +948,50 @@ class ForensicAgent:
     def __init__(self):
         self.llm = LLMInvestigator()
 
-    def process(self, message: str, history: list = None, case_id: str = None) -> Dict[str, Any]:
+    def process(
+        self,
+        message: str,
+        history: list = None,
+        case_id: str = None,
+        active_case: Optional[Dict[str, Any]] = None,
+        allow_unsafe: bool = False,
+    ) -> Dict[str, Any]:
         history = history or []
         intents = detect_intent(message)
+        if not allow_unsafe:
+            intents = [intent for intent in intents if intent["tool"]["id"] in SAFE_TOOL_IDS]
 
         if not intents:
-            return self._regular_chat(message, history)
+            return self._regular_chat(message, history, active_case)
 
         actions = []
         all_results = {}
+        case_target = ""
+        if active_case:
+            device_info = active_case.get("device_info") or {}
+            backup = active_case.get("backup") or {}
+            case_target = (
+                device_info.get("mount_point")
+                or device_info.get("path")
+                or backup.get("backup_path")
+                or ""
+            )
+        targeted_tools = {
+            "scan_files",
+            "detect_malware",
+            "analyze_logs",
+            "build_timeline",
+            "hash_files",
+            "extract_artifacts",
+            "full_investigation",
+        }
 
         for intent in intents:
             tool = intent["tool"]
-            result = execute_tool(tool["id"], message)
+            execution_message = message
+            if case_target and tool["id"] in targeted_tools and not _has_explicit_path(message):
+                execution_message = f"{message} {case_target}"
+            result = execute_tool(tool["id"], execution_message)
             actions.append({
                 "tool_id": tool["id"],
                 "tool_name": tool["name"],
@@ -937,29 +1005,39 @@ class ForensicAgent:
 
         interpretation = self._interpret_results(message, all_results, history)
         model_used = self.llm.model if self.llm.is_available() else "offline-fallback"
+        sources = [
+            {"type": "agent_execution",
+             "label": f"Agent: {len(actions)} action(s)",
+             "data": {"tools": ", ".join(a["tool_name"] for a in actions),
+                      "timestamp": datetime.utcnow().isoformat()[:19]}},
+            {"type": "model_info", "label": f"Model: {model_used}",
+             "data": {"status": "connected" if self.llm.is_available() else "offline",
+                      "model": model_used}},
+        ]
+        if active_case:
+            sources.insert(0, {
+                "type": "case_context",
+                "label": f"Case {active_case.get('id', 'UNKNOWN')}",
+                "data": {
+                    "device": (active_case.get("device_info") or {}).get("name", "Unknown"),
+                    "risk": (active_case.get("interpretation") or {}).get("risk", "UNKNOWN"),
+                },
+            })
 
         return {
             "response": interpretation,
-            "sources": [
-                {"type": "agent_execution",
-                 "label": f"Agent: {len(actions)} action(s)",
-                 "data": {"tools": ", ".join(a["tool_name"] for a in actions),
-                          "timestamp": datetime.utcnow().isoformat()[:19]}},
-                {"type": "model_info", "label": f"Model: {model_used}",
-                 "data": {"status": "connected" if self.llm.is_available() else "offline",
-                          "model": model_used}},
-            ],
+            "sources": sources,
             "model": model_used,
             "actions": actions,
             "raw_results": all_results,
         }
 
-    def _regular_chat(self, message: str, history: list) -> Dict[str, Any]:
+    def _regular_chat(self, message: str, history: list, active_case: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         if self.llm.is_available():
-            response_text = self.llm.chat(message, history)
+            response_text = self.llm.chat(message, history, active_case=active_case)
             model_used = self.llm.model
         else:
-            response_text = self.llm._fallback_chat(message)
+            response_text = self.llm.chat(message, history, active_case=active_case)
             model_used = "offline-fallback"
 
         context_info = []
@@ -979,6 +1057,15 @@ class ForensicAgent:
             "data": {"status": "connected" if self.llm.is_available() else "offline",
                      "model": model_used},
         })
+        if active_case:
+            context_info.insert(0, {
+                "type": "case_context",
+                "label": f"Case {active_case.get('id', 'UNKNOWN')}",
+                "data": {
+                    "device": (active_case.get("device_info") or {}).get("name", "Unknown"),
+                    "risk": (active_case.get("interpretation") or {}).get("risk", "UNKNOWN"),
+                },
+            })
 
         return {"response": response_text, "sources": context_info,
                 "model": model_used, "actions": []}

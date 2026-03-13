@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getCaseDetail } from '@/api/client'
+import { getCaseDetail, runTool } from '@/api/client'
 import PageTransition from '@/components/PageTransition'
 import {
     FolderTree, Shield, Bug, FileText, Clock, Cpu,
@@ -29,6 +29,8 @@ export default function WorkspacePage() {
     const [loading, setLoading] = useState(true)
     const [recActions, setRecActions] = useState<Record<number, RecAction>>({})
     const [auditLog, setAuditLog] = useState<string[]>([])
+    const [latestToolRun, setLatestToolRun] = useState<any>(null)
+    const [toolBusyId, setToolBusyId] = useState<string | null>(null)
 
     useEffect(() => {
         if(caseId) {
@@ -70,6 +72,24 @@ export default function WorkspacePage() {
     const handleExecute = (idx: number, rec: string) => {
         setRecActions(prev => ({ ...prev, [idx]: 'executed' }))
         addAudit(`EXECUTED: "${rec.slice(0, 50)}..."`)
+    }
+
+    const handleToolRun = async (toolId: string) => {
+        if(!caseData?.id || toolBusyId) return
+        setToolBusyId(toolId)
+        addAudit(`STARTED TOOL: ${toolId}`)
+        try {
+            const response = await runTool({ tool_id: toolId, case_id: caseData.id })
+            setLatestToolRun(response)
+            const detail = response.result?.error
+                ? `error - ${response.result.error}`
+                : 'completed successfully'
+            addAudit(`TOOL ${toolId}: ${detail}`)
+        } catch(error: any) {
+            addAudit(`TOOL ${toolId}: failed - ${error.message}`)
+        } finally {
+            setToolBusyId(null)
+        }
     }
 
     if(loading) {
@@ -194,34 +214,24 @@ export default function WorkspacePage() {
                                     <h3 className="text-sm font-semibold text-cream mb-3">Available Forensic Tools</h3>
                                     <UltraQualityShowcaseGrid
                                         tools={caseData?.tools || []}
-                                        onRun={(tool) => {
-                                            if(tool.id === 'network-scan'){
-                                                navigate('/network');
-                                            } else {
-                                                fetch(`/api/tools/run`, {
-                                                    method: 'POST',
-                                                    headers: { 'Content-Type': 'application/json' },
-                                                    body: JSON.stringify({ tool_id: tool.id, case_id: caseData?.id }),
-                                                })
-                                            }
-                                        }}
+                                        onRun={(tool) => handleToolRun(tool.id)}
                                     />
-                                </div>
-                            )}
-                            {activeTab === 'tools' && (
-                                <div>
-                                    <h3 className="text-sm font-semibold text-cream mb-3">Available Forensic Tools</h3>
-                                    <UltraQualityShowcaseGrid
-                                        tools={caseData?.tools || []}
-                                        onRun={(tool) => {
-                                            // call backend API to run tool
-                                            fetch(`/api/tools/run`, {
-                                                method: 'POST',
-                                                headers: { 'Content-Type': 'application/json' },
-                                                body: JSON.stringify({ tool_id: tool.id, case_id: caseData?.id }),
-                                            })
-                                        }}
-                                    />
+                                    {toolBusyId && (
+                                        <p className="mt-4 text-xs text-cream-dim">Running {toolBusyId} locally...</p>
+                                    )}
+                                    {latestToolRun && (
+                                        <div className="mt-4 rounded-lg border border-servos-border bg-servos-surface p-4">
+                                            <p className="text-[10px] uppercase tracking-wider text-cream-dim">
+                                                Latest tool run
+                                            </p>
+                                            <p className="mt-2 text-sm font-semibold text-cream-bright">
+                                                {latestToolRun.tool_id}
+                                            </p>
+                                            <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap text-[11px] text-cream-dim">
+                                                {JSON.stringify(latestToolRun.result, null, 2)}
+                                            </pre>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                             {activeTab === 'files' && (
@@ -328,11 +338,28 @@ export default function WorkspacePage() {
                             )}
 
                             {activeTab === 'memory' && (
+                                <>
+                                <div className="rounded-lg border border-servos-border bg-servos-surface p-4 text-center text-cream-dim">
+                                    <p className="text-[10px] uppercase tracking-wider text-cream-dim">Live memory tooling</p>
+                                    <button
+                                        onClick={() => handleToolRun('memory-scan')}
+                                        disabled={toolBusyId !== null}
+                                        className="mt-3 rounded-md bg-accent px-4 py-2 text-xs font-semibold text-white disabled:opacity-40"
+                                    >
+                                        {toolBusyId === 'memory-scan' ? 'Running...' : 'Run Memory Scan'}
+                                    </button>
+                                    {latestToolRun?.tool_id === 'memory-scan' && (
+                                        <pre className="mt-4 max-h-64 overflow-auto whitespace-pre-wrap text-left text-[11px] text-cream-dim">
+                                            {JSON.stringify(latestToolRun.result, null, 2)}
+                                        </pre>
+                                    )}
+                                </div>
                                 <div className="py-8 text-center text-cream-dim">
                                     <Cpu size={24} className="mx-auto mb-2 opacity-40" />
                                     <p className="text-sm">Memory Analysis</p>
                                     <p className="text-[11px] mt-1 text-cream-dim/60">Volatility 3 integration — coming in v2.0</p>
                                 </div>
+                                </>
                             )}
                         </div>
                     </div>

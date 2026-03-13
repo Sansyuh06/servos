@@ -65,7 +65,7 @@ class LLMInvestigator:
         "Format responses with markdown when it improves readability."
     )
 
-    def chat(self, message: str, history: list = None, active_case: Optional[Case] = None) -> str:
+    def chat(self, message: str, history: list = None, active_case: Optional[Any] = None) -> str:
         """General-purpose multi-turn conversational chat.
 
         If *active_case* is provided it will be prepended as system context so the
@@ -81,20 +81,25 @@ class LLMInvestigator:
 
         system_ctx = self.CHAT_SYSTEM_CONTEXT
         if active_case:
+            case_findings = self._read_value(active_case, "findings", {}) or {}
+            file_system = self._read_value(case_findings, "file_system", {}) or {}
+            malware = self._read_value(case_findings, "malware", {}) or {}
             top_files = []
-            if active_case.findings and active_case.findings.file_system:
-                for f in active_case.findings.file_system.suspicious_files[:3]:
-                    top_files.append(os.path.basename(f.full_path))
+            suspicious_files = self._read_value(file_system, "suspicious_files", []) or []
+            for suspicious_file in suspicious_files[:3]:
+                top_files.append(
+                    os.path.basename(self._read_value(suspicious_file, "full_path", "") or "")
+                )
             families = []
-            if active_case.findings and active_case.findings.malware:
-                for ind in active_case.findings.malware.indicators:
-                    if ind.indicator_type == "hash_match":
-                        families.append(ind.description)
+            indicators = self._read_value(malware, "indicators", []) or []
+            for indicator in indicators:
+                if self._read_value(indicator, "indicator_type") == "hash_match":
+                    families.append(self._read_value(indicator, "description", ""))
             fam_txt = ", ".join(families[:3])
             system_ctx += (
-                f"\nActive Case: {active_case.id} | Device: "
-                f"{active_case.device_info.name if active_case.device_info else 'unknown'} | "
-                f"Risk: {active_case.findings.malware.risk_level if active_case.findings and active_case.findings.malware else 'UNKNOWN'} | "
+                f"\nActive Case: {self._read_value(active_case, 'id', 'UNKNOWN')} | Device: "
+                f"{self._read_value(self._read_value(active_case, 'device_info', {}), 'name', 'unknown')} | "
+                f"Risk: {self._read_value(malware, 'risk_level', 'UNKNOWN')} | "
                 f"Top threats: {', '.join(top_files)} | Families: {fam_txt}"
             )
 
@@ -110,6 +115,10 @@ Respond naturally and helpfully:"""
                 return response.strip()
 
         # Fallback: rule-based conversational responses
+        if active_case:
+            grounded = self._case_aware_fallback(message, active_case)
+            if grounded:
+                return grounded
         return self._fallback_chat(message)
 
     @staticmethod
@@ -231,38 +240,85 @@ Executive Summary:"""
     # Rule-based fallbacks
     # ------------------------------------------------------------------
 
-    @staticmethod
     def _build_rich_context(self, findings: Dict[str, Any]) -> str:
         """Construct a rich context block summarizing key suspicious items."""
         parts: List[str] = []
         # top 5 suspicious files
-        files = findings.get("file_system", {}).get("suspicious_files", [])
+        file_system = self._read_value(findings, "file_system", {}) or {}
+        files = self._read_value(file_system, "suspicious_files", []) or []
         if files:
             top = files[:5]
             entries = []
             for f in top:
-                entries.append(f"{os.path.basename(f.get('full_path',''))} (entropy={f.get('entropy',0):.1f}, reason={f.get('suspicious_reason','')}, score={f.get('threat_score','N/A')})")
+                entries.append(
+                    f"{os.path.basename(self._read_value(f, 'full_path', '') or '')} "
+                    f"(entropy={float(self._read_value(f, 'entropy', 0) or 0):.1f}, "
+                    f"reason={self._read_value(f, 'suspicious_reason', '')}, "
+                    f"score={self._read_value(f, 'threat_score', 'N/A')})"
+                )
             parts.append("Top suspicious files:\n" + "\n".join(entries))
         # malware families
-        malware = findings.get("malware", {}).get("indicators", [])
-        families = {ind.get('description','') for ind in malware if ind.get('indicator_type') == 'hash_match'}
+        malware = self._read_value(self._read_value(findings, "malware", {}) or {}, "indicators", []) or []
+        families = {
+            self._read_value(ind, "description", "")
+            for ind in malware
+            if self._read_value(ind, "indicator_type") == "hash_match"
+        }
         if families:
             parts.append("Malware families detected: " + ", ".join(families))
         # browser domains
-        browsers = findings.get("artifacts", {}).get("browser_history", [])
-        bad_domains = [b.get('content', {}).get('url','') for b in browsers if b.get('suspicious_score',0) > 0.5]
+        browsers = self._read_value(self._read_value(findings, "artifacts", {}) or {}, "browser_history", []) or []
+        bad_domains = [
+            self._read_value(self._read_value(browser, "content", {}) or {}, "url", "")
+            for browser in browsers
+            if float(self._read_value(browser, "suspicious_score", 0) or 0) > 0.5
+        ]
         if bad_domains:
             parts.append("Suspicious domains: " + ", ".join(bad_domains[:10]))
         # timeline anomalies
-        timeline = findings.get("timeline", {}).get("suspicious_windows", [])
+        timeline = self._read_value(self._read_value(findings, "timeline", {}) or {}, "suspicious_windows", []) or []
         if timeline:
-            parts.append("Timeline anomaly windows: " + ", ".join(f"{s}-{e}" for s,e in timeline))
+            parts.append("Timeline anomaly windows: " + ", ".join(f"{s}-{e}" for s, e in timeline))
         # risk level
-        risk = findings.get("malware", {}).get("risk_level")
+        risk = self._read_value(self._read_value(findings, "malware", {}) or {}, "risk_level")
         if risk:
             parts.append(f"Current risk level: {risk}")
         return "\n\n".join(parts)
 
+    @staticmethod
+    def _read_value(item: Any, key: str, default: Any = None) -> Any:
+        if isinstance(item, dict):
+            return item.get(key, default)
+        return getattr(item, key, default)
+
+    def _case_aware_fallback(self, message: str, active_case: Any) -> str:
+        findings = self._read_value(active_case, "findings", {}) or {}
+        file_system = self._read_value(findings, "file_system", {}) or {}
+        malware = self._read_value(findings, "malware", {}) or {}
+        suspicious_files = self._read_value(file_system, "suspicious_files", []) or []
+        indicators = self._read_value(malware, "indicators", []) or []
+        risk = self._read_value(malware, "risk_level", "UNKNOWN")
+
+        msg = message.lower()
+        if any(token in msg for token in ("summary", "summarize", "overview", "case")):
+            return (
+                f"Case {self._read_value(active_case, 'id', 'UNKNOWN')} currently has "
+                f"{len(suspicious_files)} suspicious files and {len(indicators)} malware indicators. "
+                f"Overall risk is {risk}."
+            )
+        if "risk" in msg:
+            return f"The current case risk level is {risk} based on the malware and artifact findings stored locally."
+        if any(token in msg for token in ("suspicious", "top files", "files")) and suspicious_files:
+            names = [
+                os.path.basename(self._read_value(item, "full_path", "") or "")
+                for item in suspicious_files[:5]
+            ]
+            return "Top suspicious files in this case: " + ", ".join(filter(None, names))
+        if any(token in msg for token in ("recommend", "next step", "next steps")):
+            return "\n".join(self._rule_based_suggestions(findings))
+        return ""
+
+    @staticmethod
     def _rule_based_suggestions(findings: Dict) -> List[str]:
         suggestions = [
             "1. Review all suspicious files identified in the scan.",

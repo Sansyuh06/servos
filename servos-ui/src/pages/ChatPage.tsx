@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { sendChatMessage, type ChatResponse } from '@/api/client'
 import {
@@ -40,7 +39,6 @@ const SUGGESTIONS = [
 ]
 
 export default function ChatPage() {
-    const navigate = useNavigate()
     const [messages, setMessages] = useState<Message[]>([])
     const [input, setInput] = useState('')
     const [isLoading, setIsLoading] = useState(false)
@@ -48,6 +46,7 @@ export default function ChatPage() {
     const [attachedFile, setAttachedFile] = useState<string | null>(null)
     const [showCasePicker, setShowCasePicker] = useState(false)
     const [caseList, setCaseList] = useState<Array<{id:string, investigator?:string}>>([])
+    const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null)
     const chatEndRef = useRef<HTMLDivElement>(null)
     const inputRef = useRef<HTMLTextAreaElement>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
@@ -85,7 +84,7 @@ export default function ChatPage() {
                 content: m.content,
             }))
 
-            const res = await sendChatMessage(content, history)
+            const res = await sendChatMessage(content, history, selectedCaseId)
             const aiMsg: Message = {
                 id: `a-${Date.now()}`,
                 role: 'assistant',
@@ -288,6 +287,12 @@ export default function ChatPage() {
                 <div className="p-4 border-b border-servos-border-dim">
                     <div className="space-y-2">
                         <div className="flex justify-between text-[11px]">
+                            <span className="text-cream-dim/60">Case</span>
+                            <span className="text-cream font-mono">
+                                {selectedCaseId ? selectedCaseId.slice(0, 12) : 'None'}
+                            </span>
+                        </div>
+                        <div className="flex justify-between text-[11px]">
                             <span className="text-cream-dim/60">Messages</span>
                             <span className="text-cream font-mono">{messages.length}</span>
                         </div>
@@ -343,6 +348,17 @@ export default function ChatPage() {
         return (
             <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl overflow-hidden focus-within:border-accent/30 transition-colors">
                 {/* Attached file badge */}
+                {selectedCaseId && (
+                    <div className="flex items-center gap-2 px-4 pt-3">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-accent/15 text-accent rounded-lg text-[11px]">
+                            <Search size={11} />
+                            Case {selectedCaseId}
+                            <button onClick={() => setSelectedCaseId(null)} className="ml-1 hover:text-white">
+                                <X size={10} />
+                            </button>
+                        </span>
+                    </div>
+                )}
                 {attachedFile && (
                     <div className="flex items-center gap-2 px-4 pt-3">
                         <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-accent/15 text-accent rounded-lg text-[11px]">
@@ -362,7 +378,7 @@ export default function ChatPage() {
                             caseList.map(c => (
                                 <button key={c.id}
                                     onClick={() => {
-                                        setInput(prev => prev + `[Case:${c.id}] `);
+                                        setSelectedCaseId(c.id)
                                         setShowCasePicker(false);
                                     }}
                                     className="w-full text-left text-xs text-cream py-1 hover:bg-servos-hover rounded"

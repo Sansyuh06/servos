@@ -6,39 +6,60 @@ REST API that wraps all Servos forensic modules + serves the web UI.
 import os
 import json
 import asyncio
+import re
 import traceback
+import uuid
+from dataclasses import asdict, is_dataclass
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict, Any, Tuple
 
 from fastapi import FastAPI, HTTPException, Query, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
+from servos.auth import (
+    get_user as _get_user,
+    register_user as _register_user,
+    user_exists as _user_exists,
+    verify_user as _verify_user,
+)
 from servos.config import get_config, save_config, ensure_dirs
 from servos.models.schema import (
     DeviceInfo, Case, ForensicFindings, LLMInterpretation,
     init_db, get_session, CaseRecord,
 )
-
-# Mock authentication functions to replace missing servos.gui.auth
-def _verify_user(username, password): return True
-def _create_user(username, password): pass
-def _user_exists(): return True
 from servos.detection.usb_monitor import USBDetectionService
 from servos.detection.network_monitor import NetworkMonitor
 from servos.detection.process_monitor import ProcessMonitor
 from servos.detection.file_watcher import FileWatcher
 from servos.detection.alert_engine import AlertEngine
+from servos.detection.multiscan_coordinator import MultiScanCoordinator
 from servos.preservation.backup import EvidenceBackup
 from servos.forensics.file_analyzer import FileAnalyzer
 from servos.forensics.hasher import FileHasher
 from servos.forensics.artifact_extractor import ArtifactExtractor
 from servos.forensics.malware_detector import MalwareDetector
+from servos.forensics.duplicate_detector import DuplicateDetector
 from servos.forensics.timeline import TimelineBuilder
+from servos.forensics.memory_scanner import MemoryScanner
+from servos.forensics.log_analyzer import LogAnalyzer
+from servos.forensics.registry_analyzer import RegistryAnalyzer
+from servos.forensics.deep_malware_scanner import DeepMalwareScanner
+from servos.forensics.network_scanner import NetworkScanner
 from servos.llm.investigator import LLMInvestigator
+from servos.llm.agent import ForensicAgent
+from servos.legal.advisor import (
+    get_admissibility_tips,
+    get_evidence_handling_guide,
+    get_full_legal_reference,
+    get_key_precedents,
+    get_legal_checklist,
+    get_section_summary,
+)
 from servos.reports.generator import ReportGenerator
 from servos.playbooks.engine import PlaybookEngine
+from servos.reference.it_act import lookup as lookup_it_act
 
 # ── App setup ────────────────────────────────────────────────
 app = FastAPI(title="Servos", version="1.0.0",
@@ -75,6 +96,467 @@ class AuthRequest(BaseModel):
 class GoogleAuthRequest(BaseModel):
     token: str
 
+
+AVAILABLE_TOOLS = [
+    {"id": "fs-scan", "name": "File System Scan", "category": "Disk", "status": "available", "last_run": None},
+    {"id": "artifact-extract", "name": "Artifact Extraction", "category": "Artifacts", "status": "available", "last_run": None},
+    {"id": "timeline-rebuild", "name": "Timeline Rebuild", "category": "Timeline", "status": "available", "last_run": None},
+    {"id": "malware-scan", "name": "Malware Scan", "category": "Malware", "status": "available", "last_run": None},
+    {"id": "deep-malware", "name": "Deep Malware Scan", "category": "Malware", "status": "available", "last_run": None},
+    {"id": "hash-integrity", "name": "Hash Integrity", "category": "Integrity", "status": "available", "last_run": None},
+    {"id": "network-scan", "name": "Network Scan", "category": "Network", "status": "available", "last_run": None},
+    {"id": "memory-scan", "name": "Memory Scan", "category": "Memory", "status": "available", "last_run": None},
+    {"id": "log-analysis", "name": "Log Analysis", "category": "Logs", "status": "available", "last_run": None},
+    {"id": "registry-analysis", "name": "Registry Analysis", "category": "Registry", "status": "available", "last_run": None},
+    {"id": "case-legal-brief", "name": "Legal Case Brief", "category": "Legal", "status": "available", "last_run": None},
+]
+
+_scan_jobs: Dict[str, Dict[str, Any]] = {}
+
+
+def _record_alert(alert: dict):
+    alert["timestamp"] = datetime.utcnow().isoformat()
+    _alerts.insert(0, alert)
+    if len(_alerts) > 200:
+        _alerts.pop()
+
+
+def _stop_monitor(attr_name: str):
+    monitor = getattr(app.state, attr_name, None)
+    if monitor:
+        try:
+            stop_fn = getattr(monitor, "stop", None) or getattr(monitor, "stop_monitoring", None)
+            if stop_fn:
+                stop_fn()
+        except Exception:
+            pass
+        setattr(app.state, attr_name, None)
+
+
+def _start_monitors(conf: Dict[str, Any]):
+    alert_engine = getattr(app.state, "alert_engine", None)
+    if not alert_engine:
+        return
+
+    for attr in ("network_monitor", "process_monitor", "file_watcher"):
+        _stop_monitor(attr)
+
+    if conf.get("enable_network_monitor"):
+        network_monitor = NetworkMonitor(
+            callback=lambda event: alert_engine.process_event(
+                {"event_type": "NETWORK_ANOMALY", "details": event}
+            )
+        )
+        network_monitor.start()
+        app.state.network_monitor = network_monitor
+
+    if conf.get("enable_process_monitor"):
+        process_monitor = ProcessMonitor(
+            callback=lambda event: alert_engine.process_event(
+                {"event_type": "PROCESS_NEW", "details": event}
+            )
+        )
+        process_monitor.start()
+        app.state.process_monitor = process_monitor
+
+    if conf.get("enable_file_watcher"):
+        watch_paths = conf.get("watch_paths") or [conf.get("data_dir", os.path.expanduser("~"))]
+        file_watcher = FileWatcher(
+            paths=watch_paths,
+            callback=lambda event: alert_engine.process_event(
+                {"event_type": "FILE_MODIFIED", **event}
+            ),
+        )
+        file_watcher.start()
+        app.state.file_watcher = file_watcher
+
+
+def _serialize_for_json(value: Any) -> Any:
+    if is_dataclass(value):
+        return asdict(value)
+    if isinstance(value, dict):
+        return {key: _serialize_for_json(val) for key, val in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_serialize_for_json(item) for item in value]
+    return value
+
+
+def _extract_case_reference(message: str) -> Tuple[str, Optional[str]]:
+    match = re.search(r"\[Case:([^\]]+)\]", message or "", re.IGNORECASE)
+    if not match:
+        return message, None
+    clean_message = re.sub(r"\[Case:[^\]]+\]\s*", "", message).strip()
+    return clean_message, match.group(1).strip()
+
+
+def _summarize_findings_payload(findings: Dict[str, Any]) -> Dict[str, Any]:
+    findings = findings or {}
+    payload: Dict[str, Any] = {}
+
+    file_system = findings.get("file_system") or {}
+    suspicious_files = file_system.get("suspicious_files") or []
+    if file_system:
+        payload["file_system"] = {
+            "total_files": file_system.get("total_files", 0),
+            "suspicious": len(suspicious_files),
+            "types": dict(list((file_system.get("file_type_counts") or {}).items())[:10]),
+        }
+        payload["suspicious_files"] = [
+            {
+                "name": item.get("filename", ""),
+                "path": item.get("full_path", ""),
+                "reason": item.get("suspicious_reason", ""),
+                "entropy": item.get("entropy", 0),
+            }
+            for item in suspicious_files[:20]
+        ]
+
+    malware = findings.get("malware") or {}
+    indicators = malware.get("indicators") or []
+    if malware:
+        payload["malware"] = {
+            "risk_level": malware.get("risk_level", "UNKNOWN"),
+            "indicators": len(indicators),
+        }
+        payload["malware_indicators"] = [
+            {
+                "rule": item.get("rule_name", ""),
+                "severity": item.get("severity", ""),
+                "file": os.path.basename(item.get("file_path", "")),
+                "description": item.get("description", ""),
+            }
+            for item in indicators[:20]
+        ]
+
+    artifacts = findings.get("artifacts") or {}
+    if artifacts:
+        payload["artifacts"] = {
+            "browser": len(artifacts.get("browser_history") or []),
+            "recent": len(artifacts.get("recent_files") or []),
+            "registry": len(artifacts.get("registry_items") or []),
+            "logs": len(artifacts.get("log_entries") or []),
+        }
+
+    timeline = findings.get("timeline") or {}
+    if timeline:
+        payload["timeline_events"] = [
+            {
+                "timestamp": (item.get("timestamp") or "")[:19],
+                "description": item.get("description", ""),
+                "severity": item.get("severity", ""),
+            }
+            for item in (timeline.get("events") or [])[:50]
+        ]
+        payload["timeline_anomalies"] = [
+            {
+                "type": item.get("anomaly_type", ""),
+                "description": item.get("description", ""),
+                "severity": item.get("severity", ""),
+                "event_count": item.get("event_count", 0),
+            }
+            for item in (timeline.get("anomalies") or [])[:10]
+        ]
+
+    payload["integrity_hashes"] = findings.get("integrity_hashes") or {}
+    return payload
+
+
+def _build_case_legal_references(findings: Dict[str, Any]) -> List[Dict[str, Any]]:
+    keywords: List[str] = []
+    suspicious_files = ((findings.get("file_system") or {}).get("suspicious_files") or [])
+    if suspicious_files:
+        keywords.append("unauthorized access suspicious files")
+    malware = findings.get("malware") or {}
+    if malware.get("indicators"):
+        keywords.append("malware hacking")
+    browser_history = ((findings.get("artifacts") or {}).get("browser_history") or [])
+    if any((item.get("suspicious_score", 0) or 0) >= 0.5 for item in browser_history):
+        keywords.append("fraud phishing privacy")
+
+    query = " ".join(keywords).strip()
+    if not query:
+        return []
+
+    return [
+        {
+            "section_id": result.section_id,
+            "title": result.title,
+            "description": result.description,
+            "punishment": result.punishment,
+            "relevance": result.relevance,
+        }
+        for result in lookup_it_act(query)
+    ]
+
+
+def _build_case_payload(record: CaseRecord) -> Dict[str, Any]:
+    raw_findings = json.loads(record.findings_json) if record.findings_json else {}
+    return {
+        "id": record.id,
+        "created_at": record.created_at,
+        "investigator": record.investigator,
+        "mode": record.mode,
+        "status": record.status,
+        "report_path": record.report_path,
+        "device_info": json.loads(record.device_info_json) if record.device_info_json else {},
+        "backup": json.loads(record.backup_json) if record.backup_json else {},
+        "findings": _summarize_findings_payload(raw_findings),
+        "full_findings": raw_findings,
+        "interpretation": json.loads(record.interpretation_json) if record.interpretation_json else {},
+        "legal_references": _build_case_legal_references(raw_findings),
+    }
+
+
+def _load_case_payload(case_id: str) -> Optional[Dict[str, Any]]:
+    live = _investigations.get(case_id)
+    if live and live.get("case"):
+        return _case_to_dict(live["case"])
+
+    session = get_session()
+    try:
+        record = session.query(CaseRecord).filter_by(id=case_id).first()
+        if not record:
+            return None
+        return _build_case_payload(record)
+    finally:
+        session.close()
+
+
+def _resolve_tool_target(case_id: Optional[str], target_path: Optional[str]) -> Tuple[str, Optional[Dict[str, Any]]]:
+    case_payload = _load_case_payload(case_id) if case_id else None
+    if target_path and os.path.exists(target_path):
+        return target_path, case_payload
+    if case_payload:
+        device_info = case_payload.get("device_info") or {}
+        backup = case_payload.get("backup") or {}
+        for candidate in (
+            device_info.get("mount_point"),
+            device_info.get("path"),
+            backup.get("backup_path"),
+        ):
+            if candidate and os.path.exists(candidate):
+                return candidate, case_payload
+    fallback = get_config().get("data_dir", os.path.expanduser("~"))
+    return fallback, case_payload
+
+
+def _discover_log_targets(target_path: str) -> List[str]:
+    if target_path and os.path.isfile(target_path):
+        return [target_path]
+    if target_path and os.path.isdir(target_path):
+        candidates: List[str] = []
+        for root, _, files in os.walk(target_path):
+            for filename in files:
+                if filename.lower().endswith((".log", ".txt", ".evtx")):
+                    candidates.append(os.path.join(root, filename))
+                if len(candidates) >= 25:
+                    return candidates
+        return candidates
+
+    windows_logs = os.path.expandvars(r"%SystemRoot%\System32\winevt\Logs")
+    if os.path.isdir(windows_logs):
+        return _discover_log_targets(windows_logs)
+    if os.path.isdir("/var/log"):
+        return _discover_log_targets("/var/log")
+    return []
+
+
+def _discover_registry_hives(target_path: str) -> List[str]:
+    hive_names = {"SYSTEM", "SOFTWARE", "SAM", "SECURITY", "NTUSER.DAT"}
+    if target_path and os.path.isfile(target_path):
+        return [target_path]
+    if not target_path or not os.path.isdir(target_path):
+        return []
+
+    matches: List[str] = []
+    for root, _, files in os.walk(target_path):
+        for filename in files:
+            if filename.upper() in hive_names:
+                matches.append(os.path.join(root, filename))
+            if len(matches) >= 5:
+                return matches
+    return matches
+
+
+def _execute_tool(tool_id: str, target_path: str, case_payload: Optional[Dict[str, Any]] = None, options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    options = options or {}
+
+    if tool_id == "fs-scan":
+        analysis = FileAnalyzer().analyze(target_path)
+        return {
+            "target": target_path,
+            "total_files": analysis.total_files,
+            "total_dirs": analysis.total_dirs,
+            "total_size_bytes": analysis.total_size_bytes,
+            "hidden_files": analysis.hidden_files,
+            "suspicious_files": [
+                {
+                    "name": item.filename,
+                    "path": item.full_path,
+                    "reason": item.suspicious_reason,
+                    "entropy": item.entropy,
+                }
+                for item in analysis.suspicious_files[:25]
+            ],
+            "file_types": dict(list(analysis.file_type_counts.items())[:20]),
+        }
+
+    if tool_id == "artifact-extract":
+        artifacts = ArtifactExtractor().extract_all(target_path)
+        suspicious_domains = [
+            item.content.get("url", "")
+            for item in artifacts.browser_history
+            if item.suspicious_score >= 0.5
+        ]
+        return {
+            "target": target_path,
+            "browser_history": len(artifacts.browser_history),
+            "recent_files": len(artifacts.recent_files),
+            "registry_items": len(artifacts.registry_items),
+            "log_entries": len(artifacts.log_entries),
+            "suspicious_domains": suspicious_domains[:15],
+        }
+
+    if tool_id == "timeline-rebuild":
+        analysis = FileAnalyzer().analyze(target_path)
+        artifacts = ArtifactExtractor().extract_all(target_path)
+        timeline = TimelineBuilder().build(analysis, artifacts)
+        return {
+            "target": target_path,
+            "events": len(timeline.events),
+            "suspicious_windows": timeline.suspicious_windows,
+            "anomalies": _serialize_for_json(timeline.anomalies[:10]),
+        }
+
+    if tool_id == "malware-scan":
+        malware = MalwareDetector().scan(target_path)
+        return {
+            "target": target_path,
+            "risk_level": malware.risk_level,
+            "files_scanned": malware.files_scanned,
+            "suspicious_count": malware.suspicious_count,
+            "indicators": [
+                {
+                    "type": item.indicator_type,
+                    "file": item.file_path,
+                    "description": item.description,
+                    "severity": item.severity,
+                    "rule": item.rule_name,
+                    "confidence": item.confidence,
+                }
+                for item in malware.indicators[:30]
+            ],
+        }
+
+    if tool_id == "deep-malware":
+        findings = DeepMalwareScanner().scan_path(target_path, options.get("yara_rules"))
+        return {"target": target_path, "findings": findings[:50], "count": len(findings)}
+
+    if tool_id == "hash-integrity":
+        cfg = get_config()
+        hashes = FileHasher().hash_directory(
+            target_path,
+            max_file_size=cfg.get("max_file_size_mb", 500) * 1024 * 1024,
+        )
+        integrity_map = {
+            item["file"]: item["sha256"]
+            for item in hashes
+            if item.get("sha256") and item.get("sha256") != "ERROR"
+        }
+        duplicates = DuplicateDetector().find_duplicates(integrity_map)
+        return {
+            "target": target_path,
+            "total_hashed": len(hashes),
+            "duplicate_groups": [
+                {"sha256": sha256, "count": len(paths), "files": paths[:5]}
+                for sha256, paths in list(duplicates.items())[:10]
+            ],
+            "sample_hashes": hashes[:20],
+        }
+
+    if tool_id == "network-scan":
+        scanner = NetworkScanner()
+        return {
+            "interfaces": scanner.list_interfaces(),
+            "connections": scanner.active_connections()[:50],
+            "listening_ports": scanner.listening_ports()[:30],
+            "dns_cache": scanner.dns_cache()[:50],
+            "arp_table": scanner.arp_table()[:50],
+        }
+
+    if tool_id == "memory-scan":
+        captures_dir = os.path.join(get_config().get("data_dir", os.path.expanduser("~")), "captures")
+        os.makedirs(captures_dir, exist_ok=True)
+        dump_path = options.get("dump_path") or os.path.join(
+            captures_dir,
+            f"ramdump_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.bin",
+        )
+        captured = MemoryScanner().capture_ram(dump_path)
+        if not captured:
+            return {
+                "captured": False,
+                "dump_path": dump_path,
+                "error": "Memory acquisition tool is not installed or capture failed.",
+            }
+        plugin = options.get("plugin", "pslist")
+        preview = MemoryScanner().analyze_dump(dump_path, plugin)[:25]
+        return {
+            "captured": True,
+            "dump_path": dump_path,
+            "plugin": plugin,
+            "analysis_preview": preview,
+        }
+
+    if tool_id == "log-analysis":
+        analyzer = LogAnalyzer()
+        targets = _discover_log_targets(target_path)
+        if not targets:
+            return {"target": target_path, "files_analyzed": 0, "threats": [], "error": "No log files found."}
+        threats = []
+        for path in targets:
+            for threat in analyzer.analyze_patterns(path)[:20]:
+                threats.append(
+                    {
+                        "pattern_name": threat.pattern_name,
+                        "severity": threat.severity,
+                        "timestamp": threat.timestamp,
+                        "file_path": threat.file_path,
+                        "matched_line": threat.matched_line[:200],
+                    }
+                )
+        return {
+            "target": target_path,
+            "files_analyzed": len(targets),
+            "threats": threats[:50],
+            "raw_samples": {path: analyzer.analyze_file(path)[:5] for path in targets[:5]},
+        }
+
+    if tool_id == "registry-analysis":
+        hives = _discover_registry_hives(target_path)
+        if not hives:
+            return {"target": target_path, "hives": [], "error": "No registry hives found."}
+        analyzer = RegistryAnalyzer()
+        results = []
+        for hive_path in hives:
+            try:
+                hive = analyzer.load_hive(hive_path)
+                keys = analyzer.list_keys(hive)
+                results.append({"hive_path": hive_path, "top_keys": dict(list(keys.items())[:25])})
+            except Exception as exc:
+                results.append({"hive_path": hive_path, "error": str(exc)})
+        return {"target": target_path, "hives": results}
+
+    if tool_id == "case-legal-brief":
+        findings = (case_payload or {}).get("full_findings") or {}
+        return {
+            "case_id": (case_payload or {}).get("id"),
+            "references": _build_case_legal_references(findings),
+            "checklist": get_legal_checklist(),
+            "admissibility_tips": get_admissibility_tips(),
+        }
+
+    raise HTTPException(404, "Unknown tool")
+
 # ── Lifecycle ────────────────────────────────────────────────
 
 @app.on_event("startup")
@@ -82,70 +564,42 @@ async def startup():
     ensure_dirs()
     init_db()
 
-    # prepare alert engine and stores
-    def _record_alert(alert: dict):
-        # attach timestamp
-        alert['timestamp'] = datetime.utcnow().isoformat()
-        _alerts.insert(0, alert)
-        # cap history
-        if len(_alerts) > 200:
-            _alerts.pop()
-
-    alert_engine = AlertEngine(callback=_record_alert)
-    app.state.alert_engine = alert_engine
-
-    # start USB monitor for automatic investigations if enabled
+    app.state.alert_engine = AlertEngine(callback=_record_alert)
+    app.state.agent = ForensicAgent()
     cfg = get_config()
-    poll = cfg.get("usb_poll_interval", 2.0)
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
 
     def _usb_callback(dev):
-        # executed in USBDetectionService thread
-        # create an alert for the new device
-        alert_engine.process_event({
-            "event_type": "USB_CONNECTED",
-            "device": dev.to_dict() if hasattr(dev, 'to_dict') else {}
-        })
-        cfg2 = get_config()
-        if not cfg2.get("auto_investigate", False):
+        app.state.alert_engine.process_event(
+            {"event_type": "USB_CONNECTED", "device": dev.to_dict() if hasattr(dev, "to_dict") else {}}
+        )
+        if not get_config().get("auto_investigate", False):
             return
-        # schedule the investigation on the FastAPI event loop
         case = Case(device_info=dev, mode="full_auto")
         _investigations[case.id] = {
-            "status": "started", "progress": 0, "step": "Initializing...",
-            "case": case, "result": None, "error": None,
+            "status": "started",
+            "progress": 0,
+            "step": "Initializing...",
+            "case": case,
+            "result": None,
+            "error": None,
         }
         asyncio.run_coroutine_threadsafe(_run_investigation(case.id, dev, "full_auto"), loop)
 
-    svc = USBDetectionService(callback=_usb_callback, poll_interval=poll)
-    svc.start_monitoring()
+    svc = USBDetectionService(callback=_usb_callback, poll_interval=cfg.get("usb_poll_interval", 2.0))
+    if cfg.get("auto_detect_usb", True):
+        svc.start_monitoring()
     app.state.usb_service = svc
 
-    # start additional monitors depending on config
-    def _start_monitors(conf):
-        # remove any existing monitors first
-        for attr in ('network_monitor','process_monitor','file_watcher'):
-            mon = getattr(app.state, attr, None)
-            if mon:
-                try: mon.stop()
-                except Exception: pass
-                setattr(app.state, attr, None)
-
-        if conf.get("enable_network_monitor"):
-            net_mon = NetworkMonitor(callback=lambda ev: alert_engine.process_event({"event_type": "NETWORK_ANOMALY", "details": ev}))
-            net_mon.start()
-            app.state.network_monitor = net_mon
-        if conf.get("enable_process_monitor"):
-            proc_mon = ProcessMonitor(callback=lambda ev: alert_engine.process_event({"event_type": "PROCESS_NEW", "details": ev}))
-            proc_mon.start()
-            app.state.process_monitor = proc_mon
-        if conf.get("enable_file_watcher"):
-            paths = conf.get("watch_paths", ["/"])
-            file_mon = FileWatcher(paths=paths, callback=lambda ev: alert_engine.process_event({"event_type": "FILE_MODIFIED", **ev}))
-            file_mon.start()
-            app.state.file_watcher = file_mon
-
     _start_monitors(cfg)
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    _stop_monitor("usb_service")
+    _stop_monitor("network_monitor")
+    _stop_monitor("process_monitor")
+    _stop_monitor("file_watcher")
 
 # ── API: Devices ─────────────────────────────────────────────
 
@@ -160,23 +614,26 @@ async def list_devices():
 @app.post("/api/auth/login")
 async def login(req: AuthRequest):
     if _verify_user(req.username, req.password):
-        return {"status": "success", "username": req.username, "role": req.role}
+        user = _get_user(req.username) or {}
+        return {
+            "status": "success",
+            "username": user.get("username", req.username.strip().lower()),
+            "role": user.get("role", req.role),
+        }
+    if not _user_exists():
+        raise HTTPException(401, "No local accounts found. Register an offline investigator account first.")
     raise HTTPException(401, "Invalid username or password")
 
 @app.post("/api/auth/register")
 async def register(req: AuthRequest):
-    if _create_user(req.username, req.password):
-        return {"status": "success", "username": req.username, "role": req.role}
-    raise HTTPException(400, "Username already taken")
+    ok, value = _register_user(req.username, req.password, req.role)
+    if ok:
+        return {"status": "success", "username": value, "role": req.role}
+    raise HTTPException(400, value)
 
 @app.post("/api/auth/google")
 async def google_login(req: GoogleAuthRequest):
-    """Mock Google OAuth callback. In production this would exchange an auth code for a token and fetch user info."""
-    # We now receive req.token from the frontend successfully
-    username = "Google User"
-    if not _user_exists() or not _verify_user(username, "google_oauth_mock"):
-        _create_user(username, "google_oauth_mock")
-    return {"status": "success", "username": username, "role": "investigator"}
+    raise HTTPException(400, "Google authentication is disabled in the offline build.")
 
 # ── API: Quick Scan ──────────────────────────────────────────
 
@@ -327,31 +784,45 @@ async def investigation_status(case_id: str):
 @app.get("/api/cases")
 async def list_cases():
     session = get_session()
-    records = session.query(CaseRecord).order_by(CaseRecord.created_at.desc()).limit(50).all()
-    result = []
-    for r in records:
-        result.append({
-            "id": r.id, "created_at": r.created_at, "investigator": r.investigator,
-            "mode": r.mode, "status": r.status, "report_path": r.report_path,
-            "device_info": json.loads(r.device_info_json) if r.device_info_json else {},
-        })
-    session.close()
-    return {"cases": result}
+    try:
+        records = session.query(CaseRecord).order_by(CaseRecord.created_at.desc()).limit(50).all()
+        result = []
+        for record in records:
+            payload = _build_case_payload(record)
+            result.append(
+                {
+                    "id": payload["id"],
+                    "created_at": payload["created_at"],
+                    "investigator": payload["investigator"],
+                    "mode": payload["mode"],
+                    "status": payload["status"],
+                    "report_path": payload["report_path"],
+                    "device_info": payload["device_info"],
+                    "risk": (payload.get("interpretation") or {}).get("risk"),
+                }
+            )
+        return {"cases": result}
+    finally:
+        session.close()
 
 @app.get("/api/cases/{case_id}")
 async def get_case(case_id: str):
-    session = get_session()
-    r = session.query(CaseRecord).filter_by(id=case_id).first()
-    session.close()
-    if not r:
+    payload = _load_case_payload(case_id)
+    if not payload:
+        raise HTTPException(404, "Case not found")
+    return payload
+
+
+@app.get("/api/cases/{case_id}/legal")
+async def get_case_legal(case_id: str):
+    payload = _load_case_payload(case_id)
+    if not payload:
         raise HTTPException(404, "Case not found")
     return {
-        "id": r.id, "created_at": r.created_at, "investigator": r.investigator,
-        "mode": r.mode, "status": r.status, "report_path": r.report_path,
-        "device_info": json.loads(r.device_info_json) if r.device_info_json else {},
-        "backup": json.loads(r.backup_json) if r.backup_json else {},
-        "findings": json.loads(r.findings_json) if r.findings_json else {},
-        "interpretation": json.loads(r.interpretation_json) if r.interpretation_json else {},
+        "case_id": case_id,
+        "references": payload.get("legal_references", []),
+        "checklist": get_legal_checklist(),
+        "admissibility_tips": get_admissibility_tips(),
     }
 
 # ── API: Reports ─────────────────────────────────────────────
@@ -367,26 +838,51 @@ async def download_report(case_id: str, fmt: str):
              "csv": "text/csv"}.get(fmt, "application/octet-stream")
     return FileResponse(path, media_type=media, filename=f"{case_id}_report.{fmt}")
 
+
+@app.get("/api/legal/full")
+async def legal_full():
+    full = get_full_legal_reference()
+    return {
+        "sections": full.get("sections", {}),
+        "checklist": full.get("checklist", get_legal_checklist()),
+        "admissibility_tips": full.get("tips", get_admissibility_tips()),
+        "evidence_handling": full.get("evidence_handling", get_evidence_handling_guide()),
+        "precedents": full.get("precedents", get_key_precedents()),
+    }
+
+
+@app.get("/api/legal/sections/{section_id}")
+async def legal_section(section_id: str):
+    return get_section_summary(section_id)
+
+
+@app.get("/api/legal/search")
+async def legal_search(q: str = Query(..., min_length=2)):
+    results = lookup_it_act(q)
+    return {
+        "results": [
+            {
+                "section_id": result.section_id,
+                "title": result.title,
+                "description": result.description,
+                "punishment": result.punishment,
+                "relevance": result.relevance,
+            }
+            for result in results
+        ]
+    }
+
 # ── API: Tools / Workbench ─────────────────────────────────────
 
 @app.get("/api/tools/available")
 async def available_tools():
-    # In a real implementation this would inspect installed utilities or configuration.
-    tools = [
-        {"id": "fs-scan", "name": "File System Scan", "category": "Disk", "status": "available", "last_run": None},
-        {"id": "malware-scan", "name": "Malware Scan", "category": "Malware", "status": "available", "last_run": None},
-        {"id": "hash-integrity", "name": "Hash Integrity", "category": "Disk", "status": "available", "last_run": None},
-        {"id": "network-scan", "name": "Network Scan", "category": "Network", "status": "available", "last_run": None},
-        {"id": "memory-scan", "name": "Memory Scan", "category": "Memory", "status": "available", "last_run": None},
-        {"id": "log-analysis", "name": "Log Analysis", "category": "Logs", "status": "available", "last_run": None},
-        {"id": "registry-analysis", "name": "Registry Analysis", "category": "Registry", "status": "available", "last_run": None},
-        {"id": "deep-malware", "name": "Malware Deep Scan", "category": "Malware", "status": "available", "last_run": None},
-    ]
-    return {"tools": tools}
+    return {"tools": AVAILABLE_TOOLS}
 
 class ToolRunRequest(BaseModel):
     tool_id: str
     case_id: Optional[str] = None
+    target_path: Optional[str] = None
+    options: Optional[Dict[str, Any]] = None
 
 # ── API: Network Scanning ───────────────────────────────────────
 
@@ -419,14 +915,16 @@ async def network_dns():
 
 @app.post("/api/memory/capture")
 async def memory_capture():
-    from servos.forensics.memory_scanner import MemoryScanner
     path = os.path.join(get_config().get("data_dir"), "ramdump.bin")
     success = MemoryScanner().capture_ram(path)
-    return {"success": success, "path": path if success else ""}
+    return {
+        "success": success,
+        "path": path if success else "",
+        "error": None if success else "Memory acquisition tool is unavailable or capture failed.",
+    }
 
 @app.post("/api/memory/analyze")
 async def memory_analyze(req: dict):
-    from servos.forensics.memory_scanner import MemoryScanner
     dump = req.get("dump_path")
     plugin = req.get("plugin", "pslist")
     results = MemoryScanner().analyze_dump(dump, plugin)
@@ -436,7 +934,6 @@ async def memory_analyze(req: dict):
 
 @app.post("/api/logs/analyze")
 async def logs_analyze(req: dict):
-    from servos.forensics.log_analyzer import LogAnalyzer
     path = req.get("path")
     analyzer = LogAnalyzer()
     if os.path.isdir(path):
@@ -449,7 +946,6 @@ async def logs_analyze(req: dict):
 
 @app.post("/api/registry/analyze")
 async def registry_analyze(req: dict):
-    from servos.forensics.registry_analyzer import RegistryAnalyzer
     path = req.get("hive_path")
     analyzer = RegistryAnalyzer()
     hive = analyzer.load_hive(path)
@@ -459,7 +955,6 @@ async def registry_analyze(req: dict):
 
 @app.post("/api/malware/deep")
 async def malware_deep(req: dict):
-    from servos.forensics.deep_malware_scanner import DeepMalwareScanner
     root = req.get("root")
     rules = req.get("yara_rules")
     dms = DeepMalwareScanner()
@@ -468,9 +963,16 @@ async def malware_deep(req: dict):
 
 @app.post("/api/tools/run")
 async def run_tool(req: ToolRunRequest):
-    # stub implementation: in a full system this would enqueue the tool execution
-    # and stream output via WebSocket. Here we simply acknowledge.
-    return {"status": "scheduled", "tool_id": req.tool_id, "case_id": req.case_id}
+    target_path, case_payload = _resolve_tool_target(req.case_id, req.target_path)
+    result = _execute_tool(req.tool_id, target_path, case_payload, req.options)
+    return {
+        "status": "completed",
+        "tool_id": req.tool_id,
+        "case_id": req.case_id,
+        "target": target_path,
+        "ran_at": datetime.utcnow().isoformat(),
+        "result": result,
+    }
 
 # ── API: Settings ────────────────────────────────────────────
 
@@ -482,22 +984,18 @@ async def get_settings():
 async def update_settings(req: SettingsUpdate):
     save_config(req.settings)
     # if usb poll interval changed, restart usb monitoring
-    if "usb_poll_interval" in req.settings or "auto_investigate" in req.settings:
+    if "usb_poll_interval" in req.settings or "auto_investigate" in req.settings or "auto_detect_usb" in req.settings:
         svc: USBDetectionService = getattr(app.state, "usb_service", None)
         if svc:
-            svc.stop_monitoring()
             cfg = get_config()
+            svc.stop_monitoring()
             svc.poll_interval = cfg.get("usb_poll_interval", svc.poll_interval)
-            svc.start_monitoring()
+            if cfg.get("auto_detect_usb", True):
+                svc.start_monitoring()
     # if any monitoring toggle changed, restart monitors
     monitor_keys = ["enable_network_monitor", "enable_process_monitor", "enable_file_watcher", "watch_paths"]
     if any(k in req.settings for k in monitor_keys):
-        cfg = get_config()
-        # call same helper defined in startup
-        try:
-            _start_monitors(cfg)
-        except NameError:
-            pass
+        _start_monitors(get_config())
     return {"settings": get_config()}
 
 
@@ -510,70 +1008,49 @@ async def list_alerts(limit: int = 50):
 
 # ── MultiScan Jobs ──────────────────────────────────────────
 
-_scan_jobs: Dict[str, Dict] = {}
-
 async def _run_multiscan_job(job_id: str, tools: list, target: str):
     job = _scan_jobs.get(job_id)
     if not job:
         return
-    job['status'] = 'running'
-    job['progress'] = 0
-    job['results'] = []
-    job['start_time'] = datetime.utcnow().isoformat()
+    job["status"] = "running"
+    job["progress"] = 0
+    job["results"] = []
+    job["start_time"] = datetime.utcnow().isoformat()
 
-    def cb(r):
-        job['results'].append(r)
-        job['progress'] += 1
+    total = max(len(tools), 1)
 
-    funcs = []
-    from servos.forensics.network_scanner import NetworkScanner
-    from servos.forensics.memory_scanner import MemoryScanner
-    from servos.forensics.log_analyzer import LogAnalyzer
-    from servos.forensics.registry_analyzer import RegistryAnalyzer
-    from servos.forensics.deep_malware_scanner import DeepMalwareScanner
-    from servos.forensics.file_analyzer import FileAnalyzer
+    def _wrap(tool_id: str):
+        return lambda: {"tool": tool_id, "result": _execute_tool(tool_id, target, None, None)}
 
-    if "fs-scan" in tools:
-        funcs.append(lambda: {"tool": "fs-scan", "result": FileAnalyzer().analyze(target).total_files})
-    if "network-scan" in tools:
-        funcs.append(lambda: {"tool": "network-scan", "result": NetworkScanner().active_connections()})
-    if "memory-scan" in tools:
-        funcs.append(lambda: {"tool": "memory-scan", "result": MemoryScanner().capture_ram("/tmp/dump.bin")})
-    if "log-analysis" in tools:
-        funcs.append(lambda: {"tool": "log-analysis", "result": LogAnalyzer().analyze_file(target)})
-    if "registry-analysis" in tools:
-        funcs.append(lambda: {"tool": "registry-analysis", "result": RegistryAnalyzer().list_keys(RegistryAnalyzer().load_hive(target))})
-    if "deep-malware" in tools:
-        funcs.append(lambda: {"tool": "deep-malware", "result": DeepMalwareScanner().scan_path(target, None)})
+    def cb(result):
+        job["results"].append(result)
+        job["progress"] = int((len(job["results"]) / total) * 100)
 
-    coord = MultiScanCoordinator(funcs, callback=cb)
-    # allow cancellation by checking job['cancel'] before starting each
-    for func in coord.scan_funcs:
-        if job.get('cancel'):
-            job['status'] = 'cancelled'
-            break
+    coord = MultiScanCoordinator([_wrap(tool_id) for tool_id in tools], callback=cb)
+    if job.get("cancel"):
+        job["status"] = "cancelled"
+    else:
         try:
-            res = func()
-            cb(res)
-        except Exception as e:
-            cb({'tool': getattr(func, '__name__', 'unknown'), 'error': str(e)})
-    if job['status'] != 'cancelled':
-        job['status'] = 'completed'
-    job['end_time'] = datetime.utcnow().isoformat()
+            coord.run_all()
+            job["status"] = "cancelled" if job.get("cancel") else "completed"
+        except Exception as exc:
+            job["status"] = "error"
+            job["results"].append({"error": str(exc)})
+    job["end_time"] = datetime.utcnow().isoformat()
 
 @app.post("/api/multiscan")
 async def start_multiscan(req: dict, bg: BackgroundTasks):
     tools = req.get("tools", [])
     target = req.get("target", "/")
-    job_id = __import__("uuid").uuid4().hex
+    job_id = uuid.uuid4().hex
     _scan_jobs[job_id] = {
-        'id': job_id,
-        'tools': tools,
-        'target': target,
-        'status': 'queued',
-        'progress': 0,
-        'results': [],
-        'cancel': False,
+        "id": job_id,
+        "tools": tools,
+        "target": target,
+        "status": "queued",
+        "progress": 0,
+        "results": [],
+        "cancel": False,
     }
     bg.add_task(_run_multiscan_job, job_id, tools, target)
     return {"job_id": job_id, "status": "queued"}
@@ -619,53 +1096,37 @@ async def llm_status():
 class ChatRequest(BaseModel):
     message: str
     history: Optional[List[dict]] = None
+    case_id: Optional[str] = None
 
 @app.post("/api/chat")
 async def general_chat(req: ChatRequest):
-    """General-purpose conversational AI chat with multi-turn context."""
-    llm = LLMInvestigator()
-
     history = req.history or []
+    message, embedded_case_id = _extract_case_reference(req.message)
+    active_case_id = req.case_id or embedded_case_id
+    active_case = _load_case_payload(active_case_id) if active_case_id else None
 
-    # Generate response using conversation history for context
-    if llm.is_available():
-        response_text = llm.chat(req.message, history)
-        model_used = llm.model
-    else:
-        response_text = llm._fallback_chat(req.message)
-        model_used = "offline-fallback"
+    agent: ForensicAgent = getattr(app.state, "agent", None) or ForensicAgent()
+    response = agent.process(
+        message,
+        history=history,
+        case_id=active_case_id,
+        active_case=active_case,
+        allow_unsafe=False,
+    )
 
-    # Build lightweight context info for the sidebar
-    context_info = []
-    if history:
-        topic_words = set()
-        for msg in history[-5:]:
-            words = msg.get("content", "").split()[:5]
-            topic_words.update(w.lower() for w in words if len(w) > 3)
-        if topic_words:
-            context_info.append({
-                "type": "conversation",
-                "label": "Active Conversation",
+    if active_case:
+        response.setdefault("sources", []).insert(
+            0,
+            {
+                "type": "case_context",
+                "label": f"Case: {active_case['id']}",
                 "data": {
-                    "messages": len(history),
-                    "topics": ", ".join(list(topic_words)[:6]),
-                }
-            })
-
-    context_info.append({
-        "type": "model_info",
-        "label": f"Model: {model_used}",
-        "data": {
-            "status": "connected" if llm.is_available() else "offline",
-            "model": model_used,
-        }
-    })
-
-    return {
-        "response": response_text,
-        "sources": context_info,
-        "model": model_used,
-    }
+                    "risk": (active_case.get("interpretation") or {}).get("risk", "UNKNOWN"),
+                    "device": (active_case.get("device_info") or {}).get("name", "Unknown"),
+                },
+            },
+        )
+    return response
 
 
 # ── Serve static frontend (React SPA) ────────────────────────
@@ -708,24 +1169,10 @@ def _findings_dict(findings: ForensicFindings) -> dict:
 def _case_to_dict(case: Case) -> dict:
     d = case.to_dict()
     if case.findings:
-        d["findings"] = _findings_dict(case.findings)
-        if case.findings.file_system:
-            d["findings"]["suspicious_files"] = [
-                {"name": f.filename, "reason": f.suspicious_reason, "entropy": f.entropy}
-                for f in case.findings.file_system.suspicious_files[:20]
-            ]
-        if case.findings.malware:
-            d["findings"]["malware_indicators"] = [
-                {"rule": i.rule_name, "severity": i.severity, "file": os.path.basename(i.file_path),
-                 "description": i.description}
-                for i in case.findings.malware.indicators[:20]
-            ]
-        if case.findings.timeline:
-            d["findings"]["timeline_events"] = [
-                {"timestamp": e.timestamp[:19] if e.timestamp else "", "description": e.description,
-                 "severity": e.severity}
-                for e in case.findings.timeline.events[:50]
-            ]
+        raw_findings = _serialize_for_json(case.findings)
+        d["findings"] = _summarize_findings_payload(raw_findings)
+        d["full_findings"] = raw_findings
+        d["legal_references"] = _build_case_legal_references(raw_findings)
     if case.interpretation:
         d["interpretation"] = {
             "risk": case.interpretation.risk_assessment,
@@ -737,14 +1184,15 @@ def _case_to_dict(case: Case) -> dict:
     return d
 
 def _save_case_to_db(case: Case):
+    session = None
     try:
         session = get_session()
         record = CaseRecord(
             id=case.id, created_at=case.created_at, investigator=case.investigator,
             mode=case.mode, status=case.status, report_path=case.report_path or "",
-            device_info_json=json.dumps(case.device_info.to_dict() if case.device_info else {}),
-            backup_json=json.dumps(case.backup.to_dict() if case.backup else {}),
-            findings_json=json.dumps(_findings_dict(case.findings) if case.findings else {}),
+            device_info_json=json.dumps(_serialize_for_json(case.device_info) if case.device_info else {}),
+            backup_json=json.dumps(_serialize_for_json(case.backup) if case.backup else {}),
+            findings_json=json.dumps(_serialize_for_json(case.findings) if case.findings else {}),
             interpretation_json=json.dumps({
                 "risk": case.interpretation.risk_assessment,
                 "summary": case.interpretation.summary,
@@ -753,6 +1201,8 @@ def _save_case_to_db(case: Case):
         )
         session.merge(record)
         session.commit()
-        session.close()
     except Exception:
         pass
+    finally:
+        if session:
+            session.close()

@@ -1,9 +1,5 @@
-import React from 'react'
+import DoodleIcon, { type DoodleName } from '@/components/DoodleIcon'
 
-/**
- * Grid of tool cards with hover depth, gradient borders. Mimics the 21st.dev
- * ultra-quality-showcase-grid. The parent page should supply tools data.
- */
 interface Tool {
     id: string
     name: string
@@ -18,34 +14,70 @@ interface Props {
     onRun?: (tool: Tool) => void
 }
 
+const DOODLE_BY_CATEGORY: Record<string, DoodleName> = {
+    disk: 'hdd-drive',
+    malware: 'threat',
+    network: 'network',
+    memory: 'dashboard',
+    logs: 'legal',
+    registry: 'settings',
+}
+
+function doodleForTool(tool: Tool): DoodleName {
+    return DOODLE_BY_CATEGORY[tool.category.toLowerCase()] || 'dashboard'
+}
+
 export default function UltraQualityShowcaseGrid({ tools, onRun }: Props) {
     return (
-        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 auto-rows-fr">
+        <div className="grid auto-rows-fr gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {tools.map((tool) => (
-                <div
-                    key={tool.id}
-                    className="relative bg-servos-surface border border-servos-border rounded-lg p-4 hover:shadow-lg transition-shadow group"
-                >
-                    <div className="flex items-center justify-between">
-                        <span className="text-sm font-semibold text-cream">{tool.name}</span>
-                        <span
-                            className={`h-2 w-2 rounded-full ${
-                                tool.status === 'available' ? 'bg-success' : 'bg-danger'
-                            }`}
-                        />
-                    </div>
-                    <p className="mt-2 text-xs text-cream-dim" title={tool.description}>
-                        {tool.category}
-                    </p>
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-black/40 flex items-center justify-center">
-                        {onRun && (
-                            <button
-                                onClick={() => onRun(tool)}
-                                className="px-3 py-1 bg-accent text-white text-xs rounded-md"
-                            >
-                                Run Now
-                            </button>
-                        )}
+                <div key={tool.id} className="doodle-panel p-4">
+                    <div className="relative z-10 flex h-full flex-col">
+                        <div className="flex items-start gap-3">
+                            <DoodleIcon
+                                name={doodleForTool(tool)}
+                                alt={`${tool.name} doodle`}
+                                size="md"
+                                className={tool.status === 'available' ? 'bg-accent/20' : 'bg-danger/15'}
+                            />
+                            <div className="min-w-0 flex-1">
+                                <div className="flex items-center justify-between gap-3">
+                                    <p className="text-sm font-bold text-cream-bright">{tool.name}</p>
+                                    <span
+                                        className={[
+                                            'rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-[0.18em]',
+                                            tool.status === 'available'
+                                                ? 'bg-success-muted text-success'
+                                                : 'bg-danger-muted text-danger',
+                                        ].join(' ')}
+                                    >
+                                        {tool.status}
+                                    </span>
+                                </div>
+                                <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-cream-dim">
+                                    {tool.category}
+                                </p>
+                                {tool.description && (
+                                    <p className="mt-3 text-xs leading-relaxed text-cream-dim">
+                                        {tool.description}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="mt-4 flex items-end justify-between gap-3 pt-3">
+                            <p className="text-[11px] text-cream-dim">
+                                {tool.lastRun ? `Last run: ${tool.lastRun}` : 'Ready to run'}
+                            </p>
+                            {onRun && (
+                                <button
+                                    onClick={() => onRun(tool)}
+                                    className="doodle-button doodle-button-primary px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em]"
+                                >
+                                    Run now
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             ))}

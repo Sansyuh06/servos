@@ -12,12 +12,13 @@ export interface ChatResponse {
 
 export async function sendChatMessage(
     message: string,
-    history?: { role: string; content: string }[]
+    history?: { role: string; content: string }[],
+    caseId?: string | null
 ): Promise<ChatResponse> {
     const res = await fetch(`${BASE}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, history: history || [] }),
+        body: JSON.stringify({ message, history: history || [], case_id: caseId || undefined }),
     })
     if(!res.ok) throw new Error(`Chat error: ${res.status}`)
     return res.json()
@@ -194,4 +195,23 @@ export async function cancelScan(jobId: string): Promise<{ status: string }> {
 /* ── Playbooks ── */
 export async function getPlaybooks() {
     return request<{ playbooks: { name: string; description: string; version: string; steps: number }[] }>('/playbooks')
+}
+
+export async function runTool(body: {
+    tool_id: string
+    case_id?: string
+    target_path?: string
+    options?: Record<string, any>
+}) {
+    return request<{
+        status: string
+        tool_id: string
+        case_id?: string
+        target: string
+        ran_at: string
+        result: any
+    }>('/tools/run', {
+        method: 'POST',
+        body: JSON.stringify(body),
+    })
 }

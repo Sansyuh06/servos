@@ -1,10 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import DoodleIcon, { type DoodleName } from '@/components/DoodleIcon'
 import PageTransition from '@/components/PageTransition'
-import {
-    Scale, BookOpen, CheckCircle2, AlertTriangle, Copy, ChevronDown,
-    Shield, FileText, Gavel, ClipboardCheck, Loader2, Check
-} from 'lucide-react'
 
 interface Section {
     title: string
@@ -20,6 +17,13 @@ interface Precedent {
     relevance: string
 }
 
+const TABS = [
+    { id: 'checklist', label: 'Chain of Custody', doodle: 'alerts' },
+    { id: 'sections', label: 'IT Act Sections', doodle: 'legal' },
+    { id: 'tips', label: 'Evidence Guide', doodle: 'settings' },
+    { id: 'precedents', label: 'Case Law', doodle: 'dashboard' },
+] satisfies { id: 'checklist' | 'sections' | 'tips' | 'precedents'; label: string; doodle: DoodleName }[]
+
 export default function LegalPage() {
     const [sections, setSections] = useState<Record<string, Section>>({})
     const [checklist, setChecklist] = useState<string[]>([])
@@ -33,51 +37,50 @@ export default function LegalPage() {
     const [activeTab, setActiveTab] = useState<'checklist' | 'sections' | 'tips' | 'precedents'>('checklist')
 
     useEffect(() => {
-        Promise.all([
-            fetch('/api/legal/full').then(r => r.json()).catch(() => ({})),
-        ]).then(([full]) => {
-            setSections(full.sections || {})
-            setChecklist(full.checklist || [])
-            setTips(full.admissibility_tips || [])
-            setHandling(full.evidence_handling || [])
-            setPrecedents(full.precedents || [])
-            const keys = Object.keys(full.sections || {})
-            if (keys.length > 0) setSelectedSection(keys[0])
-            setLoading(false)
-        })
+        fetch('/api/legal/full')
+            .then((response) => response.json())
+            .catch(() => ({}))
+            .then((full) => {
+                setSections(full.sections || {})
+                setChecklist(full.checklist || [])
+                setTips(full.admissibility_tips || [])
+                setHandling(full.evidence_handling || [])
+                setPrecedents(full.precedents || [])
+                const keys = Object.keys(full.sections || {})
+                if(keys.length > 0) setSelectedSection(keys[0])
+                setLoading(false)
+            })
     }, [])
 
-    const toggleCheck = (idx: number) => {
-        setCheckedItems(prev => {
-            const next = new Set(prev)
-            next.has(idx) ? next.delete(idx) : next.add(idx)
+    const toggleCheck = (index: number) => {
+        setCheckedItems((previous) => {
+            const next = new Set(previous)
+            if(next.has(index)) {
+                next.delete(index)
+            } else {
+                next.add(index)
+            }
             return next
         })
     }
 
     const copyChecklist = () => {
-        const text = checklist.map((item, i) =>
-            `${checkedItems.has(i) ? '☑' : '☐'} ${item}`
-        ).join('\n')
+        const text = checklist.map((item, index) => `${checkedItems.has(index) ? '[x]' : '[ ]'} ${item}`).join('\n')
         navigator.clipboard.writeText(text)
         setCopied(true)
         setTimeout(() => setCopied(false), 2000)
     }
 
-    const sel = selectedSection ? sections[selectedSection] : null
+    const selected = selectedSection ? sections[selectedSection] : null
 
-    const tabs = [
-        { id: 'checklist' as const, label: 'Chain of Custody', icon: ClipboardCheck },
-        { id: 'sections' as const, label: 'IT Act Sections', icon: BookOpen },
-        { id: 'tips' as const, label: 'Evidence Guide', icon: Shield },
-        { id: 'precedents' as const, label: 'Case Law', icon: Gavel },
-    ]
-
-    if (loading) {
+    if(loading) {
         return (
             <PageTransition>
-                <div className="flex items-center justify-center h-full">
-                    <Loader2 size={32} className="text-accent animate-spin" />
+                <div className="doodle-panel flex h-full items-center justify-center p-10 text-center">
+                    <div className="relative z-10">
+                        <DoodleIcon name="legal" alt="Legal loading doodle" size="lg" className="mx-auto" />
+                        <p className="mt-4 text-sm text-cream-dim">Loading legal reference...</p>
+                    </div>
                 </div>
             </PageTransition>
         )
@@ -85,225 +88,208 @@ export default function LegalPage() {
 
     return (
         <PageTransition>
-            <div className="h-full overflow-y-auto">
-                {/* Header */}
-                <div className="px-6 pt-6 pb-4 border-b border-servos-border-dim">
-                    <h1 className="text-xl font-bold text-cream-bright flex items-center gap-2">
-                        <Scale size={20} className="text-accent" />
-                        Legal & Procedure
-                    </h1>
-                    <p className="text-xs text-cream-dim mt-1">
-                        Indian IT Act reference, chain-of-custody checklist, and evidence handling (offline)
-                    </p>
+            <div className="h-full overflow-y-auto space-y-5">
+                <section className="doodle-panel p-6">
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-4">
+                            <DoodleIcon name="legal" alt="Legal doodle" size="lg" />
+                            <div>
+                                <h1 className="text-3xl font-black text-cream-bright font-heading">Legal & Procedure</h1>
+                                <p className="mt-2 text-sm text-cream-dim">
+                                    Offline legal reference, custody checklist, and evidence handling notes.
+                                </p>
+                            </div>
+                        </div>
 
-                    {/* Tab Bar */}
-                    <div className="flex gap-1 mt-4">
-                        {tabs.map(({ id, label, icon: Icon }) => (
-                            <button
-                                key={id}
-                                onClick={() => setActiveTab(id)}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${activeTab === id
-                                        ? 'bg-accent/20 text-accent border border-accent/30'
-                                        : 'text-cream-dim hover:bg-white/[0.04] border border-transparent'
-                                    }`}
-                            >
-                                <Icon size={12} />
-                                {label}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="px-6 py-4">
-                    {/* Chain of Custody Checklist */}
-                    {activeTab === 'checklist' && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                            <div className="flex items-center justify-between mb-3">
-                                <h2 className="text-sm font-semibold text-cream-bright flex items-center gap-2">
-                                    <ClipboardCheck size={14} className="text-green-400" />
-                                    Chain of Custody Checklist
-                                    <span className="text-[10px] text-cream-dim font-normal">
-                                        ({checkedItems.size}/{checklist.length} completed)
-                                    </span>
-                                </h2>
+                        <div className="mt-6 flex flex-wrap gap-2">
+                            {TABS.map((tab) => (
                                 <button
-                                    onClick={copyChecklist}
-                                    className="flex items-center gap-1.5 px-3 py-1 bg-servos-surface border border-servos-border rounded-lg text-xs text-cream-dim hover:text-cream transition-colors"
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={[
+                                        'doodle-button flex items-center gap-2 px-4 py-2 text-sm font-semibold',
+                                        activeTab === tab.id ? 'doodle-button-primary' : '',
+                                    ].join(' ')}
                                 >
-                                    {copied ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
-                                    {copied ? 'Copied!' : 'Copy to Clipboard'}
+                                    <DoodleIcon name={tab.doodle} alt={`${tab.label} doodle`} size="sm" className="h-8 w-8 rounded-[16px]" />
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                {activeTab === 'checklist' && (
+                    <section className="doodle-panel p-6">
+                        <div className="relative z-10">
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                <div>
+                                    <h2 className="text-xl font-black text-cream-bright font-heading">Chain of Custody Checklist</h2>
+                                    <p className="text-sm text-cream-dim">
+                                        {checkedItems.size}/{checklist.length} completed
+                                    </p>
+                                </div>
+                                <button onClick={copyChecklist} className="doodle-button px-4 py-2 text-sm font-semibold">
+                                    {copied ? 'Copied' : 'Copy checklist'}
                                 </button>
                             </div>
 
-                            {/* Progress bar */}
-                            <div className="w-full h-1.5 bg-servos-surface rounded-full mb-4 overflow-hidden">
+                            <div className="mt-5 overflow-hidden rounded-full bg-black/15">
                                 <motion.div
-                                    className="h-full bg-accent rounded-full"
+                                    className="h-3 rounded-full bg-accent"
                                     initial={{ width: 0 }}
-                                    animate={{ width: `${(checkedItems.size / checklist.length) * 100}%` }}
-                                    transition={{ duration: 0.3 }}
+                                    animate={{ width: `${checklist.length ? (checkedItems.size / checklist.length) * 100 : 0}%` }}
                                 />
                             </div>
 
-                            <div className="space-y-1.5">
-                                {checklist.map((item, i) => (
-                                    <motion.button
-                                        key={i}
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: i * 0.05 }}
-                                        onClick={() => toggleCheck(i)}
-                                        className={`w-full flex items-start gap-3 p-3 rounded-lg text-left transition-colors ${checkedItems.has(i)
-                                                ? 'bg-green-500/10 border border-green-500/20'
-                                                : 'bg-servos-surface border border-servos-border hover:border-accent/30'
-                                            }`}
+                            <div className="mt-5 space-y-3">
+                                {checklist.map((item, index) => (
+                                    <button
+                                        key={`${item}-${index}`}
+                                        onClick={() => toggleCheck(index)}
+                                        className={[
+                                            'flex w-full items-start gap-3 rounded-[22px] border p-4 text-left transition-colors',
+                                            checkedItems.has(index)
+                                                ? 'border-success/30 bg-success-muted'
+                                                : 'border-white/10 bg-white/[0.04]',
+                                        ].join(' ')}
                                     >
-                                        <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center shrink-0 ${checkedItems.has(i)
-                                                ? 'bg-green-500 border-green-500'
-                                                : 'border-cream-dim/30'
-                                            }`}>
-                                            {checkedItems.has(i) && <Check size={10} className="text-white" />}
-                                        </div>
-                                        <span className={`text-xs ${checkedItems.has(i) ? 'text-cream line-through opacity-60' : 'text-cream'}`}>
-                                            {item}
+                                        <span className="doodle-chip text-[10px] font-bold uppercase tracking-[0.18em]">
+                                            {checkedItems.has(index) ? 'Done' : 'Open'}
                                         </span>
-                                    </motion.button>
+                                        <span className="text-sm leading-7 text-cream-bright">{item}</span>
+                                    </button>
                                 ))}
                             </div>
-                        </motion.div>
-                    )}
+                        </div>
+                    </section>
+                )}
 
-                    {/* IT Act Sections */}
-                    {activeTab === 'sections' && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                            <div className="flex gap-4">
-                                {/* Section List */}
-                                <div className="w-48 shrink-0 space-y-1">
-                                    {Object.entries(sections).map(([id, sec]) => (
-                                        <button
-                                            key={id}
-                                            onClick={() => setSelectedSection(id)}
-                                            className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-colors ${selectedSection === id
-                                                    ? 'bg-accent/20 text-accent border border-accent/30'
-                                                    : 'text-cream-dim hover:bg-white/[0.04] border border-transparent'
-                                                }`}
-                                        >
-                                            <div className="font-medium">Section {id}</div>
-                                            <div className="text-[10px] opacity-60 truncate">{sec.title}</div>
-                                        </button>
-                                    ))}
-                                </div>
+                {activeTab === 'sections' && (
+                    <div className="grid gap-5 xl:grid-cols-[260px_minmax(0,1fr)]">
+                        <section className="doodle-panel p-4">
+                            <div className="relative z-10 space-y-2">
+                                {Object.entries(sections).map(([id, section]) => (
+                                    <button
+                                        key={id}
+                                        onClick={() => setSelectedSection(id)}
+                                        className={[
+                                            'w-full rounded-[20px] border px-4 py-3 text-left transition-colors',
+                                            selectedSection === id
+                                                ? 'border-accent/35 bg-accent/18'
+                                                : 'border-white/8 bg-white/[0.03]',
+                                        ].join(' ')}
+                                    >
+                                        <p className="text-sm font-semibold text-cream-bright">Section {id}</p>
+                                        <p className="mt-1 text-xs text-cream-dim">{section.title}</p>
+                                    </button>
+                                ))}
+                            </div>
+                        </section>
 
-                                {/* Section Detail */}
-                                {sel && (
-                                    <div className="flex-1 bg-servos-surface border border-servos-border rounded-lg p-4">
-                                        <h3 className="text-sm font-bold text-accent mb-1">
-                                            Section {selectedSection}: {sel.title}
-                                        </h3>
-                                        <p className="text-xs text-cream leading-relaxed mb-3">{sel.summary}</p>
+                        <section className="doodle-panel p-6">
+                            <div className="relative z-10">
+                                {selected ? (
+                                    <>
+                                        <h2 className="text-2xl font-black text-cream-bright font-heading">
+                                            Section {selectedSection}: {selected.title}
+                                        </h2>
+                                        <p className="mt-4 text-sm leading-7 text-cream-bright">{selected.summary}</p>
 
-                                        <div className="space-y-2">
-                                            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-2.5">
-                                                <p className="text-[10px] text-red-400 uppercase tracking-wider font-semibold mb-0.5">Punishment</p>
-                                                <p className="text-xs text-cream">{sel.punishment}</p>
+                                        <div className="mt-5 grid gap-3">
+                                            <div className="rounded-[22px] border border-danger/30 bg-danger-muted p-4">
+                                                <p className="text-[10px] uppercase tracking-[0.18em] text-danger">Punishment</p>
+                                                <p className="mt-2 text-sm text-cream-bright">{selected.punishment}</p>
                                             </div>
-                                            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-2.5">
-                                                <p className="text-[10px] text-blue-400 uppercase tracking-wider font-semibold mb-0.5">Forensic Relevance</p>
-                                                <p className="text-xs text-cream">{sel.relevance}</p>
+                                            <div className="rounded-[22px] border border-accent/30 bg-accent-muted p-4">
+                                                <p className="text-[10px] uppercase tracking-[0.18em] text-accent-light">Forensic relevance</p>
+                                                <p className="mt-2 text-sm text-cream-bright">{selected.relevance}</p>
                                             </div>
-                                            {sel.certificate_requirements && (
-                                                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-2.5">
-                                                    <p className="text-[10px] text-yellow-400 uppercase tracking-wider font-semibold mb-1">65B Certificate Requirements</p>
-                                                    <ul className="space-y-0.5">
-                                                        {sel.certificate_requirements.map((req, i) => (
-                                                            <li key={i} className="text-xs text-cream flex items-start gap-1.5">
-                                                                <span className="text-yellow-400 mt-0.5">•</span> {req}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                            )}
                                         </div>
-                                    </div>
+
+                                        {selected.certificate_requirements && (
+                                            <div className="mt-5 rounded-[22px] border border-warning/30 bg-warning-muted p-4">
+                                                <p className="text-[10px] uppercase tracking-[0.18em] text-warning">Certificate requirements</p>
+                                                <div className="mt-3 space-y-2">
+                                                    {selected.certificate_requirements.map((requirement, index) => (
+                                                        <p key={`${requirement}-${index}`} className="text-sm text-cream-bright">
+                                                            {requirement}
+                                                        </p>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    <p className="text-sm text-cream-dim">No section selected.</p>
                                 )}
                             </div>
-                        </motion.div>
-                    )}
+                        </section>
+                    </div>
+                )}
 
-                    {/* Evidence Handling Tips */}
-                    {activeTab === 'tips' && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-                            <section>
-                                <h2 className="text-sm font-semibold text-cream-bright mb-2 flex items-center gap-2">
-                                    <Shield size={14} className="text-blue-400" />
-                                    Admissibility Tips
-                                </h2>
-                                <div className="space-y-1.5">
-                                    {tips.map((tip, i) => (
-                                        <div key={i} className="flex items-start gap-2 bg-blue-500/10 border border-blue-500/20 rounded-lg p-2.5">
-                                            <CheckCircle2 size={12} className="text-blue-400 mt-0.5 shrink-0" />
-                                            <span className="text-xs text-cream">{tip}</span>
+                {activeTab === 'tips' && (
+                    <div className="grid gap-5 xl:grid-cols-2">
+                        <section className="doodle-panel p-6">
+                            <div className="relative z-10">
+                                <h2 className="text-xl font-black text-cream-bright font-heading">Admissibility Tips</h2>
+                                <div className="mt-5 space-y-3">
+                                    {tips.map((tip, index) => (
+                                        <div key={`${tip}-${index}`} className="rounded-[22px] border border-white/10 bg-white/[0.04] p-4 text-sm text-cream-bright">
+                                            {tip}
                                         </div>
                                     ))}
                                 </div>
-                            </section>
+                            </div>
+                        </section>
 
-                            <section>
-                                <h2 className="text-sm font-semibold text-cream-bright mb-2 flex items-center gap-2">
-                                    <FileText size={14} className="text-yellow-400" />
-                                    Evidence Handling Do's & Don'ts
-                                </h2>
-                                <div className="space-y-1.5">
-                                    {handling.map((item, i) => {
-                                        const isDo = item.startsWith('DO:')
-                                        const isDont = item.startsWith("DON'T:")
-                                        return (
-                                            <div key={i} className={`flex items-start gap-2 rounded-lg p-2.5 border ${isDo ? 'bg-green-500/10 border-green-500/20' :
-                                                    isDont ? 'bg-red-500/10 border-red-500/20' :
-                                                        'bg-servos-surface border-servos-border'
-                                                }`}>
-                                                {isDo ? (
-                                                    <CheckCircle2 size={12} className="text-green-400 mt-0.5 shrink-0" />
-                                                ) : (
-                                                    <AlertTriangle size={12} className="text-red-400 mt-0.5 shrink-0" />
-                                                )}
-                                                <span className="text-xs text-cream">{item}</span>
-                                            </div>
-                                        )
-                                    })}
+                        <section className="doodle-panel p-6">
+                            <div className="relative z-10">
+                                <h2 className="text-xl font-black text-cream-bright font-heading">Handling Guidance</h2>
+                                <div className="mt-5 space-y-3">
+                                    {handling.map((item, index) => (
+                                        <div
+                                            key={`${item}-${index}`}
+                                            className={[
+                                                'rounded-[22px] border p-4 text-sm',
+                                                item.startsWith('DO:')
+                                                    ? 'border-success/30 bg-success-muted'
+                                                    : item.startsWith("DON'T:")
+                                                        ? 'border-danger/30 bg-danger-muted'
+                                                        : 'border-white/10 bg-white/[0.04]',
+                                            ].join(' ')}
+                                        >
+                                            <p className="text-cream-bright">{item}</p>
+                                        </div>
+                                    ))}
                                 </div>
-                            </section>
-                        </motion.div>
-                    )}
+                            </div>
+                        </section>
+                    </div>
+                )}
 
-                    {/* Case Law Precedents */}
-                    {activeTab === 'precedents' && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                            <h2 className="text-sm font-semibold text-cream-bright mb-3 flex items-center gap-2">
-                                <Gavel size={14} className="text-purple-400" />
-                                Key Legal Precedents
-                            </h2>
-                            <div className="space-y-2">
-                                {precedents.map((p, i) => (
+                {activeTab === 'precedents' && (
+                    <section className="doodle-panel p-6">
+                        <div className="relative z-10">
+                            <h2 className="text-xl font-black text-cream-bright font-heading">Key Legal Precedents</h2>
+                            <div className="mt-5 space-y-3">
+                                {precedents.map((precedent, index) => (
                                     <motion.div
-                                        key={i}
+                                        key={`${precedent.case}-${index}`}
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: i * 0.1 }}
-                                        className="bg-servos-surface border border-servos-border rounded-lg p-3"
+                                        transition={{ delay: index * 0.05 }}
+                                        className="rounded-[22px] border border-white/10 bg-white/[0.04] p-4"
                                     >
-                                        <h3 className="text-xs font-bold text-accent mb-1">{p.case}</h3>
-                                        <p className="text-xs text-cream mb-2">{p.summary}</p>
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="text-[10px] text-purple-400 uppercase tracking-wider font-semibold">Relevance:</span>
-                                            <span className="text-[10px] text-cream-dim">{p.relevance}</span>
-                                        </div>
+                                        <p className="text-sm font-semibold text-cream-bright">{precedent.case}</p>
+                                        <p className="mt-2 text-sm leading-7 text-cream-dim">{precedent.summary}</p>
+                                        <p className="mt-3 text-xs text-accent-light">Relevance: {precedent.relevance}</p>
                                     </motion.div>
                                 ))}
                             </div>
-                        </motion.div>
-                    )}
-                </div>
+                        </div>
+                    </section>
+                )}
             </div>
         </PageTransition>
     )

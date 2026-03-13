@@ -9,7 +9,6 @@ interface AuthState {
     lockUntil: number | null
     login: (username: string, password: string) => Promise<void>
     register: (username: string, password: string) => Promise<void>
-    loginWithGoogle: (accessToken: string) => Promise<void>
     logout: () => void
     recordFailedAttempt: () => void
     resetAttempts: () => void
@@ -48,18 +47,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             const errData = await res.json()
             throw new Error(errData.detail || 'Username already taken')
         }
-        const data = await res.json()
-        set({ isAuthenticated: true, username: data.username, role: data.role, failedAttempts: 0, isLocked: false, lockUntil: null })
-        sessionStorage.setItem('servos_session', JSON.stringify({ username: data.username, role: data.role, ts: Date.now() }))
-    },
-
-    loginWithGoogle: async (accessToken: string) => {
-        const res = await fetch('/api/auth/google', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: accessToken })
-        })
-        if(!res.ok) throw new Error('Google Auth failed')
         const data = await res.json()
         set({ isAuthenticated: true, username: data.username, role: data.role, failedAttempts: 0, isLocked: false, lockUntil: null })
         sessionStorage.setItem('servos_session', JSON.stringify({ username: data.username, role: data.role, ts: Date.now() }))

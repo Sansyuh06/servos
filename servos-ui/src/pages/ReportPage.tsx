@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { getCaseDetail, getReportUrl } from '@/api/client'
+import DoodleIcon from '@/components/DoodleIcon'
 import PageTransition from '@/components/PageTransition'
-import {
-    FileText, Download, Shield, HardDrive, Hash, Clock,
-    AlertTriangle, CheckCircle2, ChevronLeft
-} from 'lucide-react'
+
+function riskClass(risk: string | undefined) {
+    if(risk === 'CRITICAL' || risk === 'HIGH') return 'bg-danger-muted text-danger border-danger/30'
+    if(risk === 'MEDIUM') return 'bg-warning-muted text-warning border-warning/30'
+    return 'bg-success-muted text-success border-success/30'
+}
 
 export default function ReportPage() {
     const { caseId } = useParams()
@@ -14,17 +17,28 @@ export default function ReportPage() {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        if(caseId) {
-            getCaseDetail(caseId)
-                .then((d) => { setData(d); setLoading(false) })
-                .catch(() => setLoading(false))
+        if(!caseId) {
+            setLoading(false)
+            return
         }
+
+        getCaseDetail(caseId)
+            .then((response) => {
+                setData(response)
+                setLoading(false)
+            })
+            .catch(() => setLoading(false))
     }, [caseId])
 
     if(loading) {
         return (
             <PageTransition>
-                <div className="h-full flex items-center justify-center text-cream-dim">Loading report...</div>
+                <div className="doodle-panel flex h-full items-center justify-center p-10 text-center">
+                    <div className="relative z-10">
+                        <DoodleIcon name="legal" alt="Loading report doodle" size="lg" className="mx-auto" />
+                        <p className="mt-4 text-sm text-cream-dim">Loading report...</p>
+                    </div>
+                </div>
             </PageTransition>
         )
     }
@@ -35,123 +49,215 @@ export default function ReportPage() {
 
     return (
         <PageTransition>
-            <div className="h-full overflow-y-auto">
-                {/* Header */}
-                <div className="sticky top-0 z-10 bg-servos-bg border-b border-servos-border-dim px-6 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => navigate(-1)}
-                            className="p-1.5 rounded-md hover:bg-servos-hover text-cream-dim transition-colors"
-                        >
-                            <ChevronLeft size={16} />
-                        </button>
-                        <div>
-                            <h1 className="text-lg font-bold text-cream-bright">Forensic Report</h1>
-                            <p className="text-[10px] text-cream-dim font-mono">{caseId}</p>
+            <div className="h-full overflow-y-auto space-y-5">
+                <section className="doodle-panel p-6">
+                    <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                        <div className="flex items-center gap-4">
+                            <DoodleIcon name="legal" alt="Report doodle" size="lg" />
+                            <div>
+                                <h1 className="text-3xl font-black text-cream-bright font-heading">Forensic Report</h1>
+                                <p className="mt-2 text-sm text-cream-dim">
+                                    Structured case summary for review, export, and handoff.
+                                </p>
+                                <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-cream-dim">
+                                    {caseId || 'No case selected'}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                            <button
+                                onClick={() => navigate(-1)}
+                                className="doodle-button px-4 py-2 text-sm font-semibold"
+                            >
+                                Back
+                            </button>
+                            <a
+                                href={caseId ? getReportUrl(caseId, 'pdf') : '#'}
+                                className="doodle-button doodle-button-primary px-4 py-2 text-sm font-semibold"
+                            >
+                                Export PDF
+                            </a>
+                            <a
+                                href={caseId ? getReportUrl(caseId, 'json') : '#'}
+                                className="doodle-button px-4 py-2 text-sm font-semibold"
+                            >
+                                Export JSON
+                            </a>
                         </div>
                     </div>
-                    <div className="flex gap-2">
-                        <a
-                            href={caseId ? getReportUrl(caseId, 'pdf') : '#'}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-accent hover:bg-accent-dark text-white text-[11px] font-semibold rounded-md transition-colors"
-                        >
-                            <Download size={12} /> Export PDF
-                        </a>
-                        <a
-                            href={caseId ? getReportUrl(caseId, 'json') : '#'}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-servos-surface border border-servos-border text-cream-dim text-[11px] font-semibold rounded-md hover:text-cream transition-colors"
-                        >
-                            <Download size={12} /> Export JSON
-                        </a>
-                    </div>
-                </div>
+                </section>
 
-                <div className="p-6 max-w-4xl mx-auto space-y-6">
-                    {/* Executive Summary */}
-                    <section className="bg-servos-surface border border-servos-border rounded-lg p-5">
-                        <h2 className="text-sm font-semibold text-cream-bright mb-3 flex items-center gap-2">
-                            <Shield size={14} className="text-accent" /> Executive Summary
-                        </h2>
-                        <p className="text-xs text-cream leading-relaxed">
+                <section className="doodle-panel p-6">
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3">
+                            <DoodleIcon name="dashboard" alt="Summary doodle" size="md" />
+                            <div>
+                                <h2 className="text-xl font-black text-cream-bright font-heading">
+                                    Executive Summary
+                                </h2>
+                                <p className="text-sm text-cream-dim">
+                                    Analyst-ready synopsis and risk assessment.
+                                </p>
+                            </div>
+                        </div>
+
+                        <p className="mt-5 text-sm leading-7 text-cream-bright">
                             {interpretation?.summary || 'No summary available.'}
                         </p>
-                        <div className="mt-3 flex items-center gap-2">
-                            <span className="text-[10px] text-cream-dim uppercase tracking-wider">Risk Assessment:</span>
-                            <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${interpretation?.risk === 'CRITICAL' ? 'bg-danger-muted text-danger border border-danger/20'
-                                    : interpretation?.risk === 'HIGH' ? 'bg-danger-muted text-danger border border-danger/20'
-                                        : 'bg-success-muted text-success border border-success/20'
-                                }`}>
+
+                        <div className="mt-5 flex flex-wrap items-center gap-3">
+                            <span className="text-[10px] uppercase tracking-[0.18em] text-cream-dim">
+                                Risk assessment
+                            </span>
+                            <span
+                                className={`rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] ${riskClass(
+                                    interpretation?.risk,
+                                )}`}
+                            >
                                 {interpretation?.risk || 'Unknown'}
                             </span>
                         </div>
-                    </section>
+                    </div>
+                </section>
 
-                    {/* Device Metadata */}
-                    <section className="bg-servos-surface border border-servos-border rounded-lg p-5">
-                        <h2 className="text-sm font-semibold text-cream-bright mb-3 flex items-center gap-2">
-                            <HardDrive size={14} className="text-accent" /> Device Metadata
-                        </h2>
-                        <div className="grid grid-cols-2 gap-3 text-xs">
-                            {Object.entries(device).map(([k, v]) => (
-                                <div key={k} className="flex justify-between py-1 border-b border-servos-border-dim/50">
-                                    <span className="text-cream-dim capitalize">{k.replace(/_/g, ' ')}</span>
-                                    <span className="text-cream font-mono text-[11px]">{String(v)}</span>
+                <div className="grid gap-5 xl:grid-cols-[0.95fr_1.05fr]">
+                    <section className="space-y-5">
+                        <div className="doodle-panel p-5">
+                            <div className="relative z-10">
+                                <div className="flex items-center gap-3">
+                                    <DoodleIcon name="hdd-drive" alt="Device metadata doodle" size="md" />
+                                    <div>
+                                        <h2 className="text-xl font-black text-cream-bright font-heading">
+                                            Device Metadata
+                                        </h2>
+                                        <p className="text-sm text-cream-dim">
+                                            Core evidence source details captured during investigation startup.
+                                        </p>
+                                    </div>
                                 </div>
-                            ))}
+
+                                <div className="mt-5 grid gap-3">
+                                    {Object.entries(device).length === 0 ? (
+                                        <p className="text-sm text-cream-dim">No device metadata available.</p>
+                                    ) : (
+                                        Object.entries(device).map(([key, value]) => (
+                                            <div
+                                                key={key}
+                                                className="rounded-[20px] border border-white/10 bg-white/[0.04] p-4"
+                                            >
+                                                <p className="text-[10px] uppercase tracking-[0.18em] text-cream-dim">
+                                                    {key.replace(/_/g, ' ')}
+                                                </p>
+                                                <p className="mt-2 break-all font-mono text-sm text-cream-bright">
+                                                    {String(value)}
+                                                </p>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
                         </div>
+
+                        {findings?.integrity_hashes && (
+                            <div className="doodle-panel p-5">
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-3">
+                                        <DoodleIcon name="settings" alt="Integrity doodle" size="md" />
+                                        <div>
+                                            <h2 className="text-xl font-black text-cream-bright font-heading">
+                                                Evidence Integrity Hashes
+                                            </h2>
+                                            <p className="text-sm text-cream-dim">
+                                                SHA-256 values for preserved evidence artifacts.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-5 max-h-80 space-y-2 overflow-y-auto">
+                                        {Object.entries(findings.integrity_hashes)
+                                            .slice(0, 20)
+                                            .map(([file, hash]) => (
+                                                <div
+                                                    key={file}
+                                                    className="rounded-[20px] border border-white/10 bg-white/[0.04] p-4"
+                                                >
+                                                    <p className="truncate text-sm text-cream-bright">{file}</p>
+                                                    <p className="mt-2 break-all font-mono text-xs text-cream-dim">
+                                                        {String(hash)}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </section>
 
-                    {/* Hash Table */}
-                    {findings?.integrity_hashes && (
-                        <section className="bg-servos-surface border border-servos-border rounded-lg p-5">
-                            <h2 className="text-sm font-semibold text-cream-bright mb-3 flex items-center gap-2">
-                                <Hash size={14} className="text-accent" /> Evidence Integrity Hashes
-                            </h2>
-                            <p className="text-[10px] text-cream-dim mb-2">SHA-256 hashes for evidence preservation</p>
-                            <div className="max-h-48 overflow-y-auto">
-                                {Object.entries(findings.integrity_hashes).slice(0, 20).map(([file, hash]) => (
-                                    <div key={file} className="flex gap-3 py-1 border-b border-servos-border-dim/30 text-[10px]">
-                                        <span className="text-cream truncate max-w-[40%]">{file}</span>
-                                        <span className="text-cream-dim font-mono">{String(hash).slice(0, 16)}...</span>
+                    <section className="space-y-5">
+                        {findings?.timeline_events?.length > 0 && (
+                            <div className="doodle-panel p-5">
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-3">
+                                        <DoodleIcon name="alerts" alt="Timeline doodle" size="md" />
+                                        <div>
+                                            <h2 className="text-xl font-black text-cream-bright font-heading">
+                                                Timeline
+                                            </h2>
+                                            <p className="text-sm text-cream-dim">
+                                                Chronological activity extracted from the evidence set.
+                                            </p>
+                                        </div>
                                     </div>
-                                ))}
-                            </div>
-                        </section>
-                    )}
 
-                    {/* Timeline */}
-                    {findings?.timeline_events?.length > 0 && (
-                        <section className="bg-servos-surface border border-servos-border rounded-lg p-5">
-                            <h2 className="text-sm font-semibold text-cream-bright mb-3 flex items-center gap-2">
-                                <Clock size={14} className="text-accent" /> Timeline
-                            </h2>
-                            <div className="space-y-2 max-h-64 overflow-y-auto">
-                                {findings.timeline_events.map((e: any, i: number) => (
-                                    <div key={i} className="flex items-start gap-3 text-xs">
-                                        <span className="text-cream-dim font-mono text-[10px] shrink-0 w-32">{e.timestamp}</span>
-                                        <span className="text-cream">{e.description}</span>
+                                    <div className="mt-5 space-y-3">
+                                        {findings.timeline_events.map((event: any, index: number) => (
+                                            <div
+                                                key={`${event.timestamp}-${index}`}
+                                                className="rounded-[20px] border border-white/10 bg-white/[0.04] p-4"
+                                            >
+                                                <p className="text-[10px] uppercase tracking-[0.18em] text-cream-dim">
+                                                    {event.timestamp}
+                                                </p>
+                                                <p className="mt-2 text-sm leading-6 text-cream-bright">
+                                                    {event.description}
+                                                </p>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
+                                </div>
                             </div>
-                        </section>
-                    )}
+                        )}
 
-                    {/* Recommendations */}
-                    {interpretation?.recommendations?.length > 0 && (
-                        <section className="bg-servos-surface border border-servos-border rounded-lg p-5">
-                            <h2 className="text-sm font-semibold text-cream-bright mb-3 flex items-center gap-2">
-                                <AlertTriangle size={14} className="text-warning" /> Recommendations
-                            </h2>
-                            <ul className="space-y-2">
-                                {interpretation.recommendations.map((r: string, i: number) => (
-                                    <li key={i} className="flex items-start gap-2 text-xs text-cream">
-                                        <CheckCircle2 size={12} className="text-accent shrink-0 mt-0.5" />
-                                        {r}
-                                    </li>
-                                ))}
-                            </ul>
-                        </section>
-                    )}
+                        {interpretation?.recommendations?.length > 0 && (
+                            <div className="doodle-panel p-5">
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-3">
+                                        <DoodleIcon name="threat" alt="Recommendations doodle" size="md" />
+                                        <div>
+                                            <h2 className="text-xl font-black text-cream-bright font-heading">
+                                                Recommendations
+                                            </h2>
+                                            <p className="text-sm text-cream-dim">
+                                                Suggested next steps based on the investigation interpretation.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-5 space-y-3">
+                                        {interpretation.recommendations.map((recommendation: string, index: number) => (
+                                            <div
+                                                key={`${recommendation}-${index}`}
+                                                className="rounded-[20px] border border-white/10 bg-white/[0.04] p-4 text-sm leading-7 text-cream-bright"
+                                            >
+                                                {recommendation}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </section>
                 </div>
             </div>
         </PageTransition>
